@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Installer>
+	<Name>Qonvince</Name>
+	<Version>1.2.5</Version>
+	<Title>Qonvince</Title>
+	<Publisher>Équit</Publisher>
+	<StartMenuDir>Qonvince</StartMenuDir>
+	<TargetDir>@ApplicationsDir@/Qonvince</TargetDir>
+</Installer>

@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Qonvince::MainWindow</class>
+ <widget class="QMainWindow" name="Qonvince::MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>400</width>
+    <height>300</height>
+   </rect>
+  </property>
+  <property name="acceptDrops">
+   <bool>true</bool>
+  </property>
+  <property name="windowTitle">
+   <string>Qonvince</string>
+  </property>
+  <property name="windowIcon">
+   <iconset resource="../icons.qrc">
+    <normaloff>:/icons/applicationIcon</normaloff>:/icons/applicationIcon</iconset>
+  </property>
+  <widget class="QWidget" name="centralWidget">
+   <layout class="QVBoxLayout" name="verticalLayout">
+    <item>
+     <widget class="Qonvince::OtpListWidget" name="codes">
+      <property name="minimumSize">
+       <size>
+        <width>350</width>
+        <height>100</height>
+       </size>
+      </property>
+      <property name="selectionMode">
+       <enum>QAbstractItemView::NoSelection</enum>
+      </property>
+      <property name="selectionBehavior">
+       <enum>QAbstractItemView::SelectRows</enum>
+      </property>
+      <property name="verticalScrollMode">
+       <enum>QAbstractItemView::ScrollPerItem</enum>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <layout class="QHBoxLayout" name="controlLayout">
+      <item>
+       <widget class="QToolButton" name="settings">
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Adjust the settings for Qonvince.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
+        <property name="icon">
+         <iconset theme="configure-shortcuts">
+          <normaloff>.</normaloff>.</iconset>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <widget class="QPushButton" name="addCode">
+        <property name="toolTip">
+         <string>Add a new code to the list.</string>
+        </property>
+        <property name="text">
+         <string>Add</string>
+        </property>
+        <property name="icon">
+         <iconset theme="list-add">
+          <normaloff>.</normaloff>.</iconset>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menuBar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>400</width>
+     <height>30</height>
+    </rect>
+   </property>
+  </widget>
+ </widget>
+ <layoutdefault spacing="6" margin="11"/>
+ <customwidgets>
+  <customwidget>
+   <class>Qonvince::OtpListWidget</class>
+   <extends>QListWidget</extends>
+   <header>src/otplistwidget.h</header>
+  </customwidget>
+ </customwidgets>
+ <tabstops>
+  <tabstop>codes</tabstop>
+  <tabstop>addCode</tabstop>
+ </tabstops>
+ <resources>
+  <include location="../icons.qrc"/>
+ </resources>
+ <connections>
+  <connection>
+   <sender>addCode</sender>
+   <signal>clicked()</signal>
+   <receiver>Qonvince::MainWindow</receiver>
+   <slot>onAddCodeClicked()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>392</x>
+     <y>292</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>260</x>
+     <y>266</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>settings</sender>
+   <signal>clicked()</signal>
+   <receiver>Qonvince::MainWindow</receiver>
+   <slot>onSettingsClicked()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>25</x>
+     <y>268</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>401</x>
+     <y>104</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+ <slots>
+  <slot>onAddCodeClicked()</slot>
+  <slot>onSettingsClicked()</slot>
+ </slots>
+</ui>

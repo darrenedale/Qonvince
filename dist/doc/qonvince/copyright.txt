@@ -1,0 +1,12 @@
+qonvince
+
+Copyright: Darren Edale <darren at equituk dot net>
+
+2015-12-20
+
+Qonvince does not yet have a home page on the web.
+
+The entire code base may be distributed under the terms of the GNU General
+Public License (GPL), which appears immediately below.
+
+See /usr/share/common-licenses/GPL

@@ -1,0 +1,373 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Qonvince::SettingsWidget</class>
+ <widget class="QWidget" name="Qonvince::SettingsWidget">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>708</width>
+    <height>464</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Qonvince : Settings</string>
+  </property>
+  <layout class="QHBoxLayout" name="horizontalLayout_5">
+   <item>
+    <layout class="QVBoxLayout" name="logoLayout">
+     <item>
+      <widget class="QLabel" name="logo">
+       <property name="maximumSize">
+        <size>
+         <width>64</width>
+         <height>64</height>
+        </size>
+       </property>
+       <property name="toolTip">
+        <string>Qonvince by Darren Edale.</string>
+       </property>
+       <property name="pixmap">
+        <pixmap resource="../icons.qrc">:/icons/applicationIcon</pixmap>
+       </property>
+       <property name="scaledContents">
+        <bool>true</bool>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="logoSpacer">
+       <property name="orientation">
+        <enum>Qt::Vertical</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>20</width>
+         <height>40</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QVBoxLayout" name="widgetsLayout">
+     <item>
+      <widget class="QLabel" name="heading">
+       <property name="font">
+        <font>
+         <pointsize>16</pointsize>
+         <weight>75</weight>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="text">
+        <string>Settings</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QGroupBox" name="appGroup">
+       <property name="font">
+        <font>
+         <weight>50</weight>
+         <bold>false</bold>
+        </font>
+       </property>
+       <property name="title">
+        <string>App</string>
+       </property>
+       <layout class="QVBoxLayout" name="verticalLayout">
+        <item>
+         <widget class="QCheckBox" name="singleInstance">
+          <property name="toolTip">
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If Qonvince is already running when you start it, the new instance will quit immediately.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          </property>
+          <property name="text">
+           <string>Only allow one running instance of Qonvince at a time</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="quitOnMainWindowClose">
+          <property name="toolTip">
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When you close the main window, Qonvince will quit. Usually Qonvince continues running in the system tray when you close the main window.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Even with this set, auto-hiding the main window when you click-to-copy a code will &lt;/span&gt;&lt;span style=&quot; font-weight:600; font-style:italic;&quot;&gt;not&lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt; cause Qonvince to quit.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          </property>
+          <property name="text">
+           <string>Quit Qonvince when the main window is closed</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="startMinimised">
+          <property name="toolTip">
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When Qonvince starts, it will not show any windows and will only place its icon in the system tray.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;On some platforms, the Qonvince icon in the system tray might be hidden by default.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          </property>
+          <property name="text">
+           <string>Start Qonvince minimised to the system tray</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item>
+      <widget class="QGroupBox" name="clipboardGroup">
+       <property name="title">
+        <string>Clipboard</string>
+       </property>
+       <layout class="QVBoxLayout" name="verticalLayout_3">
+        <item>
+         <widget class="QCheckBox" name="copyCodeOnClick">
+          <property name="toolTip">
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When a code is clicked in the main window, the current code is immediately copied to the clipboard.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          </property>
+          <property name="text">
+           <string>When an item is clicked, copy its current code to the clipboard</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="hideOnCopyClickLayout">
+          <item>
+           <spacer name="indentSpacer">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeType">
+             <enum>QSizePolicy::Fixed</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>20</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="hideOnCodeCopyClick">
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;When the main window is hidden in this way, Qonvince does not quit even if the &lt;/span&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Quit on close&lt;/span&gt;&lt;span style=&quot; font-style:italic;&quot;&gt; setting above is selected.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="text">
+             <string>and also hide the main window</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="clearClipboardIntervalLayout">
+          <item>
+           <widget class="QCheckBox" name="clearClipboardAfterInterval">
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;For security, Qonvince can clear your codes from the clipboard after a given timeout so that the code does not remain indefinitely on the clipboard.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="text">
+             <string>When a code is copied, clear it from the clipboard after</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QSpinBox" name="clipboardClearInterval">
+            <property name="toolTip">
+             <string>The time, in seconds, between a code being copied to the clipboard and that code being removed from the clipboard.</string>
+            </property>
+            <property name="suffix">
+             <string> seconds</string>
+            </property>
+            <property name="maximum">
+             <number>120</number>
+            </property>
+            <property name="value">
+             <number>30</number>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <spacer name="clearClipboardIntervalSpacer">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item>
+      <widget class="QGroupBox" name="viewGroup">
+       <property name="title">
+        <string>View</string>
+       </property>
+       <layout class="QVBoxLayout" name="verticalLayout_4">
+        <item>
+         <layout class="QHBoxLayout" name="revealTimeoutLayout">
+          <item>
+           <widget class="QLabel" name="revealTimeoutLabel">
+            <property name="text">
+             <string>When a hidden code is revealed, hide it again after</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QSpinBox" name="revealTimeout">
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The number of seconds for which hidden codes are shown when you click the &lt;span style=&quot; font-style:italic;&quot;&gt;Reveal&lt;/span&gt; icon.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="suffix">
+             <string> seconds</string>
+            </property>
+            <property name="minimum">
+             <number>1</number>
+            </property>
+            <property name="maximum">
+             <number>120</number>
+            </property>
+            <property name="value">
+             <number>5</number>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <spacer name="revealTimeoutSpacer">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="displayStyleLayout" stretch="0,0,1">
+          <item>
+           <widget class="QLabel" name="displayStyleLabel">
+            <property name="toolTip">
+             <string>Choose how you would like your authentication codes to be labeled.</string>
+            </property>
+            <property name="text">
+             <string>Display item labels as</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QComboBox" name="codeLabelDisplayStyle">
+            <property name="toolTip">
+             <string>Choose how you would like your authentication codes to be labeled.</string>
+            </property>
+            <item>
+             <property name="text">
+              <string>issuer and name</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>name only</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>issuer only</string>
+             </property>
+            </item>
+           </widget>
+          </item>
+          <item>
+           <spacer name="displayStyleSpacer">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+         </layout>
+        </item>
+       </layout>
+       <zorder></zorder>
+       <zorder></zorder>
+      </widget>
+     </item>
+     <item>
+      <spacer name="widgetLayoutBottomSpacer">
+       <property name="orientation">
+        <enum>Qt::Vertical</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>20</width>
+         <height>40</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <resources>
+  <include location="../icons.qrc"/>
+ </resources>
+ <connections>
+  <connection>
+   <sender>copyCodeOnClick</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>hideOnCodeCopyClick</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>157</x>
+     <y>119</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>169</x>
+     <y>147</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>clearClipboardAfterInterval</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>clipboardClearInterval</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>141</x>
+     <y>177</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>356</x>
+     <y>185</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+ <slots>
+  <slot>setSingleInstance(bool)</slot>
+  <slot>setStartMinimised(bool)</slot>
+  <slot>setCopyCodeOnClick(bool)</slot>
+  <slot>setQuitOnMainWindowClose(bool)</slot>
+  <slot>displayStyleWidgetChanged()</slot>
+ </slots>
+</ui>

@@ -1,0 +1,27 @@
+.TH qonvince 1 "December 2015" Linux "User Manuals"
+.SH NAME
+qonvince \- A qt-based application for generating OTP codes (TOTP)
+.SH SYNOPSIS
+.B qonvince
+.SH DESCRIPTION
+Qonvince works as a single point of reference for all your two-factor
+authentication codes using the TOTP algorithm. Like Google Authenticator,
+it is set up with the TOTP definition (usually just the shared secret, but
+all TOTP parameters can be adjusted) and it will continuously generate and
+display your one-time codes for authentication with your services. It uses
+Qt5 to provide a simple and comfortable user interface.
+.SH ARGUMENTS
+There are currently no command-line arguments.
+.SH FILES
+.I ~/.conf/Équit/Qonvice/QOnvince.ini
+.RS
+The file that stores the configuration for your OTP codes. The secret for
+each configured service is stored in this file in an encrypted form. The
+encryption is not particularly strong, but should protect against idle
+snoopers.
+.RE
+.SH BUGS
+Qonvince currently has no known bugs. It is currently in active development
+and has planned new features.
+.SH AUTHOR
+Darren Edale <software at equituk dot net>

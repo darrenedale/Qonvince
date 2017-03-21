@@ -1,0 +1,11 @@
+[Desktop Entry]
+Name=Qonvince Qt4
+Comment=OTP generator for Qt4
+GenericName=OTP generator for Qt4
+Exec=qonvince-qt4
+Terminal=false
+Type=Application
+Icon=qonvince
+Categories=Application;Qt;Utility;
+MimeType=
+StartupNotify=true

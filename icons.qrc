@@ -1,0 +1,20 @@
+<RCC>
+    <qresource prefix="/icons/codeactions">
+        <file alias="remove">icons/codeactions/remove.svg</file>
+        <file alias="refresh">icons/codeactions/refresh.svg</file>
+        <file alias="copy">icons/codeactions/copy.svg</file>
+        <file alias="reveal">icons/codeactions/reveal.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file alias="applicationIcon">icons/idcard.svg</file>
+        <file alias="tray">icons/systray.svg</file>
+        <file alias="code-default">icons/default_code_icon.svg</file>
+    </qresource>
+    <qresource prefix="/icons/app">
+        <file alias="quit">icons/app/quit.svg</file>
+    </qresource>
+    <qresource prefix="/icons/mainwindow">
+        <file alias="add">icons/mainwindow/list-add.svg</file>
+        <file alias="settings">icons/mainwindow/settings2.svg</file>
+    </qresource>
+</RCC>

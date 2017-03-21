@@ -1,0 +1,635 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Qonvince::OtpEditor</class>
+ <widget class="QWidget" name="Qonvince::OtpEditor">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>385</width>
+    <height>460</height>
+   </rect>
+  </property>
+  <property name="acceptDrops">
+   <bool>true</bool>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <property name="toolTip">
+   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Drop a QR code image file on this window to decode it.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_2">
+     <item>
+      <widget class="QPushButton" name="icon">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>40</width>
+         <height>40</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>40</width>
+         <height>40</height>
+        </size>
+       </property>
+       <property name="toolTip">
+        <string>Click to choose the code's icon.</string>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+       <property name="iconSize">
+        <size>
+         <width>32</width>
+         <height>32</height>
+        </size>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="headingLabel">
+       <property name="font">
+        <font>
+         <pointsize>16</pointsize>
+         <weight>75</weight>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QGridLayout" name="gridLayout">
+     <item row="3" column="0">
+      <widget class="QLabel" name="seedLabel">
+       <property name="text">
+        <string>Seed</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="1">
+      <widget class="QLineEdit" name="nameEdit">
+       <property name="toolTip">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;A short name for the code that will enable you to identify what it is used for.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;This is only used for you to identify the service and/or account for which codes are being generated. You can change it to whatever you find most useful.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
+       <property name="placeholderText">
+        <string>Name...</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="0">
+      <widget class="QLabel" name="typeLabel">
+       <property name="text">
+        <string>Type</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <widget class="QLineEdit" name="issuerEdit">
+       <property name="toolTip">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The organisation or entity that issued the code.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;This is only used for you to identify the service for which codes are being generated. You can change it to whatever you find most useful.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
+       <property name="placeholderText">
+        <string>Issuer...</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="0">
+      <widget class="QLabel" name="nameLabel">
+       <property name="text">
+        <string>Name</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="0">
+      <widget class="QLabel" name="issuerLabel">
+       <property name="text">
+        <string>Issuer</string>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="1">
+      <widget class="QLineEdit" name="seedEdit">
+       <property name="minimumSize">
+        <size>
+         <width>300</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="toolTip">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Type or paste the shared secret for the OTP. It must be base32 encoded.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Leave this blank to keep the existing seed.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
+       <property name="placeholderText">
+        <string>Base32 encoded seed...</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="1">
+      <layout class="QHBoxLayout" name="horizontalLayout">
+       <item>
+        <widget class="QRadioButton" name="totpButton">
+         <property name="toolTip">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Time-based One Time Passcode. New codes are generated continuously at specified intervals, commonly 30 seconds.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+         <property name="text">
+          <string>T&amp;OTP</string>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QRadioButton" name="hotpButton">
+         <property name="toolTip">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;HMAC-based One Time Passcode. New codes are only generated when required (i.e. when you need to log in to the service).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+         <property name="text">
+          <string>HOTP</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="horizontalSpacer">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </item>
+     <item row="4" column="1">
+      <widget class="QCheckBox" name="revealOnDemand">
+       <property name="toolTip">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Passcodes for this service will remain hidden until you choose to reveal them by clicking the &lt;span style=&quot; font-style:italic;&quot;&gt;Reveal &lt;/span&gt;icon in the list.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Qonvince continues to generate hidden codes, and the codes can still be copied to the clipboard.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
+       <property name="text">
+        <string>Hide codes for this service until I ask to see them</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <widget class="QCheckBox" name="advancedSettingsToggle">
+     <property name="toolTip">
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Show advanced settings that affect how the OTP is calculated.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Altering these settings will change the generated codes and may cause the codes to become de-synchronised with the service for which they are intended to be used. Change these settings only if you know what you are doing.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     </property>
+     <property name="text">
+      <string>Show advanced settings</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QWidget" name="advancedSettingsWidget" native="true">
+     <layout class="QGridLayout" name="advancedSettingsLayout" columnstretch="0,1">
+      <property name="leftMargin">
+       <number>0</number>
+      </property>
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+      <property name="rightMargin">
+       <number>0</number>
+      </property>
+      <property name="bottomMargin">
+       <number>0</number>
+      </property>
+      <item row="0" column="0">
+       <widget class="QLabel" name="digitsLabel">
+        <property name="text">
+         <string>Digits</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QSpinBox" name="digitsSpin">
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The number of digits to use for generated codes. This can be 6, 7 or 8.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;If you change the number of digits to a value that is not the same as the one the issuer has, the generated codes will be incorrect.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
+        <property name="minimum">
+         <number>6</number>
+        </property>
+        <property name="maximum">
+         <number>8</number>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="intervalLabel">
+        <property name="text">
+         <string>Interval</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QSpinBox" name="intervalSpin">
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The interval, in seconds, between new TOTP codes being generated.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;If you change the interval to a value that is not the same as the one the issuer has, the generated codes will be incorrect.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
+        <property name="specialValueText">
+         <string>Default</string>
+        </property>
+        <property name="accelerated">
+         <bool>true</bool>
+        </property>
+        <property name="suffix">
+         <string>s</string>
+        </property>
+        <property name="maximum">
+         <number>3600</number>
+        </property>
+        <property name="singleStep">
+         <number>5</number>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="baseTimeLabel">
+        <property name="text">
+         <string>Base time</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="QDateTimeEdit" name="baseTimeEdit">
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The baseline time from which intervals for TOTP codes are measured.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;If you change the date to a value that is not the same as the one the issuer has, the generated codes will be incorrect.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
+        <property name="specialValueText">
+         <string>01/01/1971 01:00:00 (Default)</string>
+        </property>
+        <property name="dateTime">
+         <datetime>
+          <hour>1</hour>
+          <minute>0</minute>
+          <second>0</second>
+          <year>1970</year>
+          <month>1</month>
+          <day>1</day>
+         </datetime>
+        </property>
+        <property name="date">
+         <date>
+          <year>1970</year>
+          <month>1</month>
+          <day>1</day>
+         </date>
+        </property>
+        <property name="time">
+         <time>
+          <hour>1</hour>
+          <minute>0</minute>
+          <second>0</second>
+         </time>
+        </property>
+        <property name="minimumDateTime">
+         <datetime>
+          <hour>1</hour>
+          <minute>0</minute>
+          <second>0</second>
+          <year>1970</year>
+          <month>1</month>
+          <day>1</day>
+         </datetime>
+        </property>
+        <property name="minimumDate">
+         <date>
+          <year>1970</year>
+          <month>1</month>
+          <day>1</day>
+         </date>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="0">
+       <widget class="QLabel" name="counterLabel">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="text">
+         <string>Counter</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="1">
+       <layout class="QHBoxLayout" name="counterLayout">
+        <item>
+         <widget class="QSpinBox" name="counterSpin">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="toolTip">
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The counter for the HOTP code. This will be incremented each time a new code is generated.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;If you change the counter to a value that is not the same as the one the issuer has, the generated codes will be incorrect.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          </property>
+          <property name="specialValueText">
+           <string>Default</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QToolButton" name="resetCounterButton">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="text">
+           <string>...</string>
+          </property>
+          <property name="icon">
+           <iconset theme="edit-undo">
+            <normaloff>.</normaloff>.</iconset>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <spacer name="verticalSpacer">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>40</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="controlLayout">
+     <item>
+      <spacer name="controlSpacer">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QPushButton" name="createBarcodeButton">
+       <property name="toolTip">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Create a barcode of the settings for this service. You will be able to use the barcode to set up the OTP for this service at a later date should it be removed from Qonvince for any reason.&lt;/p&gt;&lt;p&gt;Generated barcodes should be compatible with other OTP client apps that are able to read OTP service settings from barcodes.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;You should ensure you store the generated barcode securely - if it is stolen, the thief may be able to gain access to your account.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
+       <property name="text">
+        <string>Create Barcode</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="readBarcodeButton">
+       <property name="toolTip">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Read the settings for this service's OTP from a barcode image.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
+       <property name="text">
+        <string>Read Barcode</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="doneButton">
+       <property name="toolTip">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Close this editor.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
+       <property name="text">
+        <string>Done</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <tabstops>
+  <tabstop>totpButton</tabstop>
+  <tabstop>hotpButton</tabstop>
+  <tabstop>issuerEdit</tabstop>
+  <tabstop>nameEdit</tabstop>
+  <tabstop>seedEdit</tabstop>
+  <tabstop>advancedSettingsToggle</tabstop>
+  <tabstop>digitsSpin</tabstop>
+  <tabstop>intervalSpin</tabstop>
+  <tabstop>baseTimeEdit</tabstop>
+  <tabstop>counterSpin</tabstop>
+  <tabstop>resetCounterButton</tabstop>
+  <tabstop>createBarcodeButton</tabstop>
+  <tabstop>readBarcodeButton</tabstop>
+  <tabstop>doneButton</tabstop>
+  <tabstop>icon</tabstop>
+ </tabstops>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>doneButton</sender>
+   <signal>clicked()</signal>
+   <receiver>Qonvince::OtpEditor</receiver>
+   <slot>deleteLater()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>376</x>
+     <y>410</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>383</x>
+     <y>174</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>readBarcodeButton</sender>
+   <signal>clicked()</signal>
+   <receiver>Qonvince::OtpEditor</receiver>
+   <slot>readBarcode()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>286</x>
+     <y>410</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>383</x>
+     <y>281</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>createBarcodeButton</sender>
+   <signal>clicked()</signal>
+   <receiver>Qonvince::OtpEditor</receiver>
+   <slot>createBarcode()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>179</x>
+     <y>410</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>383</x>
+     <y>270</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>resetCounterButton</sender>
+   <signal>clicked()</signal>
+   <receiver>Qonvince::OtpEditor</receiver>
+   <slot>resetCounter()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>376</x>
+     <y>362</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>383</x>
+     <y>241</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>totpButton</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>counterSpin</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>203</x>
+     <y>101</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>338</x>
+     <y>362</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>totpButton</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>baseTimeEdit</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>211</x>
+     <y>101</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>377</x>
+     <y>330</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>totpButton</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>Qonvince::OtpEditor</receiver>
+   <slot>emitTypeChanged()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>211</x>
+     <y>101</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>199</x>
+     <y>149</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>totpButton</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>intervalSpin</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>211</x>
+     <y>101</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>377</x>
+     <y>297</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>advancedSettingsToggle</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>advancedSettingsWidget</receiver>
+   <slot>setVisible(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>20</x>
+     <y>231</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>10</x>
+     <y>308</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>icon</sender>
+   <signal>clicked()</signal>
+   <receiver>Qonvince::OtpEditor</receiver>
+   <slot>chooseIcon()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>48</x>
+     <y>39</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>280</x>
+     <y>5</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+ <slots>
+  <signal>nameChanged(QString)</signal>
+  <signal>seedChanged(QString)</signal>
+  <signal>durationChanged(int)</signal>
+  <signal>digitsChanged(int)</signal>
+  <signal>counterChanged(int)</signal>
+  <signal>issuerChanged(QString)</signal>
+  <signal>typeChanged(Qonvince::OtpCode::CodeType)</signal>
+  <signal>iconChanged(QIcon)</signal>
+  <slot>setName(QString)</slot>
+  <slot>setSeed(QString)</slot>
+  <slot>setDuration(int)</slot>
+  <slot>readBarcode()</slot>
+  <slot>createBarcode()</slot>
+  <slot>setCounter(int)</slot>
+  <slot>setDigits(int)</slot>
+  <slot>emitTypeChanged()</slot>
+  <slot>resetCounter()</slot>
+  <slot>toggleAdvancedSettings(bool)</slot>
+  <slot>chooseIcon()</slot>
+ </slots>
+</ui>
