@@ -66,7 +66,6 @@ HEADERS  += \
     src/otplistwidgetitem.h
 
 FORMS    += \
-    dist/installer/packages/com.equit.qonvince/meta/page.ui \
     ui/passwordwidget.ui \
     ui/aboutdialogue.ui \
     ui/mainwindow.ui \
