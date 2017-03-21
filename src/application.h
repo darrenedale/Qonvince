@@ -144,7 +144,7 @@ namespace Qonvince {
 					QSharedMemory m_sharedMem;
 					QSystemSemaphore m_memLock;
 
-					Q_DISABLE_COPY(MultipleInstanceChecker)
+					Q_DISABLE_COPY(SingleInstanceGuard)
 			};
 
 			static bool ensureDirectory( const QStandardPaths::StandardLocation & location, const QString & path );
