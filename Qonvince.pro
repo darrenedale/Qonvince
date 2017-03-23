@@ -13,8 +13,17 @@ greaterThan(QT_MAJOR_VERSION, 4) {
 TARGET = Qonvince
 TEMPLATE = app
 
-# TODO msvc uses different command line options
-QMAKE_CXXFLAGS += -O2 -std=c++11
+*-g++ {
+    QMAKE_CXXFLAGS += -O2 -std=c++11
+}
+
+*-clang {
+    QMAKE_CXXFLAGS += -O2 -std=c++11
+}
+
+*-msvc* {
+    QMAKE_CXXFLAGS += /O2
+}
 
 win32 {
 }
