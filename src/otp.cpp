@@ -40,6 +40,7 @@
 
 #include "application.h"
 #include "crypt.h"
+#include "integerotpdisplayplugin.h"
 
 
 #if !defined(QONVINCE_OTPCODE_SEED_CRYPT_KEY)
@@ -81,10 +82,11 @@ Otp::Otp( const CodeType & type, const QString & issuer, const QString & name, c
 	m_revealOnDemand(false),
 	m_counter(0),
 	m_interval(DefaultInterval),
-	m_digits(DefaultDigits),
+//	m_digits(DefaultDigits),
 	m_baselineTime(0),
 	m_refreshTimer(nullptr),
-	m_resync(false) {
+	m_resync(false),
+	m_displayPlugin(nullptr) {
 	blockSignals(true);
 	m_refreshTimer = new QBasicTimer();
 	setSeed(seed, seedType);
@@ -195,6 +197,10 @@ QByteArray Otp::seed( const SeedType & seedType ) const {
 	return m_seed.plain();
 }
 
+const QString &Otp::code() {
+	return m_currentCode;
+}
+
 
 bool Otp::setSeed( const QByteArray & newSeed, const SeedType & seedType ) {
 	QByteArray oldSeed, oldB32;
@@ -249,6 +255,12 @@ void Otp::setInterval( const int & duration ) {
 	}
 }
 
+bool Otp::setDisplayPlugin( OtpDisplayPlugin * plugin ) {
+	m_displayPlugin = plugin;
+	refreshCode();
+	return true;
+}
+
 
 void Otp::setBaselineTime( const qint64 & secSinceEpoch ) {
 	if(secSinceEpoch != m_baselineTime) {
@@ -274,7 +286,21 @@ Otp * Otp::fromSettings( const QSettings & settings ) {
 	Otp * ret = new Otp(t);
 	ret->setName(settings.value("name").toString());
 	ret->setIssuer(settings.value("issuer").toString());
-	ret->setDigits(settings.value("digits").toInt());
+
+	QString pluginName = settings.value("pluginName").toString();
+
+	/* in old files, the number of digits will be stored, so if there's no
+	 * plugin name, look for that instead */
+	if(pluginName.isEmpty()) {
+		bool ok;
+		int digits = settings.value("digits").toInt(&ok);
+
+		if(ok) {
+			pluginName = QString("%1-digit number").arg(digits);
+		}
+	}
+
+	ret->setDisplayPlugin(qonvinceApp->codeDisplayPluginByName(pluginName));
 
 	/* read icon path and load icon */
 	QString fileName = settings.value("icon").toString();
@@ -344,7 +370,14 @@ void Otp::writeSettings( QSettings & settings ) const {
 		settings.setValue("icon", m_iconFileName);
 	}
 
-	settings.setValue("digits", digits());
+//	settings.setValue("digits", m_displayPlugin->digits());
+	if(m_displayPlugin) {
+		settings.setValue("pluginName", m_displayPlugin->pluginName());
+	}
+	else {
+		settings.setValue("pluginName", "");
+	}
+
 	Crypt::ErrorCode err;
 	settings.setValue("seed", c.encrypt(seed(Base32Seed), &err));
 
@@ -374,6 +407,12 @@ void Otp::timerEvent( QTimerEvent * ev ) {
 
 
 void Otp::refreshCode( void ) {
+	if(!m_displayPlugin) {
+		qWarning() << "no display plugin";
+		m_currentCode = QString();
+		return;
+	}
+
 	QByteArray mySeed(seed());
 
 	if(0 == mySeed.length()) {
@@ -385,7 +424,7 @@ void Otp::refreshCode( void ) {
 	QString code;
 
 	if(HotpCode == m_type) {
-		m_currentCode = hotp(mySeed, counter(), m_digits);
+		m_currentCode = hotp(mySeed, m_displayPlugin, counter());
 		Q_EMIT newCodeGenerated(m_currentCode);
 	}
 	else {
@@ -395,7 +434,7 @@ void Otp::refreshCode( void ) {
 			d = 30;
 		}
 
-		code = totp(mySeed, baselineSecSinceEpoch(), d, m_digits);
+		code = totp(mySeed, m_displayPlugin, baselineSecSinceEpoch(), d);
 
 		if(!code.isEmpty()) {
 			if(m_currentCode != code) {
@@ -439,13 +478,15 @@ void Otp::internalRefreshCode( void ) {
 
 /* hmac() hotp() and totp() are candidates for optimisation - they are the most-called
  * in-application functions */
-QString Otp::totp( const QByteArray & seed, time_t base, int interval, int digits ) {
+QString Otp::totp( const QByteArray & seed, OtpDisplayPlugin * plugin, time_t base, int interval ) {
 	quint64 c = std::floor((QDateTime::currentDateTime().toUTC().toTime_t() - base) / interval);
-	return hotp(seed, c, digits);
+	return hotp(seed, plugin, c);
 }
 
 
-QString Otp::hotp( const QByteArray & seed, quint64 counter, int digits ) {
+QString Otp::hotp( const QByteArray & seed, OtpDisplayPlugin * plugin, quint64 counter ) {
+	Q_ASSERT(plugin);
+
 	/* convert and pad counter to array of 8 bytes */
 	char myCounter[8];
 	quint64 c = counter;
@@ -458,18 +499,7 @@ QString Otp::hotp( const QByteArray & seed, quint64 counter, int digits ) {
 	/* get hash */
 	QByteArray res = hmac(seed, QByteArray(myCounter, 8));
 
-	/* calculate offset and read value from 4 bytes at offset */
-	int offset = ((char) res[19]) & 0xf;
-	quint32 ret = (res[offset] & 0x7f) << 24 | (res[offset + 1] & 0xff) << 16 | (res[offset + 2] & 0xff) << 8 | (res[offset + 3] & 0xff);
-
-	/* convert value to requested number of digits */
-	int mod = 1;
-
-	for(int i = 0; i < digits; ++i) {
-		mod *= 10;
-	}
-
-	return QString::number(ret % mod).rightJustified(digits, '0');
+	return plugin->displayString(res);
 }
 
 

@@ -13,7 +13,7 @@ namespace Qonvince {
 			virtual QString pluginDescription( void ) const = 0;
 			virtual QString pluginAuthor( void ) const = 0;
 
-			virtual QString codeDisplayString( const QByteArray & hmac ) const = 0;
+			virtual QString displayString( const QByteArray & hmac ) const = 0;
 	};
 }
 

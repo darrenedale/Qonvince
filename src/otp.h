@@ -33,6 +33,8 @@ class QTimerEvent;
 class QSettings;
 
 namespace Qonvince {
+	class OtpDisplayPlugin;
+
 	class Otp
 	:	public QObject {
 
@@ -41,7 +43,7 @@ namespace Qonvince {
 		Q_PROPERTY(QString name READ name WRITE setName NOTIFY nameChanged)
 		Q_PROPERTY(QString issuer READ issuer WRITE setIssuer NOTIFY issuerChanged)
 		Q_PROPERTY(QByteArray seed READ seed WRITE setSeed NOTIFY seedChanged)
-		Q_PROPERTY(int digits READ digits WRITE setDigits NOTIFY digitsChanged)
+//		Q_PROPERTY(int digits READ digits WRITE setDigits NOTIFY digitsChanged)
 		Q_PROPERTY(int interval READ interval WRITE setInterval NOTIFY intervalChanged)
 		Q_PROPERTY(QDateTime baselineTime READ baselineTime WRITE setBaselineTime NOTIFY baselineTimeChanged)
 		Q_PROPERTY(int counter READ counter WRITE setCounter NOTIFY counterChanged)
@@ -86,9 +88,9 @@ namespace Qonvince {
 				return m_icon;
 			}
 
-			inline int digits( void ) const {
-				return m_digits;
-			}
+//			inline int digits( void ) const {
+//				return m_digits;
+//			}
 
 			QByteArray seed( const SeedType & seedType = PlainSeed ) const;
 
@@ -136,9 +138,7 @@ namespace Qonvince {
 				return d - timeSinceLastCode();
 			}
 
-			inline const QString & code( void ) {
-				return m_currentCode;
-			}
+			const QString & code( void );
 
 			void writeSettings( QSettings & settings ) const;
 
@@ -182,20 +182,22 @@ namespace Qonvince {
 			bool setSeed( const QByteArray & seed, const SeedType & seedType = PlainSeed );
 			void setInterval( const int & duration );
 
-			inline bool setDigits( int digits ) {
-				if(digits >= 6 && digits <= 8) {
-					if(digits != m_digits) {
-						qSwap(m_digits, digits);
-						Q_EMIT digitsChanged(digits, m_digits);
-						Q_EMIT digitsChanged(m_digits);
-						Q_EMIT changed();
-					}
+//			inline bool setDigits( int digits ) {
+//				if(digits >= 6 && digits <= 8) {
+//					if(digits != m_digits) {
+//						qSwap(m_digits, digits);
+//						Q_EMIT digitsChanged(digits, m_digits);
+//						Q_EMIT digitsChanged(m_digits);
+//						Q_EMIT changed();
+//					}
 
-					return true;
-				}
+//					return true;
+//				}
 
-				return false;
-			}
+//				return false;
+//			}
+
+			bool setDisplayPlugin( OtpDisplayPlugin * plugin );
 
 			inline void setRevealOnDemand( bool onDemandOnly ) {
 				if(onDemandOnly != m_revealOnDemand) {
@@ -230,10 +232,10 @@ namespace Qonvince {
 		private Q_SLOTS:
 			void internalRefreshCode();
 
-		public:
-			static QString totp( const QByteArray & seed, time_t base = 0, int interval = 30, int digits = 6 );
+		protected:
+			static QString totp( const QByteArray & seed, OtpDisplayPlugin * plugin, time_t base = 0, int interval = 30 );
 
-			static QString hotp( const QByteArray & seed, quint64 counter, int digits = 6 );
+			static QString hotp( const QByteArray & seed, OtpDisplayPlugin * plugin, quint64 counter );
 
 			static QByteArray hmac( const QByteArray & key, const QByteArray & message );
 
@@ -252,11 +254,13 @@ namespace Qonvince {
 			quint64 m_counter;
 			QString m_currentCode;
 			int m_interval;
-			int m_digits;
+//			int m_digits;
 			qint64 m_baselineTime;
 
 			QBasicTimer * m_refreshTimer;
 			bool m_resync;
+
+			OtpDisplayPlugin * m_displayPlugin;
 	};
 }
 

@@ -287,7 +287,7 @@ void OtpListWidget::addItem( OtpListWidgetItem * item ) {
 	connect(code, SIGNAL(newCodeGenerated(QString)), this, SLOT(onCodeChanged()));
 
 #if defined(QT_DEBUG)
-	connect(code, &OtpCode::newCodeGenerated, this, &OtpCodeListWidget::debugLogNewCode);
+	connect(code, &Otp::newCodeGenerated, this, &OtpListWidget::debugLogNewCode);
 #endif
 	Q_EMIT codeAdded(code);
 }
@@ -751,8 +751,8 @@ void OtpListWidget::paintEvent( QPaintEvent * ev ) {
 			Otp * code = static_cast<OtpListWidgetItem *>(item(i))->code();
 			QString codeString;
 
-            /* only show the code if it's not hidden, or is hidden but user has manually
-             * revealed it and it's not timed out */
+			/* only show the code if it's not hidden, or is hidden but user has manually
+			 * revealed it and it's not timed out */
 			bool onDemand = code->revealOnDemand();
 			bool showCode = !onDemand || m_revealedPasscodes.contains(code);
 
@@ -935,11 +935,11 @@ void OtpListWidget::paintEvent( QPaintEvent * ev ) {
 
 
 #if defined(QT_DEBUG)
-void OtpCodeListWidget::debugLogNewCode( const QString & code ) const {
-	OtpCode * c = dynamic_cast<OtpCode *>(sender());
+void OtpListWidget::debugLogNewCode( const QString & code ) const {
+	Otp * c = dynamic_cast<Otp *>(sender());
 
 	if(!!c) {
-		qDebug() << "OtpCode object" << c->name() << "generated new code" << code;
+		qDebug() << "Otp object" << c->name() << "generated new code" << code;
 	}
 }
 #endif

@@ -47,11 +47,7 @@
 #include "otp.h"
 #include "otpqrcodereader.h"
 #include "otpdisplayplugin.h"
-#include "integerotpcodedisplayplugin.h"
-
-
-using SixDigitCodeDisplayPlugin = Qonvince::IntegerOtpCodeDisplayPlugin<6>;
-using EightDigitCodeDisplayPlugin = Qonvince::IntegerOtpCodeDisplayPlugin<8>;
+#include "integerotpdisplayplugin.h"
 
 
 using namespace Qonvince;
@@ -89,9 +85,9 @@ Application::Application( int & argc, char ** argv )
 	QSettings::setDefaultFormat(QSettings::IniFormat);
 
 	/* add the built-in code display plugins */
-	OtpDisplayPlugin * plugin = new SixDigitCodeDisplayPlugin();
+	OtpDisplayPlugin * plugin = new IntegerOtpDisplayPlugin(6);
 	m_codeDisplayPlugins[plugin->pluginName()] = plugin;
-	plugin = new EightDigitCodeDisplayPlugin();
+	plugin = new IntegerOtpDisplayPlugin(8);
 	m_codeDisplayPlugins[plugin->pluginName()] = plugin;
 
 	m_trayIcon = new QSystemTrayIcon(QIcon::fromTheme("qonvince", QIcon(":/icons/tray")), this);
@@ -388,9 +384,9 @@ void Application::writeSettings( void ) const {
 void Application::onTrayIconActivated( QSystemTrayIcon::ActivationReason reason ) {
 	if(QSystemTrayIcon::Trigger == reason) {
 		if(m_mainWindow->isHidden() || !m_mainWindow->isActiveWindow()) {
-            m_mainWindow->show();
+			m_mainWindow->show();
 			m_mainWindow->raise();
-            m_mainWindow->activateWindow();
+			m_mainWindow->activateWindow();
 		}
 		else {
 			m_mainWindow->hide();

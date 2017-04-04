@@ -162,7 +162,7 @@
           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;HMAC-based One Time Passcode. New codes are only generated when required (i.e. when you need to log in to the service).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
          <property name="text">
-          <string>HOTP</string>
+          <string>&amp;HOTP</string>
          </property>
         </widget>
        </item>
@@ -220,6 +220,9 @@
       </property>
       <item row="0" column="0">
        <widget class="QLabel" name="digitsLabel">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
         <property name="text">
          <string>Digits</string>
         </property>
@@ -227,6 +230,9 @@
       </item>
       <item row="0" column="1">
        <widget class="QSpinBox" name="digitsSpin">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
         <property name="toolTip">
          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The number of digits to use for generated codes. This can be 6, 7 or 8.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;If you change the number of digits to a value that is not the same as the one the issuer has, the generated codes will be incorrect.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>

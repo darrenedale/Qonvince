@@ -161,7 +161,7 @@ void OtpEditor::setCode( Otp * code ) {
 			m_ui->issuerEdit->setText(m_code->issuer());
 			m_ui->nameEdit->setText(m_code->name());
 			m_ui->icon->setIcon(m_code->icon());
-			m_ui->digitsSpin->setValue(m_code->digits());
+//			m_ui->digitsSpin->setValue(m_code->digits());
 			m_ui->intervalSpin->setValue(m_code->interval());
 			m_ui->baseTimeEdit->setDateTime(QDateTime::fromMSecsSinceEpoch(code->baselineSecSinceEpoch() * 1000));
 			m_ui->counterSpin->setValue(m_code->counter());
@@ -182,7 +182,7 @@ void OtpEditor::setCode( Otp * code ) {
 			connect(m_ui->nameEdit, &QLineEdit::textEdited, m_code, &Otp::setName);
 			connect(m_ui->issuerEdit, &QLineEdit::textEdited, m_code, &Otp::setIssuer);
 			connect(m_ui->seedEdit, &QLineEdit::editingFinished, this, &OtpEditor::onCodeSeedEditingFinished);
-			connect(m_ui->digitsSpin, static_cast<void (QSpinBox::*) (int)>(&QSpinBox::valueChanged), m_code, &Otp::setDigits);
+//			connect(m_ui->digitsSpin, static_cast<void (QSpinBox::*) (int)>(&QSpinBox::valueChanged), m_code, &Otp::setDigits);
 			connect(m_ui->baseTimeEdit, &QDateTimeEdit::editingFinished, this, &OtpEditor::setCodeBaseTimeFromWidget);
 			connect(m_ui->revealOnDemand, &QCheckBox::toggled, m_code, &Otp::setRevealOnDemand);
 			connect(this, &OtpEditor::typeChanged, m_code, &Otp::setType);

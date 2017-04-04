@@ -67,12 +67,12 @@ HEADERS  += \
     src/settings.h \
     src/settingswidget.h \
     src/sharedlibrary.h \
-    src/integerotpcodedisplayplugin.h \
     src/otp.h \
     src/otpdisplayplugin.h \
     src/otpeditor.h \
     src/otplistwidget.h \
-    src/otplistwidgetitem.h
+    src/otplistwidgetitem.h \
+    src/integerotpdisplayplugin.h
 
 FORMS    += \
     ui/passwordwidget.ui \

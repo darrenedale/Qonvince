@@ -31,6 +31,7 @@
 #include <QDebug>
 #include <QRegExp>
 
+#include "integerotpdisplayplugin.h"
 
 using namespace Qonvince;
 
@@ -145,7 +146,7 @@ Otp * OtpQrCodeReader::code( void ) const {
 		Otp * ret = new Otp(type(), issuer(), name(), seed(), Otp::Base32Seed);
 		ret->setCounter(m_counter);
 		ret->setInterval(m_interval);
-		ret->setDigits(m_digits);
+		ret->setDisplayPlugin(new IntegerOtpDisplayPlugin(m_digits));
 		return ret;
 	}
 
