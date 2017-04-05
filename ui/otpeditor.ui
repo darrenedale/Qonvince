@@ -224,23 +224,7 @@
          <bool>false</bool>
         </property>
         <property name="text">
-         <string>Digits</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="1">
-       <widget class="QSpinBox" name="digitsSpin">
-        <property name="enabled">
-         <bool>false</bool>
-        </property>
-        <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The number of digits to use for generated codes. This can be 6, 7 or 8.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;If you change the number of digits to a value that is not the same as the one the issuer has, the generated codes will be incorrect.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-        </property>
-        <property name="minimum">
-         <number>6</number>
-        </property>
-        <property name="maximum">
-         <number>8</number>
+         <string>Display</string>
         </property>
        </widget>
       </item>
@@ -372,6 +356,23 @@
         </item>
        </layout>
       </item>
+      <item row="0" column="1">
+       <widget class="QComboBox" name="displayPlugin">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <item>
+         <property name="text">
+          <string>6-ditit number</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>8-digit number</string>
+         </property>
+        </item>
+       </widget>
+      </item>
      </layout>
     </widget>
    </item>
@@ -444,7 +445,6 @@
   <tabstop>nameEdit</tabstop>
   <tabstop>seedEdit</tabstop>
   <tabstop>advancedSettingsToggle</tabstop>
-  <tabstop>digitsSpin</tabstop>
   <tabstop>intervalSpin</tabstop>
   <tabstop>baseTimeEdit</tabstop>
   <tabstop>counterSpin</tabstop>
