@@ -63,7 +63,7 @@
 
   The class uses a 64 bit key. Simply create an instance of the class, set the key,
   and use the encryptToString() method to calculate an encrypted version of the input string.
-  To decrypt that string again, use an instance of SimpleCrypt initialized with
+  To decrypt that string again, use an instance of Crypt initialized with
   the same key, and call the decryptToString() method with the encrypted string. If the key
   matches, the decrypted version of the string will be returned again.
 
@@ -71,7 +71,7 @@
   decryption function will return an empty string or will return a string containing nonsense.
   lastError() will return a value indicating if the method was succesful, and if not, why not.
 
-  SimpleCrypt is prepared for the case that the encryption and decryption
+  Crypt is prepared for the case that the encryption and decryption
   algorithm is changed in a later version, by prepending a version identifier to the cypertext.
   */
 namespace Qonvince {
@@ -97,6 +97,7 @@ namespace Qonvince {
 			  */
 			enum ErrorCode {
 				ErrOk,						/*!< No error occurred. */
+				ErrKeyTooShort,				/*!< The key provided contained fewer than 8 bytes */
 				ErrNoKeySet,				/*!< No key was set. You can not encrypt or decrypt without a valid key. */
 				ErrUnknownVersion,			/*!< The version of this data is unknown, or the data is otherwise not valid. */
 				ErrIntegrityCheckFailed,	/*!< The integrity check of the data failed. Perhaps the wrong key was used. */
@@ -108,24 +109,25 @@ namespace Qonvince {
 			/**
 			  Constructor.
 
-			  Constructs a SimpleCrypt instance without a valid key set on it.
+			  Constructs a Crypt instance without a valid key set on it.
 			 */
 			Crypt( void );
 
 			/**
 			  Constructor.
-
-			  Constructs a SimpleCrypt instance and initializes it with the given @arg key.
+			  Constructs a Crypt instance and initializes it with the given \arg key.
 			 */
 			explicit Crypt( quint64 key );
+			explicit Crypt( const QByteArray & key );
 
 			/**
-			  (Re-) initializes the key with the given @arg key.
+			  (Re-) initializes the key with the given \arg key.
 			  */
 			void setKey( quint64 key );
+			bool setKey( const QByteArray & key );
 
 			/**
-			  Returns true if SimpleCrypt has been initialized with a key.
+			  Returns true if Crypt has been initialized with a key.
 			  */
 			inline bool hasKey( void ) const {
 				return !m_keyParts.isEmpty();
@@ -218,15 +220,22 @@ namespace Qonvince {
 			QString encryptV4( const QByteArray & plaintext, ErrorCode * outcome = nullptr ) const;
 			QString decryptV4( const QByteArray & ciphertext, ErrorCode * outcome = nullptr ) const;
 
+			/* uses potentially longer keys for increased strength */
+			QString encryptV5( const QByteArray & plaintext, ErrorCode * outcome = nullptr ) const;
+			QString decryptV5( const QByteArray & ciphertext, ErrorCode * outcome = nullptr ) const;
+
 			void splitKey();
 
 			/* v3+ features */
-			quint64 m_key;
+			quint64 m_oldKey;
 			QVector<char> m_keyParts;
 			IntegrityProtectionMode m_protectionMode;
 
 			/* v4+ features */
 			bool m_useUuid;
+
+			/* v5+ features */
+			QByteArray m_key;
 
 			mutable ErrorCode m_lastError;
 	};

@@ -19,11 +19,25 @@
 
 #include "application.h"
 
+#include <QDebug>
+
+#include "crypt.h"
+
 
 using namespace Qonvince;
 
 
 int main( int argc, char *argv[] ) {
+//	Crypt c("mykeyislongenough");
+//	QString in("my secret text");
+//	QString out = c.encrypt(in);
+
+//	qDebug() << in << "encrypts to" << out;
+
+//	in = c.decrypt(out).toUtf8();
+//	qDebug() << out << "decrypts to" << in;
+//	return 0;
+
 	Application q(argc, argv);
 	return q.exec();
 }
