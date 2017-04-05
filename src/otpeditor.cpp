@@ -45,6 +45,7 @@
 #include "application.h"
 #include "otpqrcodereader.h"
 #include "qrcodecreator.h"
+#include "otpdisplayplugin.h"
 
 
 using namespace Qonvince;
@@ -67,13 +68,19 @@ OtpEditor::OtpEditor( Otp * code, QWidget * parent )
 	m_ui->nameEdit->setClearButtonEnabled(true);
 	m_ui->seedEdit->setClearButtonEnabled(true);
 #endif
+
+	for(const auto plugin : qonvinceApp->codeDisplayPlugins()) {
+		m_ui->displayPlugin->addItem(plugin->pluginName());
+	}
+
 	m_ui->advancedSettingsWidget->setVisible(m_ui->advancedSettingsToggle->isChecked());
 	m_ui->createBarcodeButton->setVisible(false);
 	connect(m_ui->issuerEdit, SIGNAL(textEdited(QString)), this, SIGNAL(issuerChanged(QString)));
 	connect(m_ui->nameEdit, SIGNAL(textEdited(QString)), this, SIGNAL(nameChanged(QString)));
 	connect(m_ui->seedEdit, &QLineEdit::editingFinished, this, &OtpEditor::emitSeedChanged);
 	connect(m_ui->seedEdit, SIGNAL(textEdited(QString)), this, SLOT(seedWidgetTextEdited()));
-	connect(m_ui->digitsSpin, SIGNAL(valueChanged(int)), this, SIGNAL(digitsChanged(int)));
+//	connect(m_ui->digitsSpin, SIGNAL(valueChanged(int)), this, SIGNAL(digitsChanged(int)));
+	connect(m_ui->displayPlugin, &QComboBox::currentTextChanged, this, &OtpEditor::displayPluginNameChanged);
 	connect(m_ui->counterSpin, SIGNAL(valueChanged(int)), this, SLOT(emitCounterChanged()));
 	connect(m_ui->intervalSpin, SIGNAL(valueChanged(int)), this, SIGNAL(durationChanged(int)));
 	connect(m_ui->baseTimeEdit, &QDateTimeEdit::editingFinished, this, &OtpEditor::emitBaseTimeChanged);
@@ -162,6 +169,16 @@ void OtpEditor::setCode( Otp * code ) {
 			m_ui->nameEdit->setText(m_code->name());
 			m_ui->icon->setIcon(m_code->icon());
 //			m_ui->digitsSpin->setValue(m_code->digits());
+
+			auto plugin = m_code->displayPlugin();
+
+			if(plugin) {
+				m_ui->displayPlugin->setCurrentText(plugin->pluginName());
+			}
+			else {
+				m_ui->displayPlugin->setCurrentText("");
+			}
+
 			m_ui->intervalSpin->setValue(m_code->interval());
 			m_ui->baseTimeEdit->setDateTime(QDateTime::fromMSecsSinceEpoch(code->baselineSecSinceEpoch() * 1000));
 			m_ui->counterSpin->setValue(m_code->counter());
@@ -175,7 +192,8 @@ void OtpEditor::setCode( Otp * code ) {
 			connect(m_code, static_cast<void (Otp::*) (QString)>(&Otp::nameChanged), this, &OtpEditor::setName);
 			connect(m_code, SIGNAL(nameChanged(QString)), this, SLOT(updateWindowTitle()));
 			connect(m_code, static_cast<void (Otp::*) (int)>(&Otp::intervalChanged), m_ui->intervalSpin, &QSpinBox::setValue);
-			connect(m_code, static_cast<void (Otp::*) (int)>(&Otp::digitsChanged), m_ui->digitsSpin, &QSpinBox::setValue);
+//			connect(m_code, static_cast<void (Otp::*) (int)>(&Otp::digitsChanged), m_ui->digitsSpin, &QSpinBox::setValue);
+			connect(m_code, static_cast<void (Otp::*) (QString)>(&Otp::displayPluginChanged), this, &OtpEditor::onDisplayPluginChanged);
 			connect(m_code, static_cast<void (Otp::*) (quint64)>(&Otp::counterChanged), this, &OtpEditor::setCounter);
 			connect(m_code, &Otp::revealOnDemandChanged, this, &OtpEditor::setRevealOnDemand);
 			connect(m_ui->intervalSpin, static_cast<void (QSpinBox::*) (int)>(&QSpinBox::valueChanged), m_code, &Otp::setInterval);
@@ -183,6 +201,7 @@ void OtpEditor::setCode( Otp * code ) {
 			connect(m_ui->issuerEdit, &QLineEdit::textEdited, m_code, &Otp::setIssuer);
 			connect(m_ui->seedEdit, &QLineEdit::editingFinished, this, &OtpEditor::onCodeSeedEditingFinished);
 //			connect(m_ui->digitsSpin, static_cast<void (QSpinBox::*) (int)>(&QSpinBox::valueChanged), m_code, &Otp::setDigits);
+			connect(m_ui->displayPlugin, static_cast<void (QComboBox::*) (int)>(&QComboBox::currentIndexChanged), this, &OtpEditor::onDisplayPluginChanged);
 			connect(m_ui->baseTimeEdit, &QDateTimeEdit::editingFinished, this, &OtpEditor::setCodeBaseTimeFromWidget);
 			connect(m_ui->revealOnDemand, &QCheckBox::toggled, m_code, &Otp::setRevealOnDemand);
 			connect(this, &OtpEditor::typeChanged, m_code, &Otp::setType);
@@ -193,7 +212,8 @@ void OtpEditor::setCode( Otp * code ) {
 			m_ui->nameEdit->setText(QString());
 			m_ui->seedEdit->setText(QString());
 			m_ui->icon->setIcon(QIcon());
-			m_ui->digitsSpin->setValue(Otp::DefaultDigits);
+//			m_ui->digitsSpin->setValue(Otp::DefaultDigits);
+			m_ui->displayPlugin->setCurrentText("");
 			m_ui->baseTimeEdit->setDateTime(QDateTime::fromMSecsSinceEpoch(0));
 			m_ui->intervalSpin->setValue(0);
 			m_ui->counterSpin->setValue(0);
@@ -363,9 +383,11 @@ bool OtpEditor::createBarcode( const QString & fileName ) {
 			}
 		}
 
-		if(6 != m_ui->digitsSpin->value()) {
-			uri += "&digits=" + QString::number(m_ui->digitsSpin->value());
-		}
+		/* TODO identify if the plugin is built-in and digits-based, and if so
+		 * add the digits to the uri */
+//		if(6 != m_ui->digitsSpin->value()) {
+//			uri += "&digits=" + QString::number(m_ui->digitsSpin->value());
+//		}
 
 		QrCodeCreator creator(uri);
 		QImage img(creator.image(QSize(128, 128)));
@@ -485,6 +507,23 @@ void OtpEditor::seedWidgetTextEdited( void ) {
 	else {
 		m_ui->createBarcodeButton->setVisible(true);
 	}
+}
+
+
+void OtpEditor::onDisplayPluginChanged( void ) {
+	if(!m_code) {
+		qWarning() << "no code for which to set plugin";
+		return;
+	}
+
+	auto plugin = qonvinceApp->codeDisplayPluginByName(m_ui->displayPlugin->currentText());
+
+	if(!plugin) {
+		qCritical() << "display plugin named" << m_ui->displayPlugin->currentText() << "not found";
+		return;
+	}
+
+	m_code->setDisplayPlugin(plugin);
 }
 
 

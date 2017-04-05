@@ -67,6 +67,7 @@ namespace Qonvince {
 			void seedChanged( QString );
 			void iconChanged( QIcon );
 			void digitsChanged( int );
+			void displayPluginNameChanged( QString );
 			void revealOnDemandChanged( bool );
 			void counterChanged( quint64 );
 			void durationChanged( int );
@@ -95,6 +96,7 @@ namespace Qonvince {
 			void emitSeedChanged( void );
 			void emitBaseTimeChanged( void );
 			void seedWidgetTextEdited( void );
+			void onDisplayPluginChanged( void );
 
 		private:
 			Ui::OtpEditor * m_ui;
