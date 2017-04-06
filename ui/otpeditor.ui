@@ -219,10 +219,7 @@
        <number>0</number>
       </property>
       <item row="0" column="0">
-       <widget class="QLabel" name="digitsLabel">
-        <property name="enabled">
-         <bool>false</bool>
-        </property>
+       <widget class="QLabel" name="displayLabel">
         <property name="text">
          <string>Display</string>
         </property>
@@ -357,21 +354,7 @@
        </layout>
       </item>
       <item row="0" column="1">
-       <widget class="QComboBox" name="displayPlugin">
-        <property name="enabled">
-         <bool>false</bool>
-        </property>
-        <item>
-         <property name="text">
-          <string>6-ditit number</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>8-digit number</string>
-         </property>
-        </item>
-       </widget>
+       <widget class="QComboBox" name="displayPlugin"/>
       </item>
      </layout>
     </widget>
@@ -622,6 +605,7 @@
   <signal>seedChanged(QString)</signal>
   <signal>durationChanged(int)</signal>
   <signal>digitsChanged(int)</signal>
+  <signal>displayPluginChanged(QString)</signal>
   <signal>counterChanged(int)</signal>
   <signal>issuerChanged(QString)</signal>
   <signal>typeChanged(Qonvince::OtpCode::CodeType)</signal>

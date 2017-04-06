@@ -149,6 +149,7 @@ namespace Qonvince {
 			void seedChanged( QByteArray oldSeed, QByteArray newSeed );
 			void seedChanged( QString oldSeedBase32, QString newSeedBase32 );
 			void digitsChanged( int oldDigits, int newDigits );
+			void displayPluginChanged( QString oldPlugin, QString newPlugin );
 			void intervalChanged( int oldInterval, int newInterval );
 			void baselineTimeChanged( QDateTime oldTime, QDateTime newTime );
 			void baselineTimeChanged( qint64 oldInterval, qint64 newInterval );
@@ -163,6 +164,7 @@ namespace Qonvince {
 			void seedChanged( QByteArray newSeed );
 			void seedChanged( QString newSeedBase32 );
 			void digitsChanged( int newDigits );
+			void displayPluginChanged( QString newPlugin );
 			void revealOnDemandChanged( bool );
 			void intervalChanged( int newInterval );
 			void baselineTimeChanged( QDateTime newTime );
@@ -196,6 +198,10 @@ namespace Qonvince {
 
 //				return false;
 //			}
+
+			inline OtpDisplayPlugin * displayPlugin( void ) const {
+				return m_displayPlugin;
+			}
 
 			bool setDisplayPlugin( OtpDisplayPlugin * plugin );
 

@@ -48,6 +48,7 @@
 #include "otpqrcodereader.h"
 #include "otpdisplayplugin.h"
 #include "integerotpdisplayplugin.h"
+#include "steamotpdisplayplugin.h"
 
 
 using namespace Qonvince;
@@ -88,6 +89,8 @@ Application::Application( int & argc, char ** argv )
 	OtpDisplayPlugin * plugin = new IntegerOtpDisplayPlugin(6);
 	m_codeDisplayPlugins[plugin->pluginName()] = plugin;
 	plugin = new IntegerOtpDisplayPlugin(8);
+	m_codeDisplayPlugins[plugin->pluginName()] = plugin;
+	plugin = new SteamOtpDisplayPlugin();
 	m_codeDisplayPlugins[plugin->pluginName()] = plugin;
 
 	m_trayIcon = new QSystemTrayIcon(QIcon::fromTheme("qonvince", QIcon(":/icons/tray")), this);
@@ -146,6 +149,12 @@ Application::~Application( void ) {
 	m_mainWindow = nullptr;
 	m_settingsWidget = nullptr;
 	m_aboutDialogue = nullptr;
+
+	for(auto plugin : m_codeDisplayPlugins) {
+		delete plugin;
+	}
+
+	m_codeDisplayPlugins.clear();
 }
 
 

@@ -256,8 +256,26 @@ void Otp::setInterval( const int & duration ) {
 }
 
 bool Otp::setDisplayPlugin( OtpDisplayPlugin * plugin ) {
-	m_displayPlugin = plugin;
-	refreshCode();
+	if(plugin != m_displayPlugin) {
+		QString oldName;
+		QString newName;
+
+		if(m_displayPlugin) {
+			oldName = m_displayPlugin->pluginName();
+		}
+
+		m_displayPlugin = plugin;
+
+		if(m_displayPlugin) {
+			newName = m_displayPlugin->pluginName();
+		}
+
+		Q_EMIT displayPluginChanged(oldName, newName);
+		Q_EMIT displayPluginChanged(newName);
+		Q_EMIT changed();
+		refreshCode();
+	}
+
 	return true;
 }
 

@@ -51,7 +51,9 @@ SOURCES +=\
     src/otpdisplayplugin.cpp \
     src/otpeditor.cpp \
     src/otplistwidget.cpp \
-    src/otplistwidgetitem.cpp
+    src/otplistwidgetitem.cpp \
+    src/steamotpdisplayplugin.cpp \
+    src/integerotpdisplayplugin.cpp
 
 HEADERS  += \
     src/passwordwidget.h \
@@ -72,7 +74,8 @@ HEADERS  += \
     src/otpeditor.h \
     src/otplistwidget.h \
     src/otplistwidgetitem.h \
-    src/integerotpdisplayplugin.h
+    src/integerotpdisplayplugin.h \
+    src/steamotpdisplayplugin.h
 
 FORMS    += \
     ui/passwordwidget.ui \
