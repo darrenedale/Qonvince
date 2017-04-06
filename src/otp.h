@@ -70,7 +70,7 @@ namespace Qonvince {
 			Otp( const CodeType & type, const QByteArray & seed, const SeedType & seedType = PlainSeed, QObject * parent = nullptr );
 			virtual ~Otp( void );
 
-			static Otp * fromSettings( const QSettings & settings );
+			static Otp * fromSettings( const QSettings & settings, QString cryptKey );
 
 			inline const CodeType & type( void ) const {
 				return m_type;
@@ -140,7 +140,7 @@ namespace Qonvince {
 
 			const QString & code( void );
 
-			void writeSettings( QSettings & settings ) const;
+			void writeSettings( QSettings & settings, QString cryptKey ) const;
 
 		Q_SIGNALS:
 			void typeChanged( CodeType oldType, CodeType newType );

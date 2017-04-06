@@ -43,14 +43,6 @@
 #include "integerotpdisplayplugin.h"
 
 
-#if !defined(QONVINCE_OTPCODE_SEED_CRYPT_KEY)
-#warning using hard-coded crypto key for storing seeds in settings
-#warning it is recommended that you set a unique crypto key
-#warning externally using your build process
-#define QONVINCE_OTPCODE_SEED_CRYPT_KEY 0x0fe5a4ddc90a5e21
-#endif
-
-
 using namespace Qonvince;
 
 
@@ -297,7 +289,7 @@ void Otp::setBaselineTime( const qint64 & secSinceEpoch ) {
 }
 
 
-Otp * Otp::fromSettings( const QSettings & settings ) {
+Otp * Otp::fromSettings( const QSettings & settings, QString cryptKey ) {
 	static QVector<QChar> s_validIconFileNameChars = {'a', 'b', 'c', 'd', 'e', 'f'};
 
 	CodeType t("HOTP" == settings.value("type", "TOTP").toString() ? HotpCode : TotpCode);
@@ -353,7 +345,7 @@ Otp * Otp::fromSettings( const QSettings & settings ) {
 		}
 	}
 
-	Crypt c(QONVINCE_OTPCODE_SEED_CRYPT_KEY);
+	Crypt c(cryptKey.toUtf8());
 	Crypt::ErrorCode err;
 	ret->setSeed(c.decrypt(settings.value("seed").toString(), &err).toUtf8(), Base32Seed);
 
@@ -375,8 +367,8 @@ Otp * Otp::fromSettings( const QSettings & settings ) {
 }
 
 
-void Otp::writeSettings( QSettings & settings ) const {
-	Crypt c(QONVINCE_OTPCODE_SEED_CRYPT_KEY);
+void Otp::writeSettings( QSettings & settings, QString cryptKey ) const {
+	Crypt c(cryptKey.toUtf8());
 	c.setUseUuid(true);
 	settings.setValue("name", name());
 	settings.setValue("issuer", issuer());

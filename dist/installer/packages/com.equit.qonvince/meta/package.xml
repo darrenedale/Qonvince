@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Package>
+	<DisplayName>Qonvince</DisplayName>
+	<Description>An OTP code generator.</Description>
+	<Version>1.2.5</Version>
+	<ReleaseDate>2016-01-14</ReleaseDate>
+<!--	<Licenses>
+                <License name="Beer Public License Agreement" file="license.txt" />
+        </Licenses>-->
+	<Default>true</Default>
+	<UserInterfaces>
+		<UserInterface>page.ui</UserInterface>
+	</UserInterfaces>
+</Package>

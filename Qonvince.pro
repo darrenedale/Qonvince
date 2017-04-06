@@ -34,6 +34,7 @@ unix {
 
 SOURCES +=\
     src/passwordwidget.cpp \
+    src/passworddialogue.cpp \
     src/aboutdialogue.cpp \
     src/application.cpp \
     src/base32.cpp \
@@ -57,6 +58,7 @@ SOURCES +=\
 
 HEADERS  += \
     src/passwordwidget.h \
+    src/passworddialogue.h \
     src/aboutdialogue.h \
     src/application.h \
     src/base32.h \
@@ -79,6 +81,7 @@ HEADERS  += \
 
 FORMS    += \
     ui/passwordwidget.ui \
+    ui/passworddialogue.ui \
     ui/aboutdialogue.ui \
     ui/mainwindow.ui \
     ui/settingswidget.ui \
@@ -86,8 +89,6 @@ FORMS    += \
 
 RESOURCES += \
     icons.qrc
-
-DEFINES += "QONVINCE_OTPCODE_SEED_CRYPT_KEY=0x5629f6d32a50003a"
 
 DISTFILES += \
     dist/doc/qonvince/copyright.txt \

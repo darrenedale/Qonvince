@@ -103,6 +103,14 @@ namespace Qonvince {
 				return m_codeDisplayPlugins.values();
 			}
 
+//			/* note Don't make this return a const reference for security reasons. returning
+//			 * a reference could allow a malicious client to cast away the const-ness and therefore
+//			 * alter the stored passphrase, rendering the settings unreadable to the actual
+//			 * owner once they've been saved. */
+//			inline QString cryptPassphrase( void ) const {
+//				return m_cryptPassphrase;
+//			}
+
 			static int exec( void );
 
 		public Q_SLOTS:
@@ -162,6 +170,8 @@ namespace Qonvince {
 			QMetaObject::Connection m_quitConnection;
 
 			QHash<QString, OtpDisplayPlugin *> m_codeDisplayPlugins;
+
+			QString m_cryptPassphrase;
 	};
 }
 

@@ -47,6 +47,11 @@ PasswordWidget::~PasswordWidget( void ) {
 }
 
 
+QString PasswordWidget::password( void ) const {
+	return m_ui->password->text();
+}
+
+
 void PasswordWidget::setPassword( const QString & pw ) {
 	m_ui->password->setText(pw);
 }

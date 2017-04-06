@@ -41,6 +41,7 @@
 #include <cstring>
 
 #include "mainwindow.h"
+#include "passworddialogue.h"
 #include "settingswidget.h"
 #include "aboutdialogue.h"
 #include "otplistwidget.h"
@@ -81,7 +82,7 @@ Application::Application( int & argc, char ** argv )
 	setOrganizationDomain("equituk.net");
 	setApplicationName("Qonvince");
 	setApplicationDisplayName("Qonvince");
-	setApplicationVersion("1.7.0");
+	setApplicationVersion("1.7.9");
 	setQuitOnLastWindowClosed(false);
 	QSettings::setDefaultFormat(QSettings::IniFormat);
 
@@ -120,11 +121,7 @@ Application::Application( int & argc, char ** argv )
 	m_trayIcon->setContextMenu(m_trayIconMenu);
 	m_mainWindow = new MainWindow();
 
-	/* have to wait until m_mainWindow has been constructed because we ask it
-	 * to read its settings from the QSettings object */
-	readSettings();
 	m_settingsWidget = new SettingsWidget(m_settings);
-	onSettingsChanged();
 
 	connect(m_trayIcon, &QSystemTrayIcon::activated, this, &Application::onTrayIconActivated);
 	connect(m_mainWindowAction, SIGNAL(triggered(bool)), m_mainWindow, SLOT(show()));
@@ -263,6 +260,33 @@ int Application::exec( void ) {
 		}
 	}
 
+	{
+		PasswordDialogue dlg(tr("Enter the passphrase used to encrypt your settings. This ensures that your OTP seeds cannot be stolen from your settings file."));
+
+		while(QDialog::Accepted == dlg.exec()) {
+			QString pw(dlg.password());
+qDebug() << "passphrase is" << pw;
+			if(pw.isEmpty()) {
+				qWarning() << "passphrase is empty" << pw;
+				app->showMessage("The passphrase cannot be empty.");
+			}
+			else if(8 > pw.length()) {
+				qWarning() << "passphrase is too short" << pw;
+				app->showMessage("The passphrase must be 8 characters or more.");
+			}
+			else {
+				app->m_cryptPassphrase = pw;
+				app->readSettings();
+				app->onSettingsChanged();
+				break;
+			}
+		}
+
+		if(QDialog::Accepted != dlg.result()) {
+			return 0;
+		}
+	}
+
 	app->m_trayIcon->show();
 
 	if(!forceStartMinimised && !app->m_settings.startMinimised()) {
@@ -282,7 +306,7 @@ void Application::showMessage( const QString & title, const QString & message, i
 		QMessageBox::information(m_mainWindow, title, message, QMessageBox::StandardButtons(QMessageBox::Ok));
 	}
 	else {
-        m_trayIcon->showMessage(title, message, QSystemTrayIcon::Information, timeout);
+		m_trayIcon->showMessage(title, message, QSystemTrayIcon::Information, timeout);
 	}
 }
 
@@ -338,7 +362,7 @@ void Application::readSettings( void ) {
 
 		for(int i = 0; i < n; ++i) {
 			settings.beginGroup(QString("code-%1").arg(i));
-			Otp * code = Otp::fromSettings(settings);
+			Otp * code = Otp::fromSettings(settings, m_cryptPassphrase);
 
 			if(!!code) {
 				m_mainWindow->codeList()->addCode(code);
@@ -381,7 +405,7 @@ void Application::writeSettings( void ) const {
 			}
 
 			settings.beginGroup(QString("code-%1").arg(i));
-			code->writeSettings(settings);
+			code->writeSettings(settings, m_cryptPassphrase);
 			settings.endGroup();
 		}
 
