@@ -217,10 +217,10 @@ namespace Qonvince {
 			QString decryptV3( const QByteArray & ciphertext, ErrorCode * outcome = nullptr ) const;
 
 			/* not yet fully implemented */
-			QString encryptV4( const QByteArray & plaintext, ErrorCode * outcome = nullptr ) const;
-			QString decryptV4( const QByteArray & ciphertext, ErrorCode * outcome = nullptr ) const;
+//			QString encryptV4( const QByteArray & plaintext, ErrorCode * outcome = nullptr ) const;
+//			QString decryptV4( const QByteArray & ciphertext, ErrorCode * outcome = nullptr ) const;
 
-			/* uses potentially longer keys for increased strength */
+			/* uses longer keys for increased strength (keys are never shorter than old versions) */
 			QString encryptV5( const QByteArray & plaintext, ErrorCode * outcome = nullptr ) const;
 			QString decryptV5( const QByteArray & ciphertext, ErrorCode * outcome = nullptr ) const;
 

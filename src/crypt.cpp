@@ -73,7 +73,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 using namespace Qonvince;
 
 
-const int Crypt::LatestVersion = 3;
+const int Crypt::LatestVersion = 5;
 
 
 Crypt::Crypt( void )
@@ -163,9 +163,9 @@ QString Crypt::encrypt( const QByteArray & plaintext, ErrorCode * outcome, int v
 	if(3 == version) {
 		return encryptV3(plaintext, outcome);
 	}
-	else if(4 == version) {
-		return encryptV4(plaintext, outcome);
-	}
+//	else if(4 == version) {
+//		return encryptV4(plaintext, outcome);
+//	}
 	else if(5 == version) {
 		return encryptV5(plaintext, outcome);
 	}
@@ -236,65 +236,65 @@ QString Crypt::encryptV3( const QByteArray &plaintext, ErrorCode *outcome ) cons
 }
 
 
-QString Crypt::encryptV4( const QByteArray & plaintext, ErrorCode * outcome ) const {
-	if(m_keyParts.isEmpty()) {
-		qWarning() << "No key set.";
+//QString Crypt::encryptV4( const QByteArray & plaintext, ErrorCode * outcome ) const {
+//	if(m_keyParts.isEmpty()) {
+//		qWarning() << "No key set.";
 
-		if(outcome) {
-			*outcome = ErrNoKeySet;
-		}
+//		if(outcome) {
+//			*outcome = ErrNoKeySet;
+//		}
 
-		m_lastError = ErrNoKeySet;
-		return QString();
-	}
+//		m_lastError = ErrNoKeySet;
+//		return QString();
+//	}
 
-	QByteArray ba = plaintext;
-	CryptoFlags flags = CryptoFlagNone;
-	QByteArray integrityProtection;
-	QByteArray uuid;
+//	QByteArray ba = plaintext;
+//	CryptoFlags flags = CryptoFlagNone;
+//	QByteArray integrityProtection;
+//	QByteArray uuid;
 
-	if(ChecksumProtection == m_protectionMode) {
-		flags |= CryptoFlagChecksum;
-		QDataStream s(&integrityProtection, QIODevice::WriteOnly);
-		s << qChecksum(ba.constData(), ba.length());
-	}
-	else if(HashProtection == m_protectionMode) {
-		flags |= CryptoFlagHash;
-		QCryptographicHash hash(QCryptographicHash::Sha1);
-		hash.addData(ba);
-		integrityProtection += hash.result();
-	}
+//	if(ChecksumProtection == m_protectionMode) {
+//		flags |= CryptoFlagChecksum;
+//		QDataStream s(&integrityProtection, QIODevice::WriteOnly);
+//		s << qChecksum(ba.constData(), ba.length());
+//	}
+//	else if(HashProtection == m_protectionMode) {
+//		flags |= CryptoFlagHash;
+//		QCryptographicHash hash(QCryptographicHash::Sha1);
+//		hash.addData(ba);
+//		integrityProtection += hash.result();
+//	}
 
-	if(m_useUuid) {
-		flags |= CryptoFlagUuid;
-		uuid = machineUuid();
-	}
+//	if(m_useUuid) {
+//		flags |= CryptoFlagUuid;
+//		uuid = machineUuid();
+//	}
 
-	//prepend a random char to the string
-	char randomChar = char(qrand() & 0xFF);
-	ba = randomChar + integrityProtection + uuid + ba;
-	int pos(0);
-	char lastChar(0);
-	int n(ba.count());
+//	//prepend a random char to the string
+//	char randomChar = char(qrand() & 0xFF);
+//	ba = randomChar + integrityProtection + uuid + ba;
+//	int pos(0);
+//	char lastChar(0);
+//	int n(ba.count());
 
-	while(pos < n) {
-		ba[pos] = ba.at(pos) ^ m_keyParts.at(pos % 8) ^ lastChar;
-		lastChar = ba.at(pos);
-		++pos;
-	}
+//	while(pos < n) {
+//		ba[pos] = ba.at(pos) ^ m_keyParts.at(pos % 8) ^ lastChar;
+//		lastChar = ba.at(pos);
+//		++pos;
+//	}
 
-	QByteArray resultArray;
-	resultArray.append(char(0x04));  //version for future updates to algorithm
-	resultArray.append(char(flags)); //encryption flags
-	resultArray.append(ba);
-	m_lastError = ErrOk;
+//	QByteArray resultArray;
+//	resultArray.append(char(0x04));  //version for future updates to algorithm
+//	resultArray.append(char(flags)); //encryption flags
+//	resultArray.append(ba);
+//	m_lastError = ErrOk;
 
-	if(outcome) {
-		*outcome = ErrOk;
-	}
+//	if(outcome) {
+//		*outcome = ErrOk;
+//	}
 
-	return QString::fromLatin1(resultArray.toBase64());
-}
+//	return QString::fromLatin1(resultArray.toBase64());
+//}
 
 
 QString Crypt::encryptV5( const QByteArray &plaintext, ErrorCode *outcome ) const {
@@ -379,9 +379,9 @@ QString Crypt::decrypt( const QByteArray & cipher, ErrorCode * outcome ) const {
 	if(3 == version) {
 		return decryptV3(cipher, outcome);
 	}
-	else if(4 == version) {
-		return decryptV4(cipher, outcome);
-	}
+//	else if(4 == version) {
+//		return decryptV4(cipher, outcome);
+//	}
 	else if(5 == version) {
 		return decryptV5(cipher, outcome);
 	}
@@ -471,120 +471,120 @@ QString Crypt::decryptV3( const QByteArray & cipher, ErrorCode * outcome ) const
 }
 
 
-const QByteArray & Crypt::machineUuid( void ) {
-	static QByteArray uuid;
+//const QByteArray & Crypt::machineUuid( void ) {
+//	static QByteArray uuid;
 
-//	if(uuid.isEmpty()) {
-//		/* set the uuid to the sha1 digest of the concatenated nic hw addresses */
-//		for(const QNetworkInterface & nic : QNetworkInterface::allInterfaces()) {
-//			if(nic.flags() | QNetworkInterface::IsLoopBack) {
-//				continue;
-//			}
+////	if(uuid.isEmpty()) {
+////		/* set the uuid to the sha1 digest of the concatenated nic hw addresses */
+////		for(const QNetworkInterface & nic : QNetworkInterface::allInterfaces()) {
+////			if(nic.flags() | QNetworkInterface::IsLoopBack) {
+////				continue;
+////			}
 
-//			uuid += nic.hardwareAddress().toUtf8();
-//		}
+////			uuid += nic.hardwareAddress().toUtf8();
+////		}
 
-//		uuid = QCryptographicHash::hash(uuid, QCryptographicHash::Sha1);
+////		uuid = QCryptographicHash::hash(uuid, QCryptographicHash::Sha1);
+////	}
+
+//	return uuid;
+//}
+
+
+//QString Crypt::decryptV4( const QByteArray & cipher, ErrorCode * outcome ) const {
+//qDebug() << "decryptV4()";
+//	QByteArray ba = cipher;
+//	CryptoFlags flags = CryptoFlags(ba.at(1));
+//	ba = ba.mid(2);
+//	int pos(0);
+//	int n(ba.count());
+//	char lastChar = 0;
+
+//	while(pos < n) {
+//		char currentChar = ba[pos];
+//		ba[pos] = ba.at(pos) ^ lastChar ^ m_keyParts.at(pos % 8);
+//		lastChar = currentChar;
+//		++pos;
 //	}
 
-	return uuid;
-}
+//	ba = ba.mid(1); //chop off the random number at the start
+//	bool integrityOk(true);
+
+//	if(flags.testFlag(CryptoFlagChecksum)) {
+//		if(ba.length() < 2) {
+//			if(outcome) {
+//				*outcome = ErrIntegrityCheckFailed;
+//			}
+
+//			m_lastError = ErrIntegrityCheckFailed;
+//			return QByteArray();
+//		}
+
+//		quint16 storedChecksum;
+
+//		{
+//			QDataStream s(&ba, QIODevice::ReadOnly);
+//			s >> storedChecksum;
+//		}
+
+//		ba = ba.mid(2);
+//		quint16 checksum = qChecksum(ba.constData(), ba.length());
+//		integrityOk = (checksum == storedChecksum);
+//	}
+//	else if(flags.testFlag(CryptoFlagHash)) {
+//		if(ba.length() < 20) {
+//			if(outcome) {
+//				*outcome = ErrIntegrityCheckFailed;
+//			}
+
+//			m_lastError = ErrIntegrityCheckFailed;
+//			return QByteArray();
+//		}
+
+//		QByteArray storedHash = ba.left(20);
+//		ba = ba.mid(20);
+//		integrityOk = (QCryptographicHash::hash(ba,QCryptographicHash::Sha1) == storedHash);
+//	}
+
+//	if(!integrityOk) {
+//		if(outcome) {
+//			*outcome = ErrIntegrityCheckFailed;
+//		}
+
+//		m_lastError = ErrIntegrityCheckFailed;
+//		return QByteArray();
+//	}
+
+//	if(flags.testFlag(CryptoFlagUuid)) {
+//		if(ba.length() < 20) {
+//			if(outcome) {
+//				*outcome = ErrUuidMismatch;
+//			}
+
+//			m_lastError = ErrUuidMismatch;
+//			return QByteArray();
+//		}
+
+//		if(machineUuid() != ba.left(20)) {
+//			if(outcome) {
+//				*outcome = ErrUuidMismatch;
+//			}
+
+//			m_lastError = ErrUuidMismatch;
+//			return QByteArray();
+//		}
+
+//		ba = ba.mid(20);
+//	}
 
 
-QString Crypt::decryptV4( const QByteArray & cipher, ErrorCode * outcome ) const {
-qDebug() << "decryptV4()";
-	QByteArray ba = cipher;
-	CryptoFlags flags = CryptoFlags(ba.at(1));
-	ba = ba.mid(2);
-	int pos(0);
-	int n(ba.count());
-	char lastChar = 0;
+//	if(outcome) {
+//		*outcome = ErrOk;
+//	}
 
-	while(pos < n) {
-		char currentChar = ba[pos];
-		ba[pos] = ba.at(pos) ^ lastChar ^ m_keyParts.at(pos % 8);
-		lastChar = currentChar;
-		++pos;
-	}
-
-	ba = ba.mid(1); //chop off the random number at the start
-	bool integrityOk(true);
-
-	if(flags.testFlag(CryptoFlagChecksum)) {
-		if(ba.length() < 2) {
-			if(outcome) {
-				*outcome = ErrIntegrityCheckFailed;
-			}
-
-			m_lastError = ErrIntegrityCheckFailed;
-			return QByteArray();
-		}
-
-		quint16 storedChecksum;
-
-		{
-			QDataStream s(&ba, QIODevice::ReadOnly);
-			s >> storedChecksum;
-		}
-
-		ba = ba.mid(2);
-		quint16 checksum = qChecksum(ba.constData(), ba.length());
-		integrityOk = (checksum == storedChecksum);
-	}
-	else if(flags.testFlag(CryptoFlagHash)) {
-		if(ba.length() < 20) {
-			if(outcome) {
-				*outcome = ErrIntegrityCheckFailed;
-			}
-
-			m_lastError = ErrIntegrityCheckFailed;
-			return QByteArray();
-		}
-
-		QByteArray storedHash = ba.left(20);
-		ba = ba.mid(20);
-		integrityOk = (QCryptographicHash::hash(ba,QCryptographicHash::Sha1) == storedHash);
-	}
-
-	if(!integrityOk) {
-		if(outcome) {
-			*outcome = ErrIntegrityCheckFailed;
-		}
-
-		m_lastError = ErrIntegrityCheckFailed;
-		return QByteArray();
-	}
-
-	if(flags.testFlag(CryptoFlagUuid)) {
-		if(ba.length() < 20) {
-			if(outcome) {
-				*outcome = ErrUuidMismatch;
-			}
-
-			m_lastError = ErrUuidMismatch;
-			return QByteArray();
-		}
-
-		if(machineUuid() != ba.left(20)) {
-			if(outcome) {
-				*outcome = ErrUuidMismatch;
-			}
-
-			m_lastError = ErrUuidMismatch;
-			return QByteArray();
-		}
-
-		ba = ba.mid(20);
-	}
-
-
-	if(outcome) {
-		*outcome = ErrOk;
-	}
-
-	m_lastError = ErrOk;
-	return QString::fromUtf8(ba, ba.size());
-}
+//	m_lastError = ErrOk;
+//	return QString::fromUtf8(ba, ba.size());
+//}
 
 
 QString Crypt::decryptV5( const QByteArray & cipher, ErrorCode * outcome ) const {
@@ -598,7 +598,7 @@ QString Crypt::decryptV5( const QByteArray & cipher, ErrorCode * outcome ) const
 
 	while(pos < n) {
 		char currentChar = ba[pos];
-		ba[pos] = ba.at(pos) ^ lastChar ^ m_key.at(keyLength % 8);
+		ba[pos] = ba.at(pos) ^ lastChar ^ m_key.at(pos % keyLength);
 		lastChar = currentChar;
 		++pos;
 	}

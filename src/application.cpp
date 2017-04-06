@@ -26,6 +26,7 @@
 #include "application.h"
 
 #include <QDebug>
+#include <QThread>
 #include <QSystemTrayIcon>
 #include <QMenu>
 #include <QAction>
@@ -40,6 +41,7 @@
 
 #include <cstring>
 
+#include "crypt.h"
 #include "mainwindow.h"
 #include "passworddialogue.h"
 #include "settingswidget.h"
@@ -120,6 +122,9 @@ Application::Application( int & argc, char ** argv )
 
 	m_trayIcon->setContextMenu(m_trayIconMenu);
 	m_mainWindow = new MainWindow();
+
+	readApplicationSettings();
+	onSettingsChanged();
 
 	m_settingsWidget = new SettingsWidget(m_settings);
 
@@ -263,30 +268,41 @@ int Application::exec( void ) {
 	{
 		PasswordDialogue dlg(tr("Enter the passphrase used to encrypt your settings. This ensures that your OTP seeds cannot be stolen from your settings file."));
 
-		while(QDialog::Accepted == dlg.exec()) {
+		while(true) {
+			if(QDialog::Accepted != dlg.exec()) {
+				/* if the user refuses to enter his/her passphrase, exit the app */
+				return 0;
+			}
+
 			QString pw(dlg.password());
-qDebug() << "passphrase is" << pw;
+
 			if(pw.isEmpty()) {
 				qWarning() << "passphrase is empty" << pw;
-				app->showMessage("The passphrase cannot be empty.");
 			}
 			else if(8 > pw.length()) {
 				qWarning() << "passphrase is too short" << pw;
-				app->showMessage("The passphrase must be 8 characters or more.");
 			}
 			else {
 				app->m_cryptPassphrase = pw;
-				app->readSettings();
-				app->onSettingsChanged();
-				break;
-			}
-		}
 
-		if(QDialog::Accepted != dlg.result()) {
-			return 0;
+				if(app->readCodeSettings()) {
+					/* if reading succeeds, passphrase was correct, so
+					 * exit loop and continue app execution */
+					break;
+				}
+
+				app->m_cryptPassphrase = QString();
+				qWarning() << "failed to read code settings - likely incorrect passphrase";
+				/* sleep for a short period before allowing another attempt */
+			}
+
+			/* we can only get here if the passphrase was not correct */
+			QThread::msleep(1000);
+			dlg.setMessage(tr("The passphrase you entered is not correct. Enter the passphrase used to encrypt your settings."));
 		}
 	}
 
+	app->onSettingsChanged();
 	app->m_trayIcon->show();
 
 	if(!forceStartMinimised && !app->m_settings.startMinimised()) {
@@ -344,7 +360,7 @@ void Application::readQrCode( const QString & fileName ) {
 }
 
 
-void Application::readSettings( void ) {
+bool Application::readApplicationSettings( void ) {
 	QSettings settings;
 
 	if(!!m_mainWindow) {
@@ -355,10 +371,59 @@ void Application::readSettings( void ) {
 		m_mainWindow->codeList()->clear();
 		settings.beginGroup("application");
 		m_settings.read(settings);
-		int n = settings.value("code_count", 0).toInt();
-		settings.endGroup();
+	}
+
+	return true;
+}
+
+
+bool Application::readCodeSettings( void ) {
+	QSettings settings;
+
+	/* read the crypt_check value. if decrypt() indicates an error, the passphrase
+	 * is wrong; if it indicates success the passphrase is either right or is wrong
+	 * but hits the right checksum by chance */
+	if(settings.contains("crypt_check")) {
+		Crypt c(m_cryptPassphrase.toUtf8());
+		Crypt::ErrorCode err;
+		c.decrypt(settings.value("crypt_check").toString(), &err);
+
+		switch(err) {
+			case Crypt::ErrOk:
+				break;
+
+			default:
+				qDebug() << "unkown error code from Crypt::decrypt()";
+				return false;
+
+			case Crypt::ErrKeyTooShort:				/*!< The key provided contained fewer than 8 bytes */
+				qDebug() << "decryption failure - key is too short";
+				return false;
+
+			case Crypt::ErrNoKeySet:				/*!< No key was set. You can not encrypt or decrypt without a valid key. */
+				qDebug() << "decryption failure - no passphrase";
+				return false;
+
+			case Crypt::ErrUnknownVersion:			/*!< The version of this data is unknown, or the data is otherwise not valid. */
+				qDebug() << "decryption failure - unrecognised algorithm version";
+				return false;
+
+			case Crypt::ErrUuidMismatch:			/*!< The UUID in the encrypted data does not match the UUID of the machine decrypting it */
+				/* this should never happen - the UUID is not in use */
+				qDebug() << "decryption failure - UUID mismatch";
+				return false;
+
+			case Crypt::ErrIntegrityCheckFailed:	/*!< The integrity check of the data failed. Perhaps the wrong key was used. */
+				qDebug() << "decryption integrity check failure - probably incorrect passphrase";
+				return false;
+		}
+	}
+
+	if(!!m_mainWindow) {
+		m_mainWindow->codeList()->clear();
 
 		settings.beginGroup("codes");
+		int n = settings.value("code_count", 0).toInt();
 
 		for(int i = 0; i < n; ++i) {
 			settings.beginGroup(QString("code-%1").arg(i));
@@ -375,18 +440,36 @@ void Application::readSettings( void ) {
 			settings.endGroup();
 		}
 	}
+
+	return true;
 }
 
 
 void Application::writeSettings( void ) const {
 	QSettings settings;
 
+	/* write a random string to the settings which, when read, will indicate
+	 * whether the crypt key is correct */
+	{
+		/* we use the length of the passphrase so that entry of a truncated
+		 * passphrase can never pass this check */
+		int l = (2 * m_cryptPassphrase.toUtf8().length()) + (qrand() % 20);
+		QString random;
+
+		while(0 <= l) {
+			random += QChar('a' + (qrand() % 26));
+			--l;
+		}
+
+		Crypt c(m_cryptPassphrase.toUtf8());
+		settings.setValue("crypt_check", c.encrypt(random));
+	}
+
 	if(!!m_mainWindow) {
 		OtpListWidget * list = m_mainWindow->codeList();
 		int n = list->count();
 
 		settings.beginGroup("application");
-		settings.setValue("code_count", n);
 		m_settings.write(settings);
 		settings.endGroup();
 
@@ -395,6 +478,7 @@ void Application::writeSettings( void ) const {
 		settings.endGroup();
 
 		settings.beginGroup("codes");
+		settings.setValue("code_count", n);
 
 		for(int i = 0; i < n; ++i) {
 			Otp * code = list->code(i);

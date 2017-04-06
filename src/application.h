@@ -118,7 +118,8 @@ namespace Qonvince {
 			void showMessage( const QString & message, int timeout = 10000 );
 			void readQrCode( void );
 			void readQrCode( const QString & fileName );
-			void readSettings( void );
+			bool readApplicationSettings( void );
+			bool readCodeSettings( void );
 			void writeSettings( void ) const;
 			void aboutQonvince( void );
 			void clearClipboard( void );
