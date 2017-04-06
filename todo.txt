@@ -3,3 +3,5 @@ x 2016-11-24 (2) 2016-10-21 Clear copied code from clipboard after a short timeo
 x 2016-11-29 Option to encrypt settings so that they can only be used if the user enters the correct passphrase  +Qonvince
 x 2016-11-29 OtpCode property to hide codes (display on-demand for, e.g. 30s). Copy to clipboard to remain available. +Qonvince
 x 2017-04-06 Detect when user has entered incorrect passphrase to decrypt settings and ask for phrase again  +Qonvince
+(3) 2017-04-06 Add icon to passwor dialogue, and any other bling?  +Qonvince @UI
+(2) 2017-04-06 Integrate into platform keyring/wallet/etc.  +Qonvince @UX
