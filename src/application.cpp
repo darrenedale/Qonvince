@@ -22,6 +22,10 @@
   *
   * \todo
   * - load plugins
+  * - Current system tray, application and default code icons are from iconfinder
+  *   (via google). The iconfinder site is https-only but Chrome says its cert
+  *   expired 8th April 2017 so I haven't yet been able to check its licence status.
+  *   Don't release the app until this is resolved.
   */
 #include "application.h"
 
@@ -96,7 +100,7 @@ Application::Application( int & argc, char ** argv )
 	plugin = new SteamOtpDisplayPlugin();
 	m_codeDisplayPlugins[plugin->pluginName()] = plugin;
 
-	m_trayIcon = new QSystemTrayIcon(QIcon::fromTheme("qonvince", QIcon(":/icons/tray")), this);
+	m_trayIcon = new QSystemTrayIcon(QIcon::fromTheme("qonvince", QIcon(":/icons/systray")), this);
 	m_trayIcon->setToolTip(tr("%1: One-Time passcode generator.").arg(applicationDisplayName()));
 	m_trayIconMenu = new QMenu(tr("Qonvince"));
 
