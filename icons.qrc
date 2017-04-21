@@ -6,9 +6,6 @@
         <file alias="reveal">icons/codeactions/reveal.svg</file>
     </qresource>
     <qresource prefix="/icons">
-        <file>icons/idcard.png</file>
-        <file>icons/default-code-icon.png</file>
-        <file>icons/systray.png</file>
         <file alias="systray">icons/systray.svg</file>
         <file alias="applicationIcon">icons/application.svg</file>
         <file alias="default-code-icon">icons/default-code-icon.svg</file>
