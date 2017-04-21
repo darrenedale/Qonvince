@@ -14,7 +14,10 @@
    version="1.1"
    id="svg76"
    sodipodi:docname="idcard.svg"
-   inkscape:version="0.92.1 r15371">
+   inkscape:version="0.92.1 r15371"
+   inkscape:export-filename="/home/darren/Documents/Development/Qonvince/dist/application_icon_24.png"
+   inkscape:export-xdpi="48"
+   inkscape:export-ydpi="48">
   <metadata
      id="metadata80">
     <rdf:RDF>
@@ -36,16 +39,16 @@
      guidetolerance="10"
      inkscape:pageopacity="0"
      inkscape:pageshadow="2"
-     inkscape:window-width="1060"
-     inkscape:window-height="735"
+     inkscape:window-width="1920"
+     inkscape:window-height="1015"
      id="namedview78"
      showgrid="false"
      inkscape:zoom="9.8333333"
-     inkscape:cx="20.290883"
+     inkscape:cx="27.206137"
      inkscape:cy="27.171668"
-     inkscape:window-x="2250"
-     inkscape:window-y="179"
-     inkscape:window-maximized="0"
+     inkscape:window-x="0"
+     inkscape:window-y="36"
+     inkscape:window-maximized="1"
      inkscape:current-layer="g74" />
   <defs
      id="defs28">
@@ -84,17 +87,20 @@
        id="c"
        y1="535.75"
        x1="391.28"
-       y2="501.11"
+       y2="501.10999"
        x2="411.28"
        gradientUnits="userSpaceOnUse"
-       gradientTransform="matrix(1.0111144,0,0,1.0101955,-321.72141,128.71943)">
+       gradientTransform="matrix(1.0111144,0,0,1.0101955,-5.5320431,-5.2177925)"
+       xlink:href="#e">
       <stop
          stop-color="#e3dfd6"
-         id="stop12" />
+         id="stop12"
+         style="stop-color:#82a4a9;stop-opacity:1" />
       <stop
          offset="1"
          stop-color="#f4f1e8"
-         id="stop14" />
+         id="stop14"
+         style="stop-color:#cae2e6;stop-opacity:1" />
     </linearGradient>
     <linearGradient
        id="d"
@@ -102,7 +108,8 @@
        x1="77.987"
        y2="650.39"
        x2="88.999"
-       gradientUnits="userSpaceOnUse">
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="translate(316.19053,-133.93996)">
       <stop
          stop-color="#d35400"
          id="stop17" />
@@ -118,7 +125,7 @@
        y2="529.54"
        gradientUnits="userSpaceOnUse"
        x2="438.95"
-       gradientTransform="matrix(0.87609,-0.50484,0.50581,0.87442,-251.31,277.05)">
+       gradientTransform="matrix(1.0111365,-2.3204847e-4,0.00190607,1.0101735,-40.107322,-19.357332)">
       <stop
          stop-color="#f5955f"
          id="stop22" />
@@ -133,111 +140,112 @@
        x1="398.57"
        x2="419.25"
        gradientUnits="userSpaceOnUse"
-       gradientTransform="translate(-384.57,-499.8)" />
+       gradientTransform="rotate(29.939211,408.57093,523.79383)" />
   </defs>
   <g
      transform="translate(-384.57-499.8)"
      id="g74">
+    <rect
+       style="color:#000000;fill:url(#c);stroke-width:3;stroke-linecap:round;stroke-linejoin:round;fill-opacity:1.0"
+       id="rect38"
+       transform="matrix(0.99999997,-2.3879537e-4,0.00188355,0.99999823,0,0)"
+       height="24.239893"
+       rx="1.6160071"
+       y="511.76993"
+       x="387.35968"
+       width="40.445179" />
+    <path
+       style="color:#000000;fill:#7f8c8d;stroke-width:3;stroke-linejoin:round"
+       inkscape:connector-curvature="0"
+       id="path40"
+       d="m 428.78284,534.62239 c -0.28591,0.26 -0.66242,0.42282 -1.08215,0.42227 l -37.21067,0.0102 c -0.89554,6e-5 -1.61907,-0.7213 -1.6205,-1.61647 l -0.0388,-21.01347 c -1.1e-4,-0.112 0.0118,-0.22285 0.0332,-0.32821 -0.32473,0.29534 -0.5338,0.71846 -0.53232,1.19476 l 0.0387,21.01348 c 0.001,0.89517 0.72496,1.61653 1.6205,1.61647 l 37.21067,-0.0102 c 0.78353,5e-5 1.43249,-0.55169 1.58123,-1.28883" />
+    <path
+       inkscape:connector-curvature="0"
+       style="opacity:0.1;fill:url(#f);fill-rule:evenodd"
+       d="m 404.50956,515.69188 -12.09428,16.11435 1.10977,4.12422 19.3911,-0.005 z"
+       id="path44" />
+    <rect
+       style="color:#000000;fill:url(#d);stroke-width:3;stroke-linecap:round;stroke-linejoin:round"
+       width="12.133992"
+       x="391.40048"
+       y="515.81042"
+       rx="0"
+       height="16.160009"
+       transform="matrix(0.99999997,-2.301312e-4,0.00189221,0.99999821,0,0)"
+       id="rect46" />
+    <path
+       inkscape:connector-curvature="0"
+       style="fill:url(#e)"
+       d="m 398.44243,516.7328 c -1.68043,3.8e-4 -3.03105,1.35163 -3.02794,3.03133 0.004,1.67883 1.35882,3.03058 3.03926,3.0302 1.68043,-3.8e-4 3.03105,-1.35163 3.02794,-3.03133 -0.004,-1.67883 -1.35883,-3.03057 -3.03926,-3.0302 m 0.015,8.08084 c -2.80084,1.7e-4 -5.05366,0.90221 -5.052,2.02139 l 0.007,4.04085 10.11225,-0.004 -0.007,-4.04085 c -0.002,-1.11918 -2.2584,-2.01964 -5.05925,-2.01946"
+       id="path48" />
     <g
-       id="g4582"
-       transform="rotate(29.939211,408.57093,523.79383)">
-      <rect
-         width="40.445179"
-         x="71.170311"
-         y="645.70715"
-         rx="1.6160071"
-         height="24.239893"
-         transform="matrix(0.8664362,-0.49928781,0.50071221,0.86561382,0,0)"
-         id="rect38"
-         style="color:#000000;fill:url(#c);stroke-width:3;stroke-linecap:round;stroke-linejoin:round" />
-      <path
-         d="m 431.49,523.09 c -0.118,0.368 -0.363,0.697 -0.727,0.906 l -32.24,18.58 c -0.776,0.447 -1.763,0.183 -2.211,-0.592 l -10.521,-18.19 c -0.056,-0.097 -0.101,-0.199 -0.135,-0.301 -0.134,0.418 -0.104,0.889 0.135,1.301 l 10.521,18.19 c 0.448,0.775 1.435,1.039 2.211,0.592 l 32.24,-18.58 c 0.679,-0.391 0.966,-1.193 0.727,-1.906"
-         id="path40"
-         inkscape:connector-curvature="0"
-         style="color:#000000;fill:#d9d3cc;stroke-width:3;stroke-linejoin:round" />
-      <path
-         id="path44"
-         transform="translate(384.57,499.8)"
-         d="M 16.438,19 14,39 l 3.02,3.02 16.801,-9.682 z"
-         style="opacity:0.1;fill:url(#f);fill-rule:evenodd"
-         inkscape:connector-curvature="0" />
-      <rect
-         id="rect46"
-         transform="matrix(0.86644,-0.49928,0.50072,0.86561,0,0)"
-         height="16.16"
-         rx="0"
-         y="649.75"
-         x="75.209999"
-         width="12.134"
-         style="color:#000000;fill:url(#d);stroke-width:3;stroke-linecap:round;stroke-linejoin:round" />
-      <path
-         id="path48"
-         d="m 396.27,522.73 c -1.456,0.839 -1.952,2.684 -1.111,4.138 0.841,1.453 2.69,1.948 4.146,1.109 1.456,-0.839 1.952,-2.684 1.111,-4.138 -0.841,-1.453 -2.69,-1.948 -4.146,-1.109 m 4.046,6.995 c -2.427,1.398 -3.929,3.304 -3.369,4.273 l 2.023,3.498 8.761,-5.05 -2.023,-3.498 c -0.56,-0.969 -2.965,-0.623 -5.392,0.775"
-         style="fill:url(#e)"
-         inkscape:connector-curvature="0" />
+       style="color:#000000;stroke-width:3;stroke-linecap:round;stroke-linejoin:round"
+       transform="matrix(0.99999937,-2.3013106e-4,0.00189221,0.99999881,315.93708,-134.01249)"
+       id="g72">
       <g
-         id="g72"
-         transform="matrix(0.86644,-0.49928,0.50072,0.86561,0,0)"
-         style="color:#000000;stroke-width:3;stroke-linecap:round;stroke-linejoin:round">
+         style="fill:#d9d3cc"
+         id="g70">
         <g
-           id="g54"
-           style="fill:#4d4d4d">
-          <rect
-             id="rect50"
-             height="2.02"
-             y="649.75"
-             x="89.370003"
-             width="8.0889997" />
-          <rect
-             id="rect52"
-             height="2.02"
-             y="649.75"
-             x="98.470001"
-             width="2.0220001" />
-        </g>
-        <g
-           id="g64"
-           style="fill:#7f8c8d">
-          <rect
-             id="rect56"
-             height="1.01"
-             y="653.78998"
-             x="89.370003"
-             width="7.0780001" />
-          <rect
-             id="rect58"
-             height="1.01"
-             y="653.78998"
-             x="97.459999"
-             width="2.0220001" />
-          <rect
-             id="rect60"
-             height="1.01"
-             y="653.78998"
-             x="100.49"
-             width="7.0780001" />
-          <rect
-             id="rect62"
-             height="1.01"
-             y="656.82001"
-             x="89.370003"
-             width="18.201" />
-        </g>
-        <g
-           id="g70"
-           style="fill:#d9d3cc">
-          <rect
-             id="rect66"
-             height="4.04"
-             y="661.87"
-             x="103.52"
-             width="4.0450001" />
-          <rect
-             id="rect68"
-             height="4.04"
-             y="661.89001"
-             x="98.410004"
-             width="4.0450001" />
+           id="g4564">
+          <g
+             id="g54"
+             style="color:#000000;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;fill:#4d4d4d">
+            <rect
+               id="rect50"
+               height="2.02"
+               y="649.75"
+               x="89.370003"
+               width="8.0889997" />
+            <rect
+               id="rect52"
+               height="2.02"
+               y="649.75"
+               x="98.470001"
+               width="2.0220001" />
+          </g>
+          <g
+             id="g64"
+             style="color:#000000;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;fill:#7f8c8d">
+            <rect
+               id="rect56"
+               height="1.01"
+               y="653.78998"
+               x="89.370003"
+               width="7.0780001" />
+            <rect
+               id="rect58"
+               height="1.01"
+               y="653.78998"
+               x="97.459999"
+               width="2.0220001" />
+            <rect
+               id="rect60"
+               height="1.01"
+               y="653.78998"
+               x="100.49"
+               width="7.0780001" />
+            <rect
+               id="rect62"
+               height="1.01"
+               y="656.82001"
+               x="89.370003"
+               width="18.201" />
+          </g>
+          <g
+             id="g4543">
+            <rect
+               width="4.0450001"
+               x="103.52"
+               y="661.87"
+               height="4.04"
+               id="rect66" />
+            <rect
+               width="4.0450001"
+               x="98.410004"
+               y="661.89001"
+               height="4.04"
+               id="rect68" />
+          </g>
         </g>
       </g>
     </g>
