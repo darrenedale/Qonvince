@@ -99,6 +99,12 @@ namespace Qonvince {
 			void setCountdownColour( const QColor & c );
 			void setCountdownWarningColour( const QColor & c );
 			void setCountdownCriticalColour( const QColor & c );
+			void addCode( const QByteArray & seed );
+			void addCode( const QString & name, const QByteArray & seed );
+			void addCode( Otp * code );
+
+			/* only for dev purposes, to log when settings changes update the widget */
+			void settingsUpdate( void );
 
 		Q_SIGNALS:
 			void codeAdded( Otp * code );
@@ -136,22 +142,15 @@ namespace Qonvince {
 			void emitCodeDoubleClicked( QListWidgetItem * it );
 			void emitCodeClicked( QListWidgetItem * it );
 
-			void editActionTriggered( void );
-			void refreshActionTriggered( void );
-			void removeActionTriggered( void );
-			void copyActionTriggered( void );
+			void onEditActionTriggered( void );
+			void onRefreshActionTriggered( void );
+			void onRemoveActionTriggered( void );
+			void onCopyActionTriggered( void );
+			void onRemoveIconActionTriggered( void );
 
 #if defined(QT_DEBUG)
 			void debugLogNewCode( const QString & code ) const;
 #endif
-
-		public Q_SLOTS:
-			void addCode( const QByteArray & seed );
-			void addCode( const QString & name, const QByteArray & seed );
-			void addCode( Otp * code );
-
-			/* only for dev purposes, to log when settings changes update the widget */
-			void settingsUpdate( void );
 
 		private:
 			void callMouseClickEvent( void );
@@ -182,10 +181,6 @@ namespace Qonvince {
 			QPoint m_mousePressLeftStart;
 
 			QMenu * m_itemMenu;
-			QAction * m_editAction;
-			QAction * m_copyAction;
-			QAction * m_refreshAction;
-			QAction * m_removeAction;
 			OtpListWidgetItem * m_menuCodeItem;
 
 			/* list of hidden passcodes that are currently, temporarily revealed */

@@ -5,3 +5,4 @@ x 2016-11-29 OtpCode property to hide codes (display on-demand for, e.g. 30s). C
 x 2017-04-06 Detect when user has entered incorrect passphrase to decrypt settings and ask for phrase again  +Qonvince
 x 2017-04-06 Add icon to password dialogue, and any other bling?  +Qonvince @UI
 (2) 2017-04-06 Integrate into platform keyring/wallet/etc.  +Qonvince @UX
+(1) 2017-04-23 Ability to change password for settings.  +Qonvince

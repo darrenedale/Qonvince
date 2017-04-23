@@ -155,7 +155,7 @@ namespace Qonvince {
 			void baselineTimeChanged( qint64 oldInterval, qint64 newInterval );
 			void counterChanged( quint64 oldCounter, quint64 newCounter );
 
-			void changed();
+			void changed( void );
 
 			void typeChanged( Otp::CodeType newType );
 			void issuerChanged( QString newIssuer );

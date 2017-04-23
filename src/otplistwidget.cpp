@@ -27,6 +27,8 @@
   * - visual feedback that a manual refresh has executed (e.g. flash
   *   code)?
   * - optimise painting
+  * - once a better mechanism for removing code icons has been implemented, remove
+  *   the "Remove icon" entry from the item context menu
   */
 #include "otplistwidget.h"
 
@@ -75,22 +77,20 @@ OtpListWidget::OtpListWidget( QWidget * parent )
 	m_doubleClickWaitTimer(nullptr),
 	m_receivedDoubleClickEvent(false),
 	m_itemMenu(nullptr),
-	m_editAction(nullptr),
-	m_copyAction(nullptr),
-	m_refreshAction(nullptr),
-	m_removeAction(nullptr),
 	m_menuCodeItem(nullptr) {
 	m_itemMenu = new QMenu(this);
-	m_editAction = m_itemMenu->addAction(QIcon::fromTheme("document-edit"), tr("Edit"));
-	m_copyAction = m_itemMenu->addAction(QIcon::fromTheme("edit-copy"), tr("Copy"));
-	m_refreshAction = m_itemMenu->addAction(QIcon::fromTheme("view-refresh", QIcon(":/icons/codeactions/refresh")), tr("Refresh now"));
-	m_removeAction = m_itemMenu->addAction(QIcon::fromTheme("list-remove", QIcon(":/icons/codeactions/remove")), tr("Remove"));
+	auto editAction = m_itemMenu->addAction(QIcon::fromTheme("document-edit"), tr("Edit"));
+	auto removeIconAction = m_itemMenu->addAction(tr("Remove icon"));
+	auto copyAction = m_itemMenu->addAction(QIcon::fromTheme("edit-copy"), tr("Copy"));
+	auto refreshAction = m_itemMenu->addAction(QIcon::fromTheme("view-refresh", QIcon(":/icons/codeactions/refresh")), tr("Refresh now"));
+	auto removeAction = m_itemMenu->addAction(QIcon::fromTheme("list-remove", QIcon(":/icons/codeactions/remove")), tr("Remove"));
 
 //	connect(m_itemMenu, SIGNAL(aboutToHide()), this, SLOT(itemMenuFinished()));
-	connect(m_editAction, SIGNAL(triggered(bool)), this, SLOT(editActionTriggered()));
-	connect(m_copyAction, SIGNAL(triggered(bool)), this, SLOT(copyActionTriggered()));
-	connect(m_refreshAction, SIGNAL(triggered(bool)), this, SLOT(refreshActionTriggered()));
-	connect(m_removeAction, SIGNAL(triggered(bool)), this, SLOT(removeActionTriggered()));
+	connect(editAction, &QAction::triggered, this, &OtpListWidget::onEditActionTriggered);
+	connect(copyAction, &QAction::triggered, this, &OtpListWidget::onCopyActionTriggered);
+	connect(refreshAction, &QAction::triggered, this, &OtpListWidget::onRefreshActionTriggered);
+	connect(removeAction, &QAction::triggered, this, &OtpListWidget::onRemoveActionTriggered);
+	connect(removeIconAction, &QAction::triggered, this, &OtpListWidget::onRemoveIconActionTriggered);
 
 	m_countdownColour = palette().color(QPalette::WindowText).lighter(150);
 	m_countdownWarningColour = m_countdownColour;
@@ -182,7 +182,7 @@ void OtpListWidget::onCodeDefinitionChanged( void ) {
 
 
 void OtpListWidget::onCodeDefinitionChanged( Otp * code ) {
-    OtpListWidgetItem * it = itemFromOtp(code);
+	OtpListWidgetItem * it = itemFromOtp(code);
 
 	if(!it) {
 		return;
@@ -190,7 +190,7 @@ void OtpListWidget::onCodeDefinitionChanged( Otp * code ) {
 
 	code->refreshCode();
 	QRect itemViewportRect(0, itemHeight() * row(it) - verticalOffset(), width(), itemHeight());
-qDebug() << "updating item" << code->name() << itemViewportRect;
+//qDebug() << "updating item" << code->name() << itemViewportRect;
 	viewport()->update(itemViewportRect);
 }
 
@@ -199,7 +199,7 @@ void OtpListWidget::onCodeChanged( void ) {
 	Otp * c = dynamic_cast<Otp *>(sender());
 
 	if(!c) {
-		qDebug() << "failed to find sender of newCodeGenerated() signal";
+		qWarning() << "failed to find sender of newCodeGenerated() signal";
 		return;
 	}
 
@@ -208,10 +208,10 @@ void OtpListWidget::onCodeChanged( void ) {
 
 
 void OtpListWidget::onCodeChanged( Otp * code ) {
-    OtpListWidgetItem * it = itemFromOtp(code);
+	OtpListWidgetItem * it = itemFromOtp(code);
 
 	if(!it) {
-		qDebug() << "failed to find list item for code" << code->name();
+		qWarning() << "failed to find list item for code" << code->name();
 		return;
 	}
 
@@ -283,7 +283,7 @@ void OtpListWidget::addItem( OtpListWidgetItem * item ) {
 	item->setSizeHint(QSize(width(), 40));
 	QListWidget::addItem(item);
 	Otp * code = item->code();
-	connect(code, SIGNAL(changed()), this, SLOT(onCodeDefinitionChanged()));
+	connect(code, &Otp::changed, this, static_cast<void (OtpListWidget::*)(void)>(&OtpListWidget::onCodeDefinitionChanged));
 	connect(code, SIGNAL(newCodeGenerated(QString)), this, SLOT(onCodeChanged()));
 
 #if defined(QT_DEBUG)
@@ -509,7 +509,7 @@ void OtpListWidget::mouseReleaseEvent( QMouseEvent * ev ) {
 		else if(m_removeIconHitRect.contains(m_mousePressLeftStart) && m_removeIconHitRect.contains(mousePos)) {
 			/* clicked on remove */
 			m_menuCodeItem = dynamic_cast<OtpListWidgetItem *>(item(m_hoverItemIndex));
-			removeActionTriggered();
+			onRemoveActionTriggered();
 			ev->accept();
 			return;
 		}
@@ -633,7 +633,7 @@ void OtpListWidget::contextMenuEvent( QContextMenuEvent * ev ) {
 }
 
 
-void OtpListWidget::editActionTriggered( void ) {
+void OtpListWidget::onEditActionTriggered( void ) {
 	if(!m_menuCodeItem) {
 		return;
 	}
@@ -642,7 +642,7 @@ void OtpListWidget::editActionTriggered( void ) {
 }
 
 
-void OtpListWidget::copyActionTriggered( void ) {
+void OtpListWidget::onCopyActionTriggered( void ) {
 	if(!m_menuCodeItem) {
 		return;
 	}
@@ -651,7 +651,16 @@ void OtpListWidget::copyActionTriggered( void ) {
 }
 
 
-void OtpListWidget::refreshActionTriggered( void ) {
+void OtpListWidget::onRemoveIconActionTriggered( void ) {
+	if(!m_menuCodeItem) {
+		return;
+	}
+
+	m_menuCodeItem->code()->setIcon(QIcon());
+}
+
+
+void OtpListWidget::onRefreshActionTriggered( void ) {
 	if(!m_menuCodeItem) {
 		return;
 	}
@@ -660,7 +669,7 @@ void OtpListWidget::refreshActionTriggered( void ) {
 }
 
 
-void OtpListWidget::removeActionTriggered( void ) {
+void OtpListWidget::onRemoveActionTriggered( void ) {
 	if(!m_menuCodeItem) {
 		return;
 	}
