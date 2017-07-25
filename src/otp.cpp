@@ -356,7 +356,7 @@ Otp * Otp::fromSettings( const QSettings & settings, QString cryptKey ) {
 		QCA::Cipher cipher("aes128", QCA::Cipher::CBC, QCA::Cipher::DefaultPadding, QCA::Decode, key, initVec);
 		QCA::SecureArray seed = cipher.process(value.toByteArray().mid(16));
 
-		if(!seed.isEmpty()) {
+		if(cipher.ok()) {
 			ret->setSeed(seed.toByteArray(), Base32Seed);
 			haveSeed = true;
 		}
@@ -418,7 +418,7 @@ void Otp::writeSettings( QSettings & settings, QString cryptKey ) const {
 	QCA::SecureArray encrypted = initVec.toByteArray() + cipher.process(seed(Base32Seed));
 	settings.setValue("seed", QCA::arrayToHex(encrypted.toByteArray()));
 
-	if(encrypted.isEmpty()) {
+	if(!cipher.ok()) {
 		qCritical() << "encryption of seed failed";
 	}
 

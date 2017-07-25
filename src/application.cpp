@@ -393,11 +393,10 @@ bool Application::readCodeSettings( void ) {
 		 * transitional purposes */
 		{
 			QCA::SecureArray value{QCA::hexToArray(settings.value("crypt_check").toString())};
-			QCA::SymmetricKey key{m_cryptPassphrase.toUtf8()};
-			QCA::InitializationVector initVec{value.toByteArray().left(16)};
-			QCA::Cipher cipher("aes128", QCA::Cipher::CBC, QCA::Cipher::DefaultPadding, QCA::Decode, key, initVec);
+			QCA::Cipher cipher("aes128", QCA::Cipher::CBC, QCA::Cipher::DefaultPadding, QCA::Decode, QCA::SymmetricKey{m_cryptPassphrase.toUtf8()}, QCA::InitializationVector{value.toByteArray().left(16)});
+			cipher.process(value.toByteArray().mid(16));
 
-			if(cipher.process(value.toByteArray().mid(16)).isEmpty()) {
+			if(!cipher.ok()) {
 				Crypt c(m_cryptPassphrase.toUtf8());
 				Crypt::ErrorCode err;
 				c.decrypt(settings.value("crypt_check").toString(), &err);
