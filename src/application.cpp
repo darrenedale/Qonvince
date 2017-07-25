@@ -385,15 +385,20 @@ bool Application::readApplicationSettings( void ) {
 bool Application::readCodeSettings( void ) {
 	QSettings settings;
 
-	/* read the crypt_check value. if decrypt() indicates an error, the passphrase
-	 * is wrong; if it indicates success the passphrase is either right or is wrong
-	 * but hits the right checksum by chance */
+	/* read the crypt_check value. if decryption indicates an error, the passphrase
+	 * is wrong; if it indicates success the passphrase is right. the purpose of
+	 * this check is to work out whether to continue reading the file or not. if
+	 * the passphrase is incorrect, it won't decrypt the seeds, in which case
+	 * subsequently writing the codes back will effectively delete them. if the
+	 * passphrase is correct, or someone somehow manages to work out how to trick
+	 * this check, the passcode must still correctly decrypt the seeds. in other
+	 * words, bypassing this check does not grant access to seeds */
 	if(settings.contains("crypt_check")) {
 		/* temporarily support reading files with old crypto as fallback for
 		 * transitional purposes */
 		{
 			QCA::SecureArray value{QCA::hexToArray(settings.value("crypt_check").toString())};
-			QCA::Cipher cipher("aes128", QCA::Cipher::CBC, QCA::Cipher::DefaultPadding, QCA::Decode, QCA::SymmetricKey{m_cryptPassphrase.toUtf8()}, QCA::InitializationVector{value.toByteArray().left(16)});
+			QCA::Cipher cipher("aes256", QCA::Cipher::CBC, QCA::Cipher::DefaultPadding, QCA::Decode, QCA::SymmetricKey{m_cryptPassphrase.toUtf8()}, QCA::InitializationVector{value.toByteArray().left(16)});
 			cipher.process(value.toByteArray().mid(16));
 
 			if(!cipher.ok()) {
@@ -478,7 +483,7 @@ void Application::writeSettings( void ) const {
 
 		QCA::SymmetricKey key{m_cryptPassphrase.toUtf8()};
 		QCA::InitializationVector initVec(16);
-		QCA::Cipher cipher("aes128", QCA::Cipher::CBC, QCA::Cipher::DefaultPadding, QCA::Encode, key, initVec);
+		QCA::Cipher cipher("aes256", QCA::Cipher::CBC, QCA::Cipher::DefaultPadding, QCA::Encode, key, initVec);
 		settings.setValue("crypt_check", QCA::arrayToHex(initVec.toByteArray() + cipher.process(random).toByteArray()));
 	}
 

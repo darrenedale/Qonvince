@@ -353,7 +353,7 @@ Otp * Otp::fromSettings( const QSettings & settings, QString cryptKey ) {
 		QCA::SecureArray value{QCA::hexToArray(settings.value("seed").toByteArray())};
 		QCA::SymmetricKey key{cryptKey.toUtf8()};
 		QCA::InitializationVector initVec{value.toByteArray().left(16)};
-		QCA::Cipher cipher("aes128", QCA::Cipher::CBC, QCA::Cipher::DefaultPadding, QCA::Decode, key, initVec);
+		QCA::Cipher cipher("aes256", QCA::Cipher::CBC, QCA::Cipher::DefaultPadding, QCA::Decode, key, initVec);
 		QCA::SecureArray seed = cipher.process(value.toByteArray().mid(16));
 
 		if(cipher.ok()) {
@@ -414,7 +414,7 @@ void Otp::writeSettings( QSettings & settings, QString cryptKey ) const {
 	/* TODO make initialisation vector length a class constant (somewhere) */
 	QCA::SymmetricKey key{cryptKey.toUtf8()};
 	QCA::InitializationVector initVec(16);
-	QCA::Cipher cipher("aes128", QCA::Cipher::CBC, QCA::Cipher::DefaultPadding, QCA::Encode, key, initVec);
+	QCA::Cipher cipher("aes256", QCA::Cipher::CBC, QCA::Cipher::DefaultPadding, QCA::Encode, key, initVec);
 	QCA::SecureArray encrypted = initVec.toByteArray() + cipher.process(seed(Base32Seed));
 	settings.setValue("seed", QCA::arrayToHex(encrypted.toByteArray()));
 
