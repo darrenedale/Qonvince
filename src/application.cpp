@@ -89,7 +89,7 @@ Application::Application( int & argc, char ** argv )
 	setOrganizationDomain("equituk.net");
 	setApplicationName("Qonvince");
 	setApplicationDisplayName("Qonvince");
-	setApplicationVersion("1.7.9");
+	setApplicationVersion("1.8.0");
 	setQuitOnLastWindowClosed(false);
 	QSettings::setDefaultFormat(QSettings::IniFormat);
 
