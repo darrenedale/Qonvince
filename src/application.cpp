@@ -71,16 +71,17 @@ Application * Application::s_instance = nullptr;
 
 Application::Application( int & argc, char ** argv )
 :	QApplication(argc, argv),
-	m_runChecker(new SingleInstanceGuard(QONVINCE_APPLICATION_RUNCHECK_KEY)),
-	m_mainWindow(nullptr),
-	m_settingsWidget(nullptr),
-	m_aboutDialogue(nullptr),
-	m_trayIcon(nullptr),
-	m_trayIconMenu(nullptr),
-	m_quitAction(nullptr),
-	m_loadQrImageAction(nullptr),
-	m_mainWindowAction(nullptr),
-	m_settingsAction(nullptr) {
+	m_runChecker{new SingleInstanceGuard{QONVINCE_APPLICATION_RUNCHECK_KEY}},
+	m_mainWindow{nullptr},
+	m_settingsWidget{nullptr},
+	m_aboutDialogue{nullptr},
+	m_trayIcon{nullptr},
+	m_trayIconMenu{nullptr},
+	m_quitAction{nullptr},
+	m_loadQrImageAction{nullptr},
+	m_mainWindowAction{nullptr},
+	m_settingsAction{nullptr},
+	m_qcaInit{} {
 	Q_ASSERT(nullptr == s_instance);
 	s_instance = this;
 
@@ -388,38 +389,49 @@ bool Application::readCodeSettings( void ) {
 	 * is wrong; if it indicates success the passphrase is either right or is wrong
 	 * but hits the right checksum by chance */
 	if(settings.contains("crypt_check")) {
-		Crypt c(m_cryptPassphrase.toUtf8());
-		Crypt::ErrorCode err;
-		c.decrypt(settings.value("crypt_check").toString(), &err);
+		/* temporarily support reading files with old crypto as fallback for
+		 * transitional purposes */
+		{
+			QCA::SecureArray value{QCA::hexToArray(settings.value("crypt_check").toString())};
+			QCA::SymmetricKey key{m_cryptPassphrase.toUtf8()};
+			QCA::InitializationVector initVec{value.toByteArray().left(16)};
+			QCA::Cipher cipher("aes128", QCA::Cipher::CBC, QCA::Cipher::DefaultPadding, QCA::Decode, key, initVec);
 
-		switch(err) {
-			case Crypt::ErrOk:
-				break;
+			if(cipher.process(value.toByteArray().mid(16)).isEmpty()) {
+				Crypt c(m_cryptPassphrase.toUtf8());
+				Crypt::ErrorCode err;
+				c.decrypt(settings.value("crypt_check").toString(), &err);
 
-			default:
-				qDebug() << "unkown error code from Crypt::decrypt()";
-				return false;
+				switch(err) {
+					case Crypt::ErrOk:
+						break;
 
-			case Crypt::ErrKeyTooShort:				/*!< The key provided contained fewer than 8 bytes */
-				qDebug() << "decryption failure - key is too short";
-				return false;
+					default:
+						qDebug() << "unkown error code from Crypt::decrypt()";
+						return false;
 
-			case Crypt::ErrNoKeySet:				/*!< No key was set. You can not encrypt or decrypt without a valid key. */
-				qDebug() << "decryption failure - no passphrase";
-				return false;
+					case Crypt::ErrKeyTooShort:				/*!< The key provided contained fewer than 8 bytes */
+						qDebug() << "decryption failure - key is too short";
+						return false;
 
-			case Crypt::ErrUnknownVersion:			/*!< The version of this data is unknown, or the data is otherwise not valid. */
-				qDebug() << "decryption failure - unrecognised algorithm version";
-				return false;
+					case Crypt::ErrNoKeySet:				/*!< No key was set. You can not encrypt or decrypt without a valid key. */
+						qDebug() << "decryption failure - no passphrase";
+						return false;
 
-			case Crypt::ErrUuidMismatch:			/*!< The UUID in the encrypted data does not match the UUID of the machine decrypting it */
-				/* this should never happen - the UUID is not in use */
-				qDebug() << "decryption failure - UUID mismatch";
-				return false;
+					case Crypt::ErrUnknownVersion:			/*!< The version of this data is unknown, or the data is otherwise not valid. */
+						qDebug() << "decryption failure - unrecognised algorithm version";
+						return false;
 
-			case Crypt::ErrIntegrityCheckFailed:	/*!< The integrity check of the data failed. Perhaps the wrong key was used. */
-				qDebug() << "decryption integrity check failure - probably incorrect passphrase";
-				return false;
+					case Crypt::ErrUuidMismatch:			/*!< The UUID in the encrypted data does not match the UUID of the machine decrypting it */
+						/* this should never happen - the UUID is not in use */
+						qDebug() << "decryption failure - UUID mismatch";
+						return false;
+
+					case Crypt::ErrIntegrityCheckFailed:	/*!< The integrity check of the data failed. Perhaps the wrong key was used. */
+						qDebug() << "decryption integrity check failure - probably incorrect passphrase";
+						return false;
+				}
+			}
 		}
 	}
 
@@ -458,15 +470,17 @@ void Application::writeSettings( void ) const {
 		/* we use the length of the passphrase so that entry of a truncated
 		 * passphrase can never pass this check */
 		int l = (2 * m_cryptPassphrase.toUtf8().length()) + (qrand() % 20);
-		QString random;
+		QByteArray random(l, 0);
 
-		while(0 <= l) {
-			random += QChar('a' + (qrand() % 26));
-			--l;
+		while(0 < l) {
+			l--;
+			random[l] = 'a' + (qrand() % 26);
 		}
 
-		Crypt c(m_cryptPassphrase.toUtf8());
-		settings.setValue("crypt_check", c.encrypt(random));
+		QCA::SymmetricKey key{m_cryptPassphrase.toUtf8()};
+		QCA::InitializationVector initVec(16);
+		QCA::Cipher cipher("aes128", QCA::Cipher::CBC, QCA::Cipher::DefaultPadding, QCA::Encode, key, initVec);
+		settings.setValue("crypt_check", QCA::arrayToHex(initVec.toByteArray() + cipher.process(random).toByteArray()));
 	}
 
 	if(!!m_mainWindow) {

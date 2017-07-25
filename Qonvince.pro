@@ -29,8 +29,13 @@ win32 {
 }
 
 unix {
-    LIBS += -ldl
+    LIBS += -ldl \
+            -L/usr/lib/x86_64-linux-gnu/ \
+            -lqca-qt5
 }
+
+INCLUDEPATH += /usr/include/Qca-qt5/QtCrypto
+DEPENDPATH += /usr/include/Qca-qt5/QtCrypto
 
 SOURCES +=\
     src/passwordwidget.cpp \

@@ -38,6 +38,8 @@
 #include <QCryptographicHash>
 #include <QStandardPaths>
 
+#include <QtCrypto>
+
 #include "application.h"
 #include "crypt.h"
 #include "integerotpdisplayplugin.h"
@@ -345,11 +347,32 @@ Otp * Otp::fromSettings( const QSettings & settings, QString cryptKey ) {
 		}
 	}
 
-	Crypt c(cryptKey.toUtf8());
-	Crypt::ErrorCode err;
-	ret->setSeed(c.decrypt(settings.value("seed").toString(), &err).toUtf8(), Base32Seed);
+	bool haveSeed = false;
 
-	if(Crypt::ErrOk != err) {
+	{
+		QCA::SecureArray value{QCA::hexToArray(settings.value("seed").toByteArray())};
+		QCA::SymmetricKey key{cryptKey.toUtf8()};
+		QCA::InitializationVector initVec{value.toByteArray().left(16)};
+		QCA::Cipher cipher("aes128", QCA::Cipher::CBC, QCA::Cipher::DefaultPadding, QCA::Decode, key, initVec);
+		QCA::SecureArray seed = cipher.process(value.toByteArray().mid(16));
+
+		if(!seed.isEmpty()) {
+			ret->setSeed(seed.toByteArray(), Base32Seed);
+			haveSeed = true;
+		}
+	}
+
+	if(!haveSeed) {
+		Crypt c(cryptKey.toUtf8());
+		Crypt::ErrorCode err;
+		ret->setSeed(c.decrypt(settings.value("seed").toString(), &err).toUtf8(), Base32Seed);
+
+		if(Crypt::ErrOk == err) {
+			haveSeed = true;
+		}
+	}
+
+	if(!haveSeed) {
 		qCritical() << "decryption of seed failed";
 	}
 
@@ -388,10 +411,14 @@ void Otp::writeSettings( QSettings & settings, QString cryptKey ) const {
 		settings.setValue("pluginName", "");
 	}
 
-	Crypt::ErrorCode err;
-	settings.setValue("seed", c.encrypt(seed(Base32Seed), &err));
+	/* TODO make initialisation vector length a class constant (somewhere) */
+	QCA::SymmetricKey key{cryptKey.toUtf8()};
+	QCA::InitializationVector initVec(16);
+	QCA::Cipher cipher("aes128", QCA::Cipher::CBC, QCA::Cipher::DefaultPadding, QCA::Encode, key, initVec);
+	QCA::SecureArray encrypted = initVec.toByteArray() + cipher.process(seed(Base32Seed));
+	settings.setValue("seed", QCA::arrayToHex(encrypted.toByteArray()));
 
-	if(Crypt::ErrOk != err) {
+	if(encrypted.isEmpty()) {
 		qCritical() << "encryption of seed failed";
 	}
 

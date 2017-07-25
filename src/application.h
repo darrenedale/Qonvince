@@ -27,6 +27,8 @@
 #include <QSystemSemaphore>
 #include <QStandardPaths>
 
+#include <QtCrypto>
+
 #include "settings.h"
 
 class QAction;
@@ -172,6 +174,7 @@ namespace Qonvince {
 
 			QHash<QString, OtpDisplayPlugin *> m_codeDisplayPlugins;
 
+			QCA::Initializer m_qcaInit;
 			QString m_cryptPassphrase;
 	};
 }
