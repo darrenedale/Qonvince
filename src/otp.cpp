@@ -54,33 +54,32 @@ const QDateTime Otp::DefaultBaselineTime = QDateTime::fromMSecsSinceEpoch(0);
 
 
 Otp::Otp( const CodeType & type, QObject * parent )
-:	Otp(type, QString(), QString(), QByteArray(), PlainSeed, parent) {
+: Otp{type, QString(), QString(), QByteArray(), SeedType::Plain, parent} {
 }
 
 
 Otp::Otp( const CodeType & type, const QString & name, const QByteArray & seed, const SeedType & seedType, QObject * parent )
-:	Otp(type, QString(), name, seed, seedType, parent) {
+: Otp{type, QString(), name, seed, seedType, parent} {
 }
 
 
 Otp::Otp( const CodeType & type, const QByteArray & seed, const SeedType & seedType, QObject * parent )
-:	Otp(type, QString(), QString(), seed, seedType, parent) {
+: Otp{type, QString(), QString(), seed, seedType, parent} {
 }
 
 
 Otp::Otp( const CodeType & type, const QString & issuer, const QString & name, const QByteArray & seed, const SeedType & seedType, QObject * parent )
-:	QObject(parent),
-	m_type(type),
-	m_issuer(issuer),
-	m_name(name),
-	m_revealOnDemand(false),
-	m_counter(0),
-	m_interval(DefaultInterval),
-//	m_digits(DefaultDigits),
-	m_baselineTime(0),
-	m_refreshTimer{std::make_unique<QBasicTimer>()},
-	m_resync(false),
-	m_displayPlugin{nullptr} {
+: QObject{parent},
+ m_type{type},
+ m_issuer{issuer},
+ m_name{name},
+ m_revealOnDemand{false},
+ m_counter{0},
+ m_interval{DefaultInterval},
+ m_baselineTime{0},
+ m_refreshTimer{std::make_unique<QBasicTimer>()},
+ m_resync{false},
+ m_displayPlugin{nullptr} {
 	blockSignals(true);
 	setSeed(seed, seedType);
 	refreshCode();
@@ -106,10 +105,10 @@ void Otp::setType( CodeType type ) {
 	if(type != m_type) {
 		qSwap(type, m_type);
 
-		if(HotpCode == m_type) {
+		if(CodeType::Hotp == m_type) {
 			m_refreshTimer->stop();
 		}
-		else if(TotpCode == m_type) {
+		else if(CodeType::Totp == m_type) {
 			resynchroniseRefreshTimer();
 		}
 
@@ -180,7 +179,7 @@ void Otp::setIcon( const QIcon & icon ) {
 
 
 QByteArray Otp::seed( const SeedType & seedType ) const {
-	if(Base32Seed == seedType) {
+	if(SeedType::Base32 == seedType) {
 		return m_seed.encoded();
 	}
 
@@ -195,7 +194,7 @@ const QString &Otp::code() {
 bool Otp::setSeed( const QByteArray & newSeed, const SeedType & seedType ) {
 	QByteArray oldSeed, oldB32;
 
-	if(Base32Seed == seedType) {
+	if(SeedType::Base32 == seedType) {
 		if(newSeed == m_seed.encoded()) {
 			/* no actual change */
 			return true;
@@ -245,7 +244,7 @@ void Otp::setInterval( const int & duration ) {
 	}
 }
 
-bool Otp::setDisplayPlugin( std::shared_ptr<OtpDisplayPlugin> plugin ) {
+bool Otp::setDisplayPlugin( const std::shared_ptr<OtpDisplayPlugin> & plugin ) {
 	if(plugin != m_displayPlugin) {
 		QString oldName;
 		QString newName;
@@ -290,7 +289,7 @@ void Otp::setBaselineTime( const qint64 & secSinceEpoch ) {
 Otp * Otp::fromSettings( const QSettings & settings, QString cryptKey ) {
 	static QVector<QChar> s_validIconFileNameChars = {'a', 'b', 'c', 'd', 'e', 'f'};
 
-	CodeType t("HOTP" == settings.value("type", "TOTP").toString() ? HotpCode : TotpCode);
+	CodeType t("HOTP" == settings.value("type", "TOTP").toString() ? CodeType::Hotp : CodeType::Totp);
 	Otp * ret = new Otp(t);
 	ret->setName(settings.value("name").toString());
 	ret->setIssuer(settings.value("issuer").toString());
@@ -353,7 +352,7 @@ Otp * Otp::fromSettings( const QSettings & settings, QString cryptKey ) {
 		QCA::SecureArray seed = cipher.process(value.toByteArray().mid(16));
 
 		if(cipher.ok()) {
-			ret->setSeed(seed.toByteArray(), Base32Seed);
+			ret->setSeed(seed.toByteArray(), SeedType::Base32);
 			haveSeed = true;
 		}
 	}
@@ -361,7 +360,7 @@ Otp * Otp::fromSettings( const QSettings & settings, QString cryptKey ) {
 	if(!haveSeed) {
 		Crypt c(cryptKey.toUtf8());
 		Crypt::ErrorCode err;
-		ret->setSeed(c.decrypt(settings.value("seed").toString(), &err).toUtf8(), Base32Seed);
+		ret->setSeed(c.decrypt(settings.value("seed").toString(), &err).toUtf8(), SeedType::Base32);
 
 		if(Crypt::ErrOk == err) {
 			haveSeed = true;
@@ -372,7 +371,7 @@ Otp * Otp::fromSettings( const QSettings & settings, QString cryptKey ) {
 		qCritical() << "decryption of seed failed";
 	}
 
-	if(HotpCode == t) {
+	if(CodeType::Hotp == t) {
 		ret->setCounter(settings.value("counter", 0).toInt());
 	}
 	else {
@@ -411,14 +410,14 @@ void Otp::writeSettings( QSettings & settings, QString cryptKey ) const {
 	QCA::SymmetricKey key{cryptKey.toUtf8()};
 	QCA::InitializationVector initVec(16);
 	QCA::Cipher cipher("aes256", QCA::Cipher::CBC, QCA::Cipher::DefaultPadding, QCA::Encode, key, initVec);
-	QCA::SecureArray encrypted = initVec.toByteArray() + cipher.process(seed(Base32Seed));
+	QCA::SecureArray encrypted = initVec.toByteArray() + cipher.process(seed(SeedType::Base32));
 	settings.setValue("seed", QCA::arrayToHex(encrypted.toByteArray()));
 
 	if(!cipher.ok()) {
 		qCritical() << "encryption of seed failed";
 	}
 
-	if(HotpCode == type()) {
+	if(CodeType::Hotp == type()) {
 		settings.setValue("type", "HOTP");
 		settings.setValue("counter", counter());
 	}
@@ -456,7 +455,7 @@ void Otp::refreshCode( void ) {
 
 	QString code;
 
-	if(HotpCode == m_type) {
+	if(CodeType::Hotp == m_type) {
 		m_currentCode = hotp(mySeed, m_displayPlugin, counter());
 		Q_EMIT newCodeGenerated(m_currentCode);
 	}
@@ -486,7 +485,7 @@ void Otp::refreshCode( void ) {
 void Otp::internalRefreshCode( void ) {
 	refreshCode();
 
-	if(TotpCode == m_type) {
+	if(CodeType::Totp == m_type) {
 		if(1 < timeSinceLastCode()) {
 			/* we're too far out of sync, so resynchronise */
 			resynchroniseRefreshTimer();

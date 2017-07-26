@@ -163,7 +163,7 @@ void MainWindow::refreshTooltip( void ) {
 
 
 void MainWindow::onAddCodeClicked( void ) {
-	Otp * code = new Otp(Otp::TotpCode);
+	Otp * code = new Otp(Otp::CodeType::Totp);
 	m_ui->codes->addCode(code);
 	onEditCodeRequested(code);
 	/* TODO call onEditCodeRequested? */

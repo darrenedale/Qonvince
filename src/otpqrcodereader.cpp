@@ -59,7 +59,7 @@ bool OtpQrCodeReader::decode( void ) {
 		return false;
 	}
 	else {
-		Otp::CodeType type(url.cap(1).toLower() == "hotp" ? Otp::HotpCode : Otp::TotpCode);
+		Otp::CodeType type(url.cap(1).toLower() == "hotp" ? Otp::CodeType::Hotp : Otp::CodeType::Totp);
 		QString issuer(QString::fromUtf8(QByteArray::fromPercentEncoding(url.cap(3).toUtf8())));
 		QString name(QString::fromUtf8(QByteArray::fromPercentEncoding(url.cap(4).toUtf8())));
 		QString seed;
@@ -143,7 +143,7 @@ qDebug() << "\"algorithm\" parameter found but not yet supported. algorithm is" 
 
 Otp * OtpQrCodeReader::code( void ) const {
 	if(!m_seed.isEmpty()) {
-		Otp * ret = new Otp(type(), issuer(), name(), seed(), Otp::Base32Seed);
+		Otp * ret = new Otp(type(), issuer(), name(), seed(), Otp::SeedType::Base32);
 		ret->setCounter(m_counter);
 		ret->setInterval(m_interval);
 		ret->setDisplayPlugin(std::make_shared<IntegerOtpDisplayPlugin>(m_digits));

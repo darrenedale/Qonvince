@@ -45,7 +45,6 @@ namespace Qonvince {
 		Q_PROPERTY(QString name READ name WRITE setName NOTIFY nameChanged)
 		Q_PROPERTY(QString issuer READ issuer WRITE setIssuer NOTIFY issuerChanged)
 		Q_PROPERTY(QByteArray seed READ seed WRITE setSeed NOTIFY seedChanged)
-//		Q_PROPERTY(int digits READ digits WRITE setDigits NOTIFY digitsChanged)
 		Q_PROPERTY(int interval READ interval WRITE setInterval NOTIFY intervalChanged)
 		Q_PROPERTY(QDateTime baselineTime READ baselineTime WRITE setBaselineTime NOTIFY baselineTimeChanged)
 		Q_PROPERTY(int counter READ counter WRITE setCounter NOTIFY counterChanged)
@@ -56,20 +55,20 @@ namespace Qonvince {
 			static const int DefaultDigits;
 			static const QDateTime DefaultBaselineTime;
 
-			enum CodeType {
-				TotpCode = 0,
-				HotpCode
+			enum class CodeType {
+				Totp = 0,
+				Hotp
 			};
 
-			enum SeedType {
-				PlainSeed = 0,
-				Base32Seed
+			enum class SeedType {
+				Plain = 0,
+				Base32
 			};
 
-			explicit Otp( const CodeType & type = TotpCode, QObject * parent = nullptr );
-			Otp( const CodeType & type, const QString & issuer, const QString & name, const QByteArray & seed, const SeedType & seedType = PlainSeed, QObject * parent = nullptr );
-			Otp( const CodeType & type, const QString & name, const QByteArray & seed, const SeedType & seedType = PlainSeed, QObject * parent = nullptr );
-			Otp( const CodeType & type, const QByteArray & seed, const SeedType & seedType = PlainSeed, QObject * parent = nullptr );
+			explicit Otp( const CodeType & type = CodeType::Totp, QObject * parent = nullptr );
+			Otp( const CodeType & type, const QString & issuer, const QString & name, const QByteArray & seed, const SeedType & seedType = SeedType::Plain, QObject * parent = nullptr );
+			Otp( const CodeType & type, const QString & name, const QByteArray & seed, const SeedType & seedType = SeedType::Plain, QObject * parent = nullptr );
+			Otp( const CodeType & type, const QByteArray & seed, const SeedType & seedType = SeedType::Plain, QObject * parent = nullptr );
 			virtual ~Otp( void );
 
 			static Otp * fromSettings( const QSettings & settings, QString cryptKey );
@@ -90,11 +89,7 @@ namespace Qonvince {
 				return m_icon;
 			}
 
-//			inline int digits( void ) const {
-//				return m_digits;
-//			}
-
-			QByteArray seed( const SeedType & seedType = PlainSeed ) const;
+			QByteArray seed( const SeedType & seedType = SeedType::Plain ) const;
 
 			inline int interval( void ) const {
 				return m_interval;
@@ -126,7 +121,7 @@ namespace Qonvince {
 				if(0 >= d) {
 					d = 30;
 				}
-//qDebug() << "OtpCode::timeSinceLastCode() - current date/time (UTC):" << QDateTime::currentDateTimeUtc();
+
 				return ((QDateTime::currentDateTimeUtc().toMSecsSinceEpoch() / 1000) - baselineSecSinceEpoch()) % d;
 			}
 
@@ -183,29 +178,14 @@ namespace Qonvince {
 			void setName( const QString & name );
 			void setIssuer( const QString & issuer );
 			void setIcon( const QIcon & icon );
-			bool setSeed( const QByteArray & seed, const SeedType & seedType = PlainSeed );
+			bool setSeed( const QByteArray & seed, const SeedType & seedType = SeedType::Plain );
 			void setInterval( const int & duration );
-
-//			inline bool setDigits( int digits ) {
-//				if(digits >= 6 && digits <= 8) {
-//					if(digits != m_digits) {
-//						qSwap(m_digits, digits);
-//						Q_EMIT digitsChanged(digits, m_digits);
-//						Q_EMIT digitsChanged(m_digits);
-//						Q_EMIT changed();
-//					}
-
-//					return true;
-//				}
-
-//				return false;
-//			}
 
 			inline std::weak_ptr<OtpDisplayPlugin> displayPlugin( void ) const {
 				return m_displayPlugin;
 			}
 
-			bool setDisplayPlugin( std::shared_ptr<OtpDisplayPlugin> plugin );
+			bool setDisplayPlugin( const std::shared_ptr<OtpDisplayPlugin> & plugin );
 
 			inline void setRevealOnDemand( bool onDemandOnly ) {
 				if(onDemandOnly != m_revealOnDemand) {

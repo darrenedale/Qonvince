@@ -121,7 +121,7 @@ OtpEditor::~OtpEditor( void ) {
 
 
 Otp::CodeType OtpEditor::type( void ) const {
-	return (m_ui->hotpButton->isChecked() ? Otp::HotpCode : Otp::TotpCode);
+	return (m_ui->hotpButton->isChecked() ? Otp::CodeType::Hotp : Otp::CodeType::Totp);
 }
 
 
@@ -333,7 +333,7 @@ void OtpEditor::readBarcode( const QString & fileName ) {
 
 	if(reader.decode()) {
 		m_code->setName(reader.name());
-		m_code->setSeed(reader.seed(), Otp::Base32Seed);
+		m_code->setSeed(reader.seed(), Otp::SeedType::Base32);
 	}
 	else {
 		QMessageBox::critical(this, tr("%1: error").arg(QApplication::applicationName()), tr("The image could not be decoded. Is it really a QR code image?"));
@@ -370,9 +370,9 @@ bool OtpEditor::createBarcode( const QString & fileName ) {
 	QString seed(m_ui->seedEdit->text());
 
 	if(!seed.isEmpty()) {
-		QString uri = QString("otpauth://%1/%2:%3?secret=%4").arg(Otp::HotpCode == m_code->type() ? "hotp" : "totp").arg(QString::fromUtf8(m_ui->issuerEdit->text().toUtf8().toPercentEncoding())).arg(QString::fromUtf8(m_ui->nameEdit->text().toUtf8().toPercentEncoding())).arg(seed);
+		QString uri = QString("otpauth://%1/%2:%3?secret=%4").arg(Otp::CodeType::Hotp == m_code->type() ? "hotp" : "totp").arg(QString::fromUtf8(m_ui->issuerEdit->text().toUtf8().toPercentEncoding())).arg(QString::fromUtf8(m_ui->nameEdit->text().toUtf8().toPercentEncoding())).arg(seed);
 
-		if(Otp::HotpCode == m_code->type()) {
+		if(Otp::CodeType::Hotp == m_code->type()) {
 			if(0 != m_ui->counterSpin->value()) {
 				uri += "&counter=" + QString::number(m_ui->counterSpin->value());
 			}
@@ -448,10 +448,10 @@ void OtpEditor::updateHeading( void ) {
 
 void OtpEditor::emitTypeChanged( void ) {
 	if(m_ui->totpButton->isChecked()) {
-		Q_EMIT typeChanged(Otp::TotpCode);
+		Q_EMIT typeChanged(Otp::CodeType::Totp);
 	}
 	else if(m_ui->hotpButton->isChecked()) {
-		Q_EMIT typeChanged(Otp::HotpCode);
+		Q_EMIT typeChanged(Otp::CodeType::Hotp);
 	}
 }
 
@@ -478,7 +478,7 @@ void OtpEditor::onCodeSeedEditingFinished( void ) {
 		m_code->setSeed(m_originalSeed);
 	}
 	else {
-		m_code->setSeed(m_ui->seedEdit->text().toUtf8(), Otp::Base32Seed);
+		m_code->setSeed(m_ui->seedEdit->text().toUtf8(), Otp::SeedType::Base32);
 	}
 }
 
@@ -532,14 +532,14 @@ void OtpEditor::setType( const Otp::CodeType & codeType ) {
 		QSignalBlocker hBlocker(m_ui->hotpButton);
 		QSignalBlocker tBlocker(m_ui->totpButton);
 
-		if(Otp::HotpCode == codeType) {
+		if(Otp::CodeType::Hotp == codeType) {
 			m_ui->hotpButton->setChecked(true);
 			m_ui->totpButton->setChecked(false);
 			m_ui->intervalSpin->setEnabled(false);
 			m_ui->baseTimeEdit->setEnabled(false);
 			m_ui->counterSpin->setEnabled(true);
 		}
-		else if(Otp::TotpCode == codeType) {
+		else if(Otp::CodeType::Totp == codeType) {
 			m_ui->hotpButton->setChecked(false);
 			m_ui->totpButton->setChecked(true);
 			m_ui->intervalSpin->setEnabled(true);

@@ -265,12 +265,12 @@ void OtpListWidget::addCode( Otp * code ) {
 
 
 void OtpListWidget::addCode( const QByteArray & seed ) {
-	addItem(new OtpListWidgetItem(new Otp(Otp::TotpCode, seed)));
+	addItem(new OtpListWidgetItem(new Otp(Otp::CodeType::Totp, seed)));
 }
 
 
 void OtpListWidget::addCode( const QString & name, const QByteArray & seed ) {
-	addItem(new OtpListWidgetItem(new Otp(Otp::TotpCode, name, seed)));
+	addItem(new OtpListWidgetItem(new Otp(Otp::CodeType::Totp, name, seed)));
 }
 
 
@@ -497,7 +497,7 @@ void OtpListWidget::mouseReleaseEvent( QMouseEvent * ev ) {
 			OtpListWidgetItem * it = dynamic_cast<OtpListWidgetItem *>(item(m_hoverItemIndex));
 
 			if(it) {
-				if(Otp::HotpCode == it->code()->type()) {
+				if(Otp::CodeType::Hotp == it->code()->type()) {
 					it->code()->incrementCounter();
 				}
 
@@ -832,7 +832,7 @@ void OtpListWidget::paintEvent( QPaintEvent * ev ) {
 			}
 
 			/* draw the current code */
-			if(QONVINCE_OTPCODELISTWIDGET_TOTP_WARNING_THRESHOLD >= countdown && Otp::TotpCode == codeType) {
+			if(QONVINCE_OTPCODELISTWIDGET_TOTP_WARNING_THRESHOLD >= countdown && Otp::CodeType::Totp == codeType) {
 				painter.setPen(itemPen.color().lighter(200 + (30 * (5 - countdown))));
 			}
 
@@ -848,7 +848,7 @@ void OtpListWidget::paintEvent( QPaintEvent * ev ) {
 			}
 
 			/* draw the item new code timeout counter */
-			if(Otp::TotpCode == codeType) {
+			if(Otp::CodeType::Totp == codeType) {
 				QPen timerPen(m_countdownColour);
 				timerPen.setWidthF(0.5);
 				QBrush timerBrush(m_countdownColour);
