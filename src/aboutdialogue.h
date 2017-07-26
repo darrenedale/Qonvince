@@ -20,6 +20,8 @@
 #ifndef QONVINCE_ABOUTDIALOGUE_H
 #define QONVINCE_ABOUTDIALOGUE_H
 
+#include <memory>
+
 #include <QDialog>
 
 namespace Qonvince {
@@ -38,7 +40,7 @@ namespace Qonvince {
 			~AboutDialogue( void );
 
 		private:
-			Ui::AboutDialogue * m_ui;
+			std::unique_ptr<Ui::AboutDialogue> m_ui;
 	};
 }
 

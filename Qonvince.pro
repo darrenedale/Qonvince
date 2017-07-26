@@ -12,17 +12,18 @@ greaterThan(QT_MAJOR_VERSION, 4) {
 
 TARGET = Qonvince
 TEMPLATE = app
+CONFIG += c++14
 
 *-g++ {
-    QMAKE_CXXFLAGS += -O2 -std=c++11
+    QMAKE_CXXFLAGS_RELEASE += -O3
 }
 
 *-clang {
-    QMAKE_CXXFLAGS += -O2 -std=c++11
+    QMAKE_CXXFLAGS_RELEASE += -O3
 }
 
 *-msvc* {
-    QMAKE_CXXFLAGS += /O2
+    QMAKE_CXXFLAGS_RELEASE += /O3
 }
 
 win32 {

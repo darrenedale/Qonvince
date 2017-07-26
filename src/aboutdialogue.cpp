@@ -17,10 +17,10 @@
  * along with Qonvince. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "src/aboutdialogue.h"
+#include "aboutdialogue.h"
 #include "ui_aboutdialogue.h"
 
-#include "src/application.h"
+#include "application.h"
 
 
 using namespace Qonvince;
@@ -28,7 +28,7 @@ using namespace Qonvince;
 
 AboutDialogue::AboutDialogue( QWidget * parent )
 :	QDialog(parent),
-	m_ui(new Ui::AboutDialogue) {
+	m_ui{std::make_unique<Ui::AboutDialogue>()} {
 	m_ui->setupUi(this);
 
 	m_ui->aboutText->setText(m_ui->aboutText->text().arg(Application::applicationDisplayName()).arg(Application::applicationVersion()));
@@ -37,5 +37,4 @@ AboutDialogue::AboutDialogue( QWidget * parent )
 
 
 AboutDialogue::~AboutDialogue( void ) {
-	delete m_ui;
 }

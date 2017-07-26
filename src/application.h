@@ -20,6 +20,8 @@
 #ifndef QONVINCE_APPLICATION_H
 #define QONVINCE_APPLICATION_H
 
+#include <memory>
+
 #include <QApplication>
 #include <QSystemTrayIcon>
 #include <QObject>
@@ -30,6 +32,7 @@
 #include <QtCrypto>
 
 #include "settings.h"
+#include "aboutdialogue.h"
 
 class QAction;
 class QMenu;
@@ -85,9 +88,7 @@ namespace Qonvince {
 				return s_instance;
 			}
 
-			inline MainWindow * mainWindow( void ) {
-				return m_mainWindow;
-			}
+			inline std::weak_ptr<MainWindow> mainWindow( void );
 
 			inline QSystemTrayIcon * trayIcon( void ) const {
 				return m_trayIcon;
@@ -162,11 +163,11 @@ namespace Qonvince {
 
 			static Application * s_instance;
 
-			SingleInstanceGuard * m_runChecker;
+			std::unique_ptr<SingleInstanceGuard> m_runChecker;
 			Settings m_settings;
-			MainWindow * m_mainWindow;
-			SettingsWidget * m_settingsWidget;
-			AboutDialogue * m_aboutDialogue;
+			std::shared_ptr<MainWindow> m_mainWindow;
+			std::unique_ptr<SettingsWidget> m_settingsWidget;
+			std::unique_ptr<AboutDialogue> m_aboutDialogue;
 			QSystemTrayIcon * m_trayIcon;
 			QMenu * m_trayIconMenu;
 			QAction * m_quitAction, * m_loadQrImageAction, * m_mainWindowAction, * m_settingsAction;

@@ -71,9 +71,10 @@ Application * Application::s_instance = nullptr;
 
 Application::Application( int & argc, char ** argv )
 :	QApplication(argc, argv),
-	m_runChecker{new SingleInstanceGuard{QONVINCE_APPLICATION_RUNCHECK_KEY}},
+	m_runChecker{std::make_unique<SingleInstanceGuard>(QONVINCE_APPLICATION_RUNCHECK_KEY)},
+	m_settings{},
 	m_mainWindow{nullptr},
-	m_settingsWidget{nullptr},
+	m_settingsWidget{std::make_unique<SettingsWidget>(m_settings)},
 	m_aboutDialogue{nullptr},
 	m_trayIcon{nullptr},
 	m_trayIconMenu{nullptr},
@@ -126,15 +127,15 @@ Application::Application( int & argc, char ** argv )
 	m_trayIconMenu->addAction(m_quitAction);
 
 	m_trayIcon->setContextMenu(m_trayIconMenu);
-	m_mainWindow = new MainWindow();
+	m_mainWindow = std::make_shared<MainWindow>();
 
 	readApplicationSettings();
 	onSettingsChanged();
 
-	m_settingsWidget = new SettingsWidget(m_settings);
+//	m_settingsWidget = std::make_unique<SettingsWidget>(m_settings);
 
 	connect(m_trayIcon, &QSystemTrayIcon::activated, this, &Application::onTrayIconActivated);
-	connect(m_mainWindowAction, SIGNAL(triggered(bool)), m_mainWindow, SLOT(show()));
+	connect(m_mainWindowAction, SIGNAL(triggered(bool)), m_mainWindow.get(), SLOT(show()));
 	connect(m_settingsAction, SIGNAL(triggered(bool)), this, SLOT(showSettingsWidget()));
 	connect(&m_settings, &Settings::changed, this, &Application::onSettingsChanged);
 	connect(this, &Application::aboutToQuit, this, &Application::writeSettings);
@@ -143,19 +144,11 @@ Application::Application( int & argc, char ** argv )
 
 
 Application::~Application( void ) {
-	/* it's safe to delete nullptr */
-	delete m_runChecker;
+	/* remember, it's safe to delete nullptr! */
 	delete m_trayIcon;
 	delete m_trayIconMenu;
-	delete m_mainWindow;
-	delete m_settingsWidget;
-	delete m_aboutDialogue;
-	m_runChecker = nullptr;
 	m_trayIcon = nullptr;
 	m_trayIconMenu = nullptr;
-	m_mainWindow = nullptr;
-	m_settingsWidget = nullptr;
-	m_aboutDialogue = nullptr;
 
 	for(auto plugin : m_codeDisplayPlugins) {
 		delete plugin;
@@ -206,6 +199,11 @@ Application::DesktopEnvironment Application::desktopEnvironment( void ) {
 	}
 
 	return ret;
+}
+
+
+std::weak_ptr<MainWindow> Application::mainWindow() {
+	return m_mainWindow;
 }
 
 
@@ -324,7 +322,7 @@ int Application::exec( void ) {
 
 void Application::showMessage( const QString & title, const QString & message, int timeout ) {
 	if(!QSystemTrayIcon::supportsMessages()) {
-		QMessageBox::information(m_mainWindow, title, message, QMessageBox::StandardButtons(QMessageBox::Ok));
+		QMessageBox::information(m_mainWindow.get(), title, message, QMessageBox::StandardButtons(QMessageBox::Ok));
 	}
 	else {
 		m_trayIcon->showMessage(title, message, QSystemTrayIcon::Information, timeout);
@@ -334,7 +332,7 @@ void Application::showMessage( const QString & title, const QString & message, i
 
 void Application::showMessage( const QString & message, int timeout ) {
 	if(!QSystemTrayIcon::supportsMessages()) {
-		QMessageBox::information(m_mainWindow, tr("%1 message").arg(applicationName()), message, QMessageBox::StandardButtons(QMessageBox::Ok));
+		QMessageBox::information(m_mainWindow.get(), tr("%1 message").arg(applicationName()), message, QMessageBox::StandardButtons(QMessageBox::Ok));
 	}
 	else {
 		m_trayIcon->showMessage(tr("%1 message").arg(applicationName()), message, QSystemTrayIcon::Information, timeout);
@@ -343,7 +341,7 @@ void Application::showMessage( const QString & message, int timeout ) {
 
 
 void Application::readQrCode( void ) {
-	QString fileName = QFileDialog::getOpenFileName(m_mainWindow, tr("Open QR code image"));
+	QString fileName = QFileDialog::getOpenFileName(m_mainWindow.get(), tr("Open QR code image"));
 
 	if(fileName.isEmpty()) {
 		return;
@@ -538,7 +536,7 @@ void Application::onSettingsChanged( void ) {
 	disconnect(m_quitConnection);
 
 	if(m_settings.quitOnMainWindowClosed()) {
-		m_quitConnection = connect(m_mainWindow, &MainWindow::closing, this, &QApplication::quit);
+		m_quitConnection = connect(m_mainWindow.get(), &MainWindow::closing, this, &QApplication::quit);
 	}
 }
 
@@ -597,7 +595,7 @@ void Application::codeAdded( Otp * code ) {
 
 void Application::aboutQonvince( void ) {
 	if(!m_aboutDialogue) {
-		m_aboutDialogue = new AboutDialogue();
+		m_aboutDialogue = std::make_unique<AboutDialogue>();
 	}
 
 	m_aboutDialogue->show();
