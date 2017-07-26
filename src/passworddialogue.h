@@ -1,6 +1,8 @@
 #ifndef QONVINCE_PASSWORDDIALOGUE_H
 #define QONVINCE_PASSWORDDIALOGUE_H
 
+#include <memory>
+
 #include <QDialog>
 #include <QString>
 
@@ -40,7 +42,7 @@ namespace Qonvince {
 			void passwordChanged( QString );
 
 		private:
-			Ui::PasswordDialogue * m_ui;
+			std::unique_ptr<Ui::PasswordDialogue> m_ui;
 	};
 } // namespace Qonvince
 

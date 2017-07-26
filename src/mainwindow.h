@@ -17,8 +17,10 @@
  * along with Qonvince. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUICKAUTH_MAINWINDOW_H
-#define QUICKAUTH_MAINWINDOW_H
+#ifndef QONVINCE_MAINWINDOW_H
+#define QONVINCE_MAINWINDOW_H
+
+#include <memory>
 
 #include <QMainWindow>
 #include <QSystemTrayIcon>
@@ -46,7 +48,7 @@ namespace Qonvince {
 
 		public:
 			explicit MainWindow( QWidget * parent = nullptr );
-			~MainWindow();
+			~MainWindow( void );
 
 			QString hoveredCode( void ) const;
 
@@ -74,7 +76,7 @@ namespace Qonvince {
 			virtual void dropEvent( QDropEvent * ev );
 
 		private Q_SLOTS:
-            void refreshTooltip( void );
+			void refreshTooltip( void );
 			void onAddCodeClicked( void );
 			void onSettingsClicked( void );
 
@@ -86,9 +88,9 @@ namespace Qonvince {
 			void onCodeClicked( Otp * code );
 
 		private:
-			Ui::MainWindow *m_ui;
+			std::unique_ptr<Ui::MainWindow> m_ui;
 			bool m_imageDropEnabled;
 	};
 }
 
-#endif // QUICKAUTH_MAINWINDOW_H
+#endif // QONVINCE_MAINWINDOW_H

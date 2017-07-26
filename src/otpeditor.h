@@ -20,6 +20,8 @@
 #ifndef QONVINCE_OTPEDITOR_H
 #define QONVINCE_OTPEDITOR_H
 
+#include <memory>
+
 #include <QWidget>
 
 #include "otp.h"
@@ -99,7 +101,7 @@ namespace Qonvince {
 			void onDisplayPluginChanged( void );
 
 		private:
-			Ui::OtpEditor * m_ui;
+			std::unique_ptr<Ui::OtpEditor> m_ui;
 			Otp * m_code;
 			QByteArray m_originalSeed;
 	};

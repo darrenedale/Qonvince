@@ -38,7 +38,7 @@ using namespace Qonvince;
 
 SettingsWidget::SettingsWidget( Settings & settings, QWidget * parent )
 :	QWidget(parent),
-	m_ui(new Ui::SettingsWidget),
+	m_ui{std::make_unique<Ui::SettingsWidget>()},
 	m_settings(settings) {
 	m_ui->setupUi(this);
 	resyncWithSettings();
@@ -57,7 +57,6 @@ SettingsWidget::SettingsWidget( Settings & settings, QWidget * parent )
 
 SettingsWidget::~SettingsWidget( void ) {
 qDebug() << "deleting settings widget";
-	delete m_ui;
 }
 
 

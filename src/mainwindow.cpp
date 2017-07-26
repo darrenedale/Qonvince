@@ -50,7 +50,7 @@ using namespace Qonvince;
 
 MainWindow::MainWindow( QWidget * parent ) :
 	QMainWindow(parent),
-	m_ui(new Ui::MainWindow),
+	m_ui{std::make_unique<Ui::MainWindow>()},
 	m_imageDropEnabled(OtpQrCodeReader::isAvailable()) {
 	m_ui->setupUi(this);
 
@@ -71,14 +71,12 @@ MainWindow::MainWindow( QWidget * parent ) :
 		qonvinceApp->showMessage(tr("%1 message").arg(Application::applicationDisplayName()), tr("Drag and drop of QR code images is not available. You may need to install additional software to enable this."));
 	}
 
-    connect(&(qonvinceApp->settings()), SIGNAL(copyCodeOnClickChanged(bool)), this, SLOT(refreshTooltip()));
-    refreshTooltip();
+	connect(&(qonvinceApp->settings()), SIGNAL(copyCodeOnClickChanged(bool)), this, SLOT(refreshTooltip()));
+	refreshTooltip();
 }
 
 
 MainWindow::~MainWindow( void ) {
-	delete m_ui;
-	m_ui = nullptr;
 }
 
 

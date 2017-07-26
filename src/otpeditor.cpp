@@ -58,7 +58,7 @@ OtpEditor::OtpEditor( QWidget * parent )
 
 OtpEditor::OtpEditor( Otp * code, QWidget * parent )
 :	QWidget(parent),
-	m_ui(new Ui::OtpEditor),
+	m_ui{std::make_unique<Ui::OtpEditor>()},
 	m_code(nullptr) {
 	m_ui->setupUi(this);
 #if QT_VERSION >= QT_VERSION_CHECK(5, 2, 0)
@@ -117,8 +117,6 @@ OtpEditor::~OtpEditor( void ) {
 		qDebug() << "deleting editor for" << tr("Untitled");
 	}
 #endif
-
-	delete m_ui;
 }
 
 

@@ -20,6 +20,8 @@
 #ifndef QONVINCE_SETTINGSWIDGET_H
 #define QONVINCE_SETTINGSWIDGET_H
 
+#include <memory>
+
 #include <QWidget>
 
 #include "settings.h"
@@ -65,7 +67,7 @@ namespace Qonvince {
 
 		private:
 
-			Ui::SettingsWidget * m_ui;
+			std::unique_ptr<Ui::SettingsWidget> m_ui;
 			Settings & m_settings;
 	};
 }

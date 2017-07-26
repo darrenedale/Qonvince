@@ -35,7 +35,7 @@ using namespace Qonvince;
 
 PasswordWidget::PasswordWidget( QWidget * parent )
 :	QWidget(parent),
-	m_ui(new Ui::PasswordWidget) {
+	m_ui{std::make_unique<Ui::PasswordWidget>()} {
 	m_ui->setupUi(this);
 
 	connect(m_ui->password, &QLineEdit::textEdited, this, &PasswordWidget::passwordChanged);
@@ -43,7 +43,6 @@ PasswordWidget::PasswordWidget( QWidget * parent )
 
 
 PasswordWidget::~PasswordWidget( void ) {
-	delete m_ui;
 }
 
 

@@ -11,7 +11,7 @@ PasswordDialogue::PasswordDialogue( QWidget * parent )
 
 PasswordDialogue::PasswordDialogue( const QString & msg, QWidget * parent )
 :	QDialog(parent),
-	m_ui(new Ui::PasswordDialogue) {
+	m_ui{std::make_unique<Ui::PasswordDialogue>()} {
 	m_ui->setupUi(this);
 	setMessage(msg);
 	setMessageVisible(!msg.isEmpty());
@@ -21,7 +21,6 @@ PasswordDialogue::PasswordDialogue( const QString & msg, QWidget * parent )
 
 
 PasswordDialogue::~PasswordDialogue( void ) {
-	delete m_ui;
 }
 
 

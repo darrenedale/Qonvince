@@ -1,6 +1,8 @@
 #ifndef QONVINCE_PASWORDWIDGET_H
 #define QONVINCE_PASWORDWIDGET_H
 
+#include <memory>
+
 #include <QWidget>
 
 namespace Qonvince {
@@ -27,7 +29,7 @@ namespace Qonvince {
 			void setPassword( const QString & pw );
 
 		private:
-			Ui::PasswordWidget * m_ui;
+			std::unique_ptr<Ui::PasswordWidget> m_ui;
 	};
 
 
