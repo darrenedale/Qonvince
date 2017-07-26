@@ -146,7 +146,7 @@ Otp * OtpQrCodeReader::code( void ) const {
 		Otp * ret = new Otp(type(), issuer(), name(), seed(), Otp::Base32Seed);
 		ret->setCounter(m_counter);
 		ret->setInterval(m_interval);
-		ret->setDisplayPlugin(new IntegerOtpDisplayPlugin(m_digits));
+		ret->setDisplayPlugin(std::make_shared<IntegerOtpDisplayPlugin>(m_digits));
 		return ret;
 	}
 

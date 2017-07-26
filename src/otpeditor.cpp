@@ -168,13 +168,15 @@ void OtpEditor::setCode( Otp * code ) {
 			m_ui->icon->setIcon(m_code->icon());
 //			m_ui->digitsSpin->setValue(m_code->digits());
 
-			auto plugin = m_code->displayPlugin();
+			{
+				auto plugin = m_code->displayPlugin().lock();
 
-			if(plugin) {
-				m_ui->displayPlugin->setCurrentText(plugin->pluginName());
-			}
-			else {
-				m_ui->displayPlugin->setCurrentText("");
+				if(plugin) {
+					m_ui->displayPlugin->setCurrentText(plugin->pluginName());
+				}
+				else {
+					m_ui->displayPlugin->setCurrentText("");
+				}
 			}
 
 			m_ui->intervalSpin->setValue(m_code->interval());

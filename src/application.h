@@ -21,8 +21,11 @@
 #define QONVINCE_APPLICATION_H
 
 #include <memory>
+#include <unordered_map>
+#include <vector>
 
 #include <QApplication>
+#include <QString>
 #include <QSystemTrayIcon>
 #include <QObject>
 #include <QSharedMemory>
@@ -31,8 +34,10 @@
 
 #include <QtCrypto>
 
+#include "algorithms.h"
 #include "settings.h"
 #include "aboutdialogue.h"
+#include "otpdisplayplugin.h"
 
 class QAction;
 class QMenu;
@@ -44,13 +49,14 @@ namespace Qonvince {
 	class SettingsWidget;
 	class AboutDialogue;
 	class Otp;
-	class OtpDisplayPlugin;
 
-	template<int digits>
-	class IntegerOtpCodeDisplayPlugin;
+	using PluginPtr = std::shared_ptr<OtpDisplayPlugin>;
+	using PluginMap = std::unordered_map<QString, PluginPtr, QtHash<QString>>;
+	using PluginArray = std::vector<PluginPtr>;
 
 	class Application
-	:	public QApplication {
+	: public QApplication {
+
 		Q_OBJECT
 
 		public:
@@ -88,7 +94,7 @@ namespace Qonvince {
 				return s_instance;
 			}
 
-			inline std::weak_ptr<MainWindow> mainWindow( void );
+			std::weak_ptr<MainWindow> mainWindow( void );
 
 			inline QSystemTrayIcon * trayIcon( void ) const {
 				return m_trayIcon;
@@ -98,13 +104,9 @@ namespace Qonvince {
 				return m_settings;
 			}
 
-			inline OtpDisplayPlugin * codeDisplayPluginByName( const QString & name ) const {
-				return m_codeDisplayPlugins.value(name);
-			}
+			PluginPtr codeDisplayPluginByName( const QString & name ) const;
 
-			inline QList<OtpDisplayPlugin *> codeDisplayPlugins( void ) const {
-				return m_codeDisplayPlugins.values();
-			}
+			PluginArray codeDisplayPlugins( void ) const;
 
 //			/* note Don't make this return a const reference for security reasons. returning
 //			 * a reference could allow a malicious client to cast away the const-ness and therefore
@@ -173,7 +175,7 @@ namespace Qonvince {
 			QAction * m_quitAction, * m_loadQrImageAction, * m_mainWindowAction, * m_settingsAction;
 			QMetaObject::Connection m_quitConnection;
 
-			QHash<QString, OtpDisplayPlugin *> m_codeDisplayPlugins;
+			PluginMap m_codeDisplayPlugins;
 
 			QCA::Initializer m_qcaInit;
 			QString m_cryptPassphrase;

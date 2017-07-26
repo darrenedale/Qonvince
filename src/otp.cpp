@@ -78,11 +78,10 @@ Otp::Otp( const CodeType & type, const QString & issuer, const QString & name, c
 	m_interval(DefaultInterval),
 //	m_digits(DefaultDigits),
 	m_baselineTime(0),
-	m_refreshTimer(nullptr),
+	m_refreshTimer{std::make_unique<QBasicTimer>()},
 	m_resync(false),
-	m_displayPlugin(nullptr) {
+	m_displayPlugin{nullptr} {
 	blockSignals(true);
-	m_refreshTimer = new QBasicTimer();
 	setSeed(seed, seedType);
 	refreshCode();
 	resynchroniseRefreshTimer();
@@ -91,10 +90,7 @@ Otp::Otp( const CodeType & type, const QString & issuer, const QString & name, c
 
 
 Otp::~Otp( void ) {
-	if(m_refreshTimer) {
-		m_refreshTimer->stop();
-	}
-
+	m_refreshTimer->stop();
 	Q_EMIT destroyed(this);
 }
 
@@ -249,7 +245,7 @@ void Otp::setInterval( const int & duration ) {
 	}
 }
 
-bool Otp::setDisplayPlugin( OtpDisplayPlugin * plugin ) {
+bool Otp::setDisplayPlugin( std::shared_ptr<OtpDisplayPlugin> plugin ) {
 	if(plugin != m_displayPlugin) {
 		QString oldName;
 		QString newName;
@@ -515,13 +511,13 @@ void Otp::internalRefreshCode( void ) {
 
 /* hmac() hotp() and totp() are candidates for optimisation - they are the most-called
  * in-application functions */
-QString Otp::totp( const QByteArray & seed, OtpDisplayPlugin * plugin, time_t base, int interval ) {
+QString Otp::totp( const QByteArray & seed, const std::shared_ptr<OtpDisplayPlugin> & plugin, time_t base, int interval ) {
 	quint64 c = std::floor((QDateTime::currentDateTime().toUTC().toTime_t() - base) / interval);
 	return hotp(seed, plugin, c);
 }
 
 
-QString Otp::hotp( const QByteArray & seed, OtpDisplayPlugin * plugin, quint64 counter ) {
+QString Otp::hotp( const QByteArray & seed, const std::shared_ptr<OtpDisplayPlugin> & plugin, quint64 counter ) {
 	Q_ASSERT(plugin);
 
 	/* convert and pad counter to array of 8 bytes */

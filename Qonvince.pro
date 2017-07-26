@@ -83,7 +83,8 @@ HEADERS  += \
     src/otplistwidget.h \
     src/otplistwidgetitem.h \
     src/integerotpdisplayplugin.h \
-    src/steamotpdisplayplugin.h
+    src/steamotpdisplayplugin.h \
+    src/algorithms.h
 
 FORMS    += \
     ui/passwordwidget.ui \

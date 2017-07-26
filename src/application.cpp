@@ -65,6 +65,13 @@ using namespace Qonvince;
  * if the application is already running */
 #define QONVINCE_APPLICATION_RUNCHECK_KEY "blarglefangledungle"
 
+template<>
+class std::hash<QString> {
+	public:
+		std::size_t operator()( const QString & str ) const {
+			return static_cast<std::size_t>(qHash(str));
+		}
+};
 
 Application * Application::s_instance = nullptr;
 
@@ -95,12 +102,12 @@ Application::Application( int & argc, char ** argv )
 	QSettings::setDefaultFormat(QSettings::IniFormat);
 
 	/* add the built-in code display plugins */
-	OtpDisplayPlugin * plugin = new IntegerOtpDisplayPlugin(6);
-	m_codeDisplayPlugins[plugin->pluginName()] = plugin;
-	plugin = new IntegerOtpDisplayPlugin(8);
-	m_codeDisplayPlugins[plugin->pluginName()] = plugin;
-	plugin = new SteamOtpDisplayPlugin();
-	m_codeDisplayPlugins[plugin->pluginName()] = plugin;
+	std::shared_ptr<OtpDisplayPlugin> plugin = std::make_shared<IntegerOtpDisplayPlugin>(6);
+	m_codeDisplayPlugins.insert({plugin->pluginName(), plugin});
+	plugin = std::make_shared<IntegerOtpDisplayPlugin>(8);
+	m_codeDisplayPlugins.insert({plugin->pluginName(), plugin});
+	plugin = std::make_shared<SteamOtpDisplayPlugin>();
+	m_codeDisplayPlugins.insert({plugin->pluginName(), plugin});
 
 	m_trayIcon = new QSystemTrayIcon(QIcon::fromTheme("qonvince", QIcon(":/icons/systray")), this);
 	m_trayIcon->setToolTip(tr("%1: One-Time passcode generator.").arg(applicationDisplayName()));
@@ -147,13 +154,6 @@ Application::~Application( void ) {
 	/* remember, it's safe to delete nullptr! */
 	delete m_trayIcon;
 	delete m_trayIconMenu;
-	m_trayIcon = nullptr;
-	m_trayIconMenu = nullptr;
-
-	for(auto plugin : m_codeDisplayPlugins) {
-		delete plugin;
-	}
-
 	m_codeDisplayPlugins.clear();
 }
 
@@ -204,6 +204,29 @@ Application::DesktopEnvironment Application::desktopEnvironment( void ) {
 
 std::weak_ptr<MainWindow> Application::mainWindow() {
 	return m_mainWindow;
+}
+
+
+PluginPtr Application::codeDisplayPluginByName(const QString & name) const {
+	const auto it = m_codeDisplayPlugins.find(name);
+
+	if(it != m_codeDisplayPlugins.cend()) {
+		return it->second;
+	}
+
+	return nullptr;
+}
+
+
+PluginArray Application::codeDisplayPlugins() const {
+	PluginArray ret;
+	ret.reserve(m_codeDisplayPlugins.size());
+
+	for(const auto & pair: m_codeDisplayPlugins) {
+		ret.push_back(pair.second);
+	}
+
+	return ret;
 }
 
 

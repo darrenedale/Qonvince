@@ -20,6 +20,8 @@
 #ifndef QONVINCE_OTP_H
 #define QONVINCE_OTP_H
 
+#include <memory>
+
 #include <QDebug>
 #include <QString>
 #include <QStringList>
@@ -199,11 +201,11 @@ namespace Qonvince {
 //				return false;
 //			}
 
-			inline OtpDisplayPlugin * displayPlugin( void ) const {
+			inline std::weak_ptr<OtpDisplayPlugin> displayPlugin( void ) const {
 				return m_displayPlugin;
 			}
 
-			bool setDisplayPlugin( OtpDisplayPlugin * plugin );
+			bool setDisplayPlugin( std::shared_ptr<OtpDisplayPlugin> plugin );
 
 			inline void setRevealOnDemand( bool onDemandOnly ) {
 				if(onDemandOnly != m_revealOnDemand) {
@@ -239,9 +241,9 @@ namespace Qonvince {
 			void internalRefreshCode();
 
 		protected:
-			static QString totp( const QByteArray & seed, OtpDisplayPlugin * plugin, time_t base = 0, int interval = 30 );
+			static QString totp( const QByteArray & seed, const std::shared_ptr<OtpDisplayPlugin> & plugin, time_t base = 0, int interval = 30 );
 
-			static QString hotp( const QByteArray & seed, OtpDisplayPlugin * plugin, quint64 counter );
+			static QString hotp( const QByteArray & seed, const std::shared_ptr<OtpDisplayPlugin> & plugin, quint64 counter );
 
 			static QByteArray hmac( const QByteArray & key, const QByteArray & message );
 
@@ -263,10 +265,10 @@ namespace Qonvince {
 //			int m_digits;
 			qint64 m_baselineTime;
 
-			QBasicTimer * m_refreshTimer;
+			std::unique_ptr<QBasicTimer> m_refreshTimer;
 			bool m_resync;
 
-			OtpDisplayPlugin * m_displayPlugin;
+			std::shared_ptr<OtpDisplayPlugin> m_displayPlugin;
 	};
 }
 
