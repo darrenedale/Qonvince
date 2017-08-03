@@ -4,12 +4,13 @@
 #include "otpdisplayplugin.h"
 
 #include <QByteArray>
+
 class QString;
 
 namespace Qonvince {
 
 	class SteamOtpDisplayPlugin
-	:	public OtpDisplayPlugin {
+	: public OtpDisplayPlugin {
 		public:
 			SteamOtpDisplayPlugin( void );
 			virtual ~SteamOtpDisplayPlugin( void );
