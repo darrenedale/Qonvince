@@ -20,8 +20,7 @@
 /** \file qrcodecreator.cpp
   * \brief Implementation of the QrCodeCreator class.
   *
-  * \todo
-  * - integrate with libkf5prison (KDE barcode creator) where available?
+  * \todo integrate with libkf5prison (KDE barcode creator) where available?
   */
 
 #include "qrcodecreator.h"

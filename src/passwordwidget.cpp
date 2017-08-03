@@ -22,8 +22,6 @@
   * \date November 2016
   *
   * \brief Implementation of the PasswordWidget class.
-  *
-  * \todo
   */
 
 #include "src/passwordwidget.h"

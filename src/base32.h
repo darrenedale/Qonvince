@@ -23,8 +23,7 @@
 /** \file base32.h
   * \brief Definition of the Base32 class.
   *
-  * \todo
-  * - unit test this class.
+  * \todo unit test this class.
   */
 #include <QByteArray>
 

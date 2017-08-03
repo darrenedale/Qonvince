@@ -23,9 +23,8 @@
   *
   * \brief Implementation of the OtpEditor class.
   *
-  * \todo
-  * - ability to remove the service icon
-  * - convert to widget-and-dialogue (two classes) from widget-with-
+  * \todo ability to remove the service icon
+  * \todo convert to widget-and-dialogue (two classes) from widget-with-
   *   control-buttons for future flexibility
   */
 #include "otpeditor.h"

@@ -22,8 +22,6 @@
   * \date November 2016
   *
   * \brief Implementation of the QrCodeReader class.
-  *
-  * \todo
   */
 
 #include "qrcodereader.h"

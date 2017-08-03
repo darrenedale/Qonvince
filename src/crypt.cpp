@@ -20,19 +20,16 @@
 /** \file crypt.cpp
   * \brief Implementation of the Crypt class.
   *
-  * This is based on Andre Somers SimpleCrypt class. It does not
-  * provide strong encryption, but should provide some level of
-  * protection against relatively unmotivated snoopers. The
-  * algorithm is all Andre's, I can take no credit for it. All I
-  * have done is remove some features I don't need and made some
-  * cosmetic changes to match my coding style.
+  * This is based on Andre Somers SimpleCrypt class. It is a form of XOR
+  * encryption and does not provide strong security. The algorithm is all
+  * Andre's, I can take no credit for it. All I have done is remove some
+  * features I don't need and made some cosmetic changes to match my
+  * coding style.
+  *
+  * This class will be removed in a (near) future update since all uses of
+  * it have been upgraded to use the stronger encryption offered by QCA.
   *
   * Andre's file commentary appears below, unmodified.
-  *
-  * \todo
-  * - Add some form of stable machine-specific UID to the algorithm
-  *   so that config files can't be stolen and easily used on another
-  *   computer with Qonvince installed.
   */
 
 /*
