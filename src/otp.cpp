@@ -398,7 +398,6 @@ void Otp::writeSettings( QSettings & settings, QString cryptKey ) const {
 		settings.setValue("icon", m_iconFileName);
 	}
 
-//	settings.setValue("digits", m_displayPlugin->digits());
 	if(m_displayPlugin) {
 		settings.setValue("pluginName", m_displayPlugin->pluginName());
 	}

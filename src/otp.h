@@ -236,13 +236,11 @@ namespace Qonvince {
 			/* the name (JUST the name, not the path) of the temporary file for the icon so that it persists between invokations of Qonvince */
 			QString m_iconFileName;
 
-//			QByteArray m_seed;
 			mutable Base32 m_seed;
 			bool m_revealOnDemand;
 			quint64 m_counter;
 			QString m_currentCode;
 			int m_interval;
-//			int m_digits;
 			qint64 m_baselineTime;
 
 			std::unique_ptr<QBasicTimer> m_refreshTimer;
