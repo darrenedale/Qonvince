@@ -75,8 +75,7 @@
   algorithm is changed in a later version, by prepending a version identifier to the cypertext.
   */
 namespace Qonvince {
-	class Crypt
-	{
+	class Crypt {
 		public:
 			/**
 			  IntegrityProtectionMode describes measures taken to make it possible to detect problems with the data
@@ -151,26 +150,6 @@ namespace Qonvince {
 			}
 
 			/**
-			 Set whether or not the UUID is used in the encryption.
-
-			 If the UUID is used, data encrypted can only be decrypted on the
-			 machine on which it was encrypted.
-			 */
-			inline void setUseUuid( bool use ) {
-				m_useUuid = use;
-			}
-
-			/**
-			 Returns whether or not the UUID is used in the encryption.
-
-			 If the UUID is used, data encrypted can only be decrypted on the
-			 machine on which it was encrypted.
-			 */
-			inline bool useUuid( void ) const {
-				return m_useUuid;
-			}
-
-			/**
 			  Returns the last error that occurred.
 			  */
 			inline ErrorCode lastError( void ) const {
@@ -215,24 +194,16 @@ namespace Qonvince {
 
 			QString encryptV3( const QByteArray & plaintext, ErrorCode * outcome = nullptr ) const;
 			QString decryptV3( const QByteArray & ciphertext, ErrorCode * outcome = nullptr ) const;
-
-			/* not yet fully implemented */
-//			QString encryptV4( const QByteArray & plaintext, ErrorCode * outcome = nullptr ) const;
-//			QString decryptV4( const QByteArray & ciphertext, ErrorCode * outcome = nullptr ) const;
-
 			/* uses longer keys for increased strength (keys are never shorter than old versions) */
 			QString encryptV5( const QByteArray & plaintext, ErrorCode * outcome = nullptr ) const;
 			QString decryptV5( const QByteArray & ciphertext, ErrorCode * outcome = nullptr ) const;
 
-			void splitKey();
+			void splitKey( void );
 
 			/* v3+ features */
 			quint64 m_oldKey;
 			QVector<char> m_keyParts;
 			IntegrityProtectionMode m_protectionMode;
-
-			/* v4+ features */
-			bool m_useUuid;
 
 			/* v5+ features */
 			QByteArray m_key;
