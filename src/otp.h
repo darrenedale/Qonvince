@@ -104,9 +104,8 @@ namespace Qonvince {
 				return m_counter;
 			}
 
-			/* only for type = TOTP */
-			/** TODO use c++11 move semantics for retval
-			  * is *always* in UTC */
+			/* only for type = TOTP
+			 * is *always* in UTC */
 			inline const QDateTime baselineTime( void ) const {
 				return QDateTime::fromMSecsSinceEpoch(m_baselineTime).toUTC();
 			}
