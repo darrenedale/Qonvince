@@ -23,7 +23,7 @@
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout_2">
      <item>
-      <widget class="QPushButton" name="icon">
+      <widget class="Qonvince::IconSelectButton" name="icon">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
          <horstretch>0</horstretch>
@@ -44,9 +44,6 @@
        </property>
        <property name="toolTip">
         <string>Click to choose the code's icon.</string>
-       </property>
-       <property name="text">
-        <string/>
        </property>
        <property name="iconSize">
         <size>
@@ -421,6 +418,21 @@
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>Qonvince::IconSelectButton</class>
+   <extends>QPushButton</extends>
+   <header>src/iconselectbutton.h</header>
+   <slots>
+    <signal>cleared()</signal>
+    <signal>iconChanged(QIcon)</signal>
+    <signal>iconChanged(QString)</signal>
+    <slot>clear()</slot>
+    <slot>setIcon(QIcon)</slot>
+    <slot>setIconPath(QString)</slot>
+   </slots>
+  </customwidget>
+ </customwidgets>
  <tabstops>
   <tabstop>totpButton</tabstop>
   <tabstop>hotpButton</tabstop>
@@ -446,8 +458,8 @@
    <slot>deleteLater()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>376</x>
-     <y>410</y>
+     <x>375</x>
+     <y>450</y>
     </hint>
     <hint type="destinationlabel">
      <x>383</x>
@@ -462,8 +474,8 @@
    <slot>readBarcode()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>286</x>
-     <y>410</y>
+     <x>290</x>
+     <y>450</y>
     </hint>
     <hint type="destinationlabel">
      <x>383</x>
@@ -478,8 +490,8 @@
    <slot>createBarcode()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>179</x>
-     <y>410</y>
+     <x>193</x>
+     <y>450</y>
     </hint>
     <hint type="destinationlabel">
      <x>383</x>
@@ -494,8 +506,8 @@
    <slot>resetCounter()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>376</x>
-     <y>362</y>
+     <x>375</x>
+     <y>353</y>
     </hint>
     <hint type="destinationlabel">
      <x>383</x>
@@ -510,12 +522,12 @@
    <slot>setDisabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>203</x>
-     <y>101</y>
+     <x>109</x>
+     <y>80</y>
     </hint>
     <hint type="destinationlabel">
-     <x>338</x>
-     <y>362</y>
+     <x>347</x>
+     <y>355</y>
     </hint>
    </hints>
   </connection>
@@ -526,12 +538,12 @@
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>211</x>
-     <y>101</y>
+     <x>109</x>
+     <y>80</y>
     </hint>
     <hint type="destinationlabel">
-     <x>377</x>
-     <y>330</y>
+     <x>376</x>
+     <y>324</y>
     </hint>
    </hints>
   </connection>
@@ -542,8 +554,8 @@
    <slot>emitTypeChanged()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>211</x>
-     <y>101</y>
+     <x>109</x>
+     <y>80</y>
     </hint>
     <hint type="destinationlabel">
      <x>199</x>
@@ -558,12 +570,12 @@
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>211</x>
-     <y>101</y>
+     <x>109</x>
+     <y>80</y>
     </hint>
     <hint type="destinationlabel">
-     <x>377</x>
-     <y>297</y>
+     <x>376</x>
+     <y>294</y>
     </hint>
    </hints>
   </connection>
@@ -585,17 +597,33 @@
   </connection>
   <connection>
    <sender>icon</sender>
-   <signal>clicked()</signal>
+   <signal>iconChanged(QIcon)</signal>
    <receiver>Qonvince::OtpEditor</receiver>
-   <slot>chooseIcon()</slot>
+   <slot>onIconSelected(QIcon)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>48</x>
-     <y>39</y>
+     <x>29</x>
+     <y>27</y>
     </hint>
     <hint type="destinationlabel">
-     <x>280</x>
-     <y>5</y>
+     <x>385</x>
+     <y>26</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>icon</sender>
+   <signal>cleared()</signal>
+   <receiver>Qonvince::OtpEditor</receiver>
+   <slot>onIconCleared()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>42</x>
+     <y>43</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>386</x>
+     <y>72</y>
     </hint>
    </hints>
   </connection>
@@ -621,5 +649,7 @@
   <slot>resetCounter()</slot>
   <slot>toggleAdvancedSettings(bool)</slot>
   <slot>chooseIcon()</slot>
+  <slot>onIconSelected(QIcon)</slot>
+  <slot>onIconCleared()</slot>
  </slots>
 </ui>

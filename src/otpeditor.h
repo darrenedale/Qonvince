@@ -99,6 +99,8 @@ namespace Qonvince {
 			void emitBaseTimeChanged( void );
 			void seedWidgetTextEdited( void );
 			void onDisplayPluginChanged( void );
+			void onIconSelected( const QIcon & icon );
+			void onIconCleared( void );
 
 		private:
 			std::unique_ptr<Ui::OtpEditor> m_ui;

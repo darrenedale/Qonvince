@@ -60,7 +60,8 @@ SOURCES +=\
     src/otplistwidget.cpp \
     src/otplistwidgetitem.cpp \
     src/steamotpdisplayplugin.cpp \
-    src/integerotpdisplayplugin.cpp
+    src/integerotpdisplayplugin.cpp \
+    src/iconselectbutton.cpp
 
 HEADERS  += \
     src/passwordwidget.h \
@@ -84,7 +85,8 @@ HEADERS  += \
     src/otplistwidgetitem.h \
     src/integerotpdisplayplugin.h \
     src/steamotpdisplayplugin.h \
-    src/algorithms.h
+    src/algorithms.h \
+    src/iconselectbutton.h
 
 FORMS    += \
     ui/passwordwidget.ui \
@@ -92,7 +94,8 @@ FORMS    += \
     ui/aboutdialogue.ui \
     ui/mainwindow.ui \
     ui/settingswidget.ui \
-    ui/otpeditor.ui
+    ui/otpeditor.ui \
+    ui/iconselectbutton.ui
 
 RESOURCES += \
     icons.qrc

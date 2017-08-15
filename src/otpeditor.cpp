@@ -23,9 +23,7 @@
   *
   * \brief Implementation of the OtpEditor class.
   *
-  * \todo
-  * - ability to remove the service icon
-  * - convert to widget-and-dialogue (two classes) from widget-with-
+  * \todo convert to widget-and-dialogue (two classes) from widget-with-
   *   control-buttons for future flexibility
   */
 #include "otpeditor.h"
@@ -79,7 +77,6 @@ OtpEditor::OtpEditor( Otp * code, QWidget * parent )
 	connect(m_ui->nameEdit, SIGNAL(textEdited(QString)), this, SIGNAL(nameChanged(QString)));
 	connect(m_ui->seedEdit, &QLineEdit::editingFinished, this, &OtpEditor::emitSeedChanged);
 	connect(m_ui->seedEdit, SIGNAL(textEdited(QString)), this, SLOT(seedWidgetTextEdited()));
-//	connect(m_ui->digitsSpin, SIGNAL(valueChanged(int)), this, SIGNAL(digitsChanged(int)));
 	connect(m_ui->displayPlugin, &QComboBox::currentTextChanged, this, &OtpEditor::displayPluginNameChanged);
 	connect(m_ui->counterSpin, SIGNAL(valueChanged(int)), this, SLOT(emitCounterChanged()));
 	connect(m_ui->intervalSpin, SIGNAL(valueChanged(int)), this, SIGNAL(durationChanged(int)));
@@ -166,7 +163,6 @@ void OtpEditor::setCode( Otp * code ) {
 			m_ui->issuerEdit->setText(m_code->issuer());
 			m_ui->nameEdit->setText(m_code->name());
 			m_ui->icon->setIcon(m_code->icon());
-//			m_ui->digitsSpin->setValue(m_code->digits());
 
 			{
 				auto plugin = m_code->displayPlugin().lock();
@@ -192,7 +188,6 @@ void OtpEditor::setCode( Otp * code ) {
 			connect(m_code, static_cast<void (Otp::*) (QString)>(&Otp::nameChanged), this, &OtpEditor::setName);
 			connect(m_code, SIGNAL(nameChanged(QString)), this, SLOT(updateWindowTitle()));
 			connect(m_code, static_cast<void (Otp::*) (int)>(&Otp::intervalChanged), m_ui->intervalSpin, &QSpinBox::setValue);
-//			connect(m_code, static_cast<void (Otp::*) (int)>(&Otp::digitsChanged), m_ui->digitsSpin, &QSpinBox::setValue);
 			connect(m_code, static_cast<void (Otp::*) (QString)>(&Otp::displayPluginChanged), this, &OtpEditor::onDisplayPluginChanged);
 			connect(m_code, static_cast<void (Otp::*) (quint64)>(&Otp::counterChanged), this, &OtpEditor::setCounter);
 			connect(m_code, &Otp::revealOnDemandChanged, this, &OtpEditor::setRevealOnDemand);
@@ -200,7 +195,6 @@ void OtpEditor::setCode( Otp * code ) {
 			connect(m_ui->nameEdit, &QLineEdit::textEdited, m_code, &Otp::setName);
 			connect(m_ui->issuerEdit, &QLineEdit::textEdited, m_code, &Otp::setIssuer);
 			connect(m_ui->seedEdit, &QLineEdit::editingFinished, this, &OtpEditor::onCodeSeedEditingFinished);
-//			connect(m_ui->digitsSpin, static_cast<void (QSpinBox::*) (int)>(&QSpinBox::valueChanged), m_code, &Otp::setDigits);
 			connect(m_ui->displayPlugin, static_cast<void (QComboBox::*) (int)>(&QComboBox::currentIndexChanged), this, &OtpEditor::onDisplayPluginChanged);
 			connect(m_ui->baseTimeEdit, &QDateTimeEdit::editingFinished, this, &OtpEditor::setCodeBaseTimeFromWidget);
 			connect(m_ui->revealOnDemand, &QCheckBox::toggled, m_code, &Otp::setRevealOnDemand);
@@ -212,7 +206,6 @@ void OtpEditor::setCode( Otp * code ) {
 			m_ui->nameEdit->setText(QString());
 			m_ui->seedEdit->setText(QString());
 			m_ui->icon->setIcon(QIcon());
-//			m_ui->digitsSpin->setValue(Otp::DefaultDigits);
 			m_ui->displayPlugin->setCurrentText("");
 			m_ui->baseTimeEdit->setDateTime(QDateTime::fromMSecsSinceEpoch(0));
 			m_ui->intervalSpin->setValue(0);
@@ -266,25 +259,7 @@ void OtpEditor::updateWindowTitle( void ) {
 
 
 void OtpEditor::chooseIcon( void ) {
-	static QDir s_lastDir = QDir::home();
-	QString fileName = QFileDialog::getOpenFileName(this, tr("%1 - Choose Icon").arg(QApplication::applicationDisplayName()), s_lastDir.path());
-
-	if(fileName.isEmpty()) {
-		return;
-	}
-
-	s_lastDir.setPath(fileName);
-	s_lastDir.cdUp();
-	QIcon ic(fileName);
-
-	if(ic.isNull()) {
-		qonvinceApp->showMessage(tr("An error was encountered when loading the icon file \"%1\".").arg(fileName));
-		return;
-	}
-
-	m_code->setIcon(ic);
-	m_ui->icon->setIcon(ic);
-	Q_EMIT iconChanged(ic);
+	m_ui->icon->chooseIcon();
 }
 
 
@@ -524,6 +499,18 @@ void OtpEditor::onDisplayPluginChanged( void ) {
 	}
 
 	m_code->setDisplayPlugin(plugin);
+}
+
+
+void OtpEditor::onIconSelected( const QIcon & ic ) {
+	m_code->setIcon(ic);
+	Q_EMIT iconChanged(ic);
+}
+
+
+void OtpEditor::onIconCleared( void ) {
+	m_code->setIcon({});
+	Q_EMIT iconChanged({});
 }
 
 

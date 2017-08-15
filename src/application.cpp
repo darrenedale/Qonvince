@@ -29,6 +29,8 @@
   */
 #include "application.h"
 
+#include <array>
+
 #include <QDebug>
 #include <QThread>
 #include <QSystemTrayIcon>
@@ -231,7 +233,7 @@ PluginArray Application::codeDisplayPlugins() const {
 
 
 bool Application::ensureDirectory( const QStandardPaths::StandardLocation & location, const QString & path ) {
-	static QVector<QChar> s_validChars = {'-', '_', ' ', '.', '~'};
+	static std::array<QChar, 6> s_validChars = {'-', '_', ' ', '.', '~', '/'};
 
 	QString rootPath = QStandardPaths::writableLocation(location);
 
@@ -252,14 +254,18 @@ bool Application::ensureDirectory( const QStandardPaths::StandardLocation & loca
 		qWarning() << "path" << path << "is enmpty or contains only whitespace";
 	}
 
+	/* TODO use algorithms if possible */
 	for(QChar c : path) {
+		bool ok = false;
+
 		for(QChar v : s_validChars) {
 			if(c == v) {
-				continue;
+				ok = true;
+				break;
 			}
 		}
 
-		if(c.isLetterOrNumber()) {
+		if(ok || c.isLetterOrNumber()) {
 			continue;
 		}
 

@@ -20,9 +20,8 @@
 /** \file otpcode.cpp
   * \brief Implementation of the OtpCode class.
   *
-  * \todo
-  * - when waking from sleep, the refresh timer is off.
-  * - look for optimisations in hmac(), totp() and hotp()
+  * \todo when waking from sleep, the refresh timer is off.
+  * \todo look for optimisations in hmac(), totp() and hotp()
   */
 #include "otp.h"
 
