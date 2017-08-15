@@ -228,7 +228,7 @@ PluginArray Application::codeDisplayPlugins() const {
 
 
 bool Application::ensureDirectory( const QStandardPaths::StandardLocation & location, const QString & path ) {
-	static std::array<QChar, 6> s_validChars = {'-', '_', ' ', '.', '~', '/'};
+	static std::array<QChar, 6> s_validChars = { {'-', '_', ' ', '.', '~', '/'} };
 
 	QString rootPath = QStandardPaths::writableLocation(location);
 
