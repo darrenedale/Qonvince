@@ -20,9 +20,8 @@
 /** \file application.cpp
   * \brief Implementation of the Application class.
   *
-  * \todo
-  * - load plugins
-  * - Current system tray, application and default code icons are from iconfinder
+  * \todo load plugins
+  * \todo Current system tray, application and default code icons are from iconfinder
   *   (via google). The iconfinder site is https-only but Chrome says its cert
   *   expired 8th April 2017 so I haven't yet been able to check its licence status.
   *   Don't release the app until this is resolved.

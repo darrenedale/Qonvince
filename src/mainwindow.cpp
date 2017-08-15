@@ -20,8 +20,7 @@
 /** \file mainwindow.cpp
   * \brief Implementation of the MainWindow class.
   *
-  * \todo
-  * - modify tooltip if qr-code drag-and-drop is not enabled
+  * \todo modify tooltip if qr-code drag-and-drop is not enabled
   */
 #include "mainwindow.h"
 #include "ui_mainwindow.h"

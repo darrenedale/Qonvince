@@ -23,13 +23,11 @@
   *
   * \brief Implementation of the OtpListWidget class.
   *
-  * \todo
-  * - visual feedback that a manual refresh has executed (e.g. flash
+  * \todo visual feedback that a manual refresh has executed (e.g. flash
   *   code)?
-  * - optimise painting
-  * - once a better mechanism for removing code icons has been implemented, remove
-  *   the "Remove icon" entry from the item context menu
+  * \todo optimise painting
   */
+
 #include "otplistwidget.h"
 
 #include <QDebug>

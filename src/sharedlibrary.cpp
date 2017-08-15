@@ -23,9 +23,6 @@
  * \date March 2015
  * 
  * \brief Implementation of the SharedLibrary class.
- * 
- * \todo
- * 
  */
 #include "sharedlibrary.h"
 

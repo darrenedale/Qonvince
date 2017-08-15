@@ -28,11 +28,6 @@
   * cosmetic changes to match my coding style.
   *
   * Andre's file commentary appears below, unmodified.
-  *
-  * \todo
-  * - Add some form of stable machine-specific UID to the algorithm
-  *   so that config files can't be stolen and easily used on another
-  *   computer with Qonvince installed.
   */
 
 /*
