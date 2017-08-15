@@ -135,7 +135,6 @@ namespace Qonvince {
 			void onSettingsChanged( void );
 			void codeAdded( Otp * code );
 			void codeDestroyed( QObject * code );
-			void updateSystemTrayIconTooltip( void );
 
 		private:
 			/* RunGuard code from

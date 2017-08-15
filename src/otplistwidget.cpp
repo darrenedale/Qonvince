@@ -238,6 +238,7 @@ void OtpListWidget::emitCodeDoubleClicked( QListWidgetItem * it ) {
 
 	if(!myItem) {
 		qWarning() << "item double-clicked is not of the required type";
+		return;
 	}
 
 	Q_EMIT codeDoubleClicked(myItem->code());
@@ -251,6 +252,7 @@ void OtpListWidget::emitCodeClicked( QListWidgetItem * it ) {
 
 	if(!myItem) {
 		qWarning() << "item clicked is not of the required type";
+		return;
 	}
 
 	Q_EMIT codeClicked(myItem->code());

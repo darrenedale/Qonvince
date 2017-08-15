@@ -21,10 +21,6 @@
   * \brief Implementation of the Application class.
   *
   * \todo load plugins
-  * \todo Current system tray, application and default code icons are from iconfinder
-  *   (via google). The iconfinder site is https-only but Chrome says its cert
-  *   expired 8th April 2017 so I haven't yet been able to check its licence status.
-  *   Don't release the app until this is resolved.
   */
 #include "application.h"
 
@@ -565,44 +561,6 @@ void Application::onSettingsChanged( void ) {
 
 	if(m_settings.quitOnMainWindowClosed()) {
 		m_quitConnection = connect(m_mainWindow.get(), &MainWindow::closing, this, &QApplication::quit);
-	}
-}
-
-
-void Application::updateSystemTrayIconTooltip() {
-	/* query DE and decide on that basis whether to show HTML/plain tooltip */
-	bool doHtml = false;
-
-	if(DesktopEnvironment::Kde == qonvinceApp->desktopEnvironment()) {
-		doHtml = true;
-	}
-
-	if(m_trayIcon) {
-		QStringList msgItems;
-		int n = m_mainWindow->codeList()->count();
-
-		for(int i = 0; i < n; ++i) {
-			Otp * code = m_mainWindow->codeList()->code(i);
-
-			if(!code) {
-				continue;
-			}
-
-			if(doHtml) {
-				msgItems << tr("%1:%2 <b>%3</b>").arg(code->issuer()).arg(code->name()).arg(code->code());
-			}
-			else {
-				msgItems << tr("%1:%2\t%3").arg(code->issuer()).arg(code->name()).arg(code->code());
-			}
-		}
-
-		if(doHtml) {
-			/* TODO work out how to set the "left-click/right-click" text to be smaller */
-			m_trayIcon->setToolTip(tr("%1<br />\n<br />\n(Left-click for main window, right-click for menu)").arg(msgItems.join("<br />\n")));
-		}
-		else {
-			m_trayIcon->setToolTip(tr("%1\n\n(Left-click for main window, right-click for menu)").arg(msgItems.join("\n")));
-		}
 	}
 }
 
