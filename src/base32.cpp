@@ -17,258 +17,398 @@
  * along with Qonvince. If not, see <http://www.gnu.org/licenses/>.
  */
 
+
+/**
+ * \file base32.cpp
+ * \brief Implementation of the Base32 class.
+ * \author Darren Edale
+ * \date October 2017
+ * \version
+ *
+ * \todo transition from QByteArray to std::basic_string<unsinged char>
+ * needs to be tested
+ */
+
+
 #include "base32.h"
 
+#include <algorithm>
 #include <cstring>
-
-#include <QDebug>
-
-
-using namespace Qonvince;
+#include <iostream>
 
 
-const char * Base32::Dictionary = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
+namespace Qonvince {
 
 
-Base32::Base32( const QByteArray & data )
-:	m_isValid(false),
-	m_plainInSync(true),
-	m_encodedInSync(false),
-	m_plain(data) {
-}
+	/**
+	 * \class Base32
+	 * \brief Base32 encoder/decoder.
+	 * \author Darren Edale
+	 * \date October 2017
+	 * \version
+	 *
+	 * Objects of this class can be used to encode or decode Base32 data.
+	 * Use of the class is very simple. Create a new object, optionally with
+	 * some data to encode. Call encoded() to get the Base32 encoded data,
+	 * or plain() to get the plain (unencoded) data. Both return a ByteArray.
+	 *
+	 * To decode some already-encoded data, pass that data to setEncoded() and
+	 * then call plain() to retrieve the decoded data. You can also do the
+	 * reverse - call setPlain() to set the unencoded data and then encoded()
+	 * to retrieve the Base32 encoded data.
+	 *
+	 * Any binary data can be encoded in Base32, therefore setPlain() will
+	 * never fail. However, it is possible to provide invalid Base32 encoded
+	 * data. If setEncoded() is provided with invalid Base32 data, isValid()
+	 * will return false. Always call this before trusting the return value
+	 * of plain() when using the class to decode Base32 encoded data.
+	 *
+	 * The class is relatively lightweight, only encoding or decoding when
+	 * necessary (e.g. when encoded() or plain() is called). The data is only
+	 * encoded or decoded once - once done, the encoded and decoded
+	 * representations of the data are both stored in the object.
+	 */
 
 
-bool Base32::setPlain( const QByteArray & data ) {
-	m_plain = data;
-	m_plainInSync = true;
-	m_encodedInSync = false;
-	return true;
-}
+	/** The dictionary of Base32 characters. */
+	const std::array<Base32::Byte, 32> Base32::Dictionary = {{'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', '2', '3', '4', '5', '6', '7'}};
 
 
-bool Base32::setEncoded( const QByteArray & base32 ) {
-	bool stillTrimmingTrailingEquals = true;
+	/**
+	 * \brief Create a base-32 encoder/decoder.
+	 *
+	 * \param data The plain data to encode.
+	 */
+	Base32::Base32(const ByteArray & data)
+	: m_isValid(false),
+	  m_plainInSync(true),
+	  m_encodedInSync(false),
+	  m_plain(data) {
+	}
 
-	for(int i = base32.length() - 1; i >= 0; --i) {
-		char c(base32.at(i));
 
-		if(stillTrimmingTrailingEquals) {
-			if('=' == c) {
-				continue;
+	/**
+	 * \brief Set the unencoded (plain) binary data to encode.
+	 *
+	 * \param data The binary data to encode.
+	 *
+	 * \return \b true.
+	 */
+	bool Base32::setPlain(const ByteArray & data) {
+		m_plain = data;
+		m_plainInSync = true;
+		m_encodedInSync = false;
+		return true;
+	}
+
+
+	/**
+	 * \brief Set the Base32-encoded data to decode.
+	 *
+	 * \param base32 The Base32-encoded data to decode.
+	 *
+	 * \return \b true if the data provided was a valid Base32 string,
+	 * \b false if it contains invalid characters.
+	 */
+	bool Base32::setEncoded(const ByteArray & base32) {
+		bool stillTrimmingTrailingEquals = true;
+
+		for(auto i = static_cast<int>(base32.length()) - 1; 0 <= i; --i) {
+			auto idx = static_cast<ByteArray::size_type>(i);
+			unsigned char c = base32.at(idx);
+
+			if(stillTrimmingTrailingEquals) {
+				if('=' == c) {
+					continue;
+				}
+
+				stillTrimmingTrailingEquals = false;
 			}
 
-			stillTrimmingTrailingEquals = false;
-		}
-
-		if(!std::strchr(Dictionary, base32.at(i))) {
-            qCritical() << "invalid base32 character found";
-			m_isValid = false;
-			return false;
-		}
-	}
-
-	m_isValid = true;
-	m_encoded = base32;
-	m_plainInSync = false;
-	m_encodedInSync = true;
-	return true;
-}
-
-
-void Base32::encode( void ) {
-	QByteArray ba(m_plain);
-	m_encoded.clear();
-
-	if(ba.length() % 5) {
-		ba.append(QByteArray(5 - (ba.length() % 5), char(0)));
-	}
-
-	int pos = 0;
-	unsigned char * data = (unsigned char *) ba.data();
-
-	while(pos < ba.length()) {
-		quint64 bits = 0x00 |
-				((quint64(data[pos])) << 32) |
-				((quint64(data[pos + 1])) << 24) |
-				((quint64(data[pos + 2])) << 16) |
-				((quint64(data[pos + 3])) << 8) |
-				((quint64(data[pos + 4])));
-		char out[8];
-
-		for(int i = 7; i >= 0; --i) {
-			out[i] = Dictionary[bits & 0x1f];
-			bits = bits >> 5;
-		}
-
-		m_encoded.append(out, 8);
-		pos += 5;
-	}
-
-	int overrideLength = 0;
-
-	switch(m_plain.length() % 5) {
-		case 1:
-			overrideLength = 6;
-			break;
-
-		case 2:
-			overrideLength = 4;
-			break;
-
-		case 3:
-			overrideLength = 3;
-			break;
-
-		case 4:
-			overrideLength = 1;
-			break;
-	}
-
-	if(0 < overrideLength) {
-		m_encoded = m_encoded.left(m_encoded.length() - overrideLength) + QByteArray(overrideLength, '=');
-	}
-
-	m_encodedInSync = true;
-}
-
-
-void Base32::decode( void ) {
-	QByteArray ba(m_encoded.toUpper());
-
-	/* tolerate badly terminated encoded strings */
-	if(ba.length() % 8) {
-		ba.append(QByteArray(8 - (ba.length() % 8), '='));
-	}
-
-	m_plain.clear();
-	char * data = ba.data();
-	int j;
-
-	for(int i = 0; i < ba.length(); i += 8) {
-		quint64 out = 0x00;
-
-		for(j = 0; j < 8; ++j) {
-			if('=' == data[i + j]) {
-				break;
-			}
-
-			int pos = std::strchr(Dictionary, data[i + j]) - Dictionary;
-
-			if(0 > pos) {
-				qDebug() << "invalid character in base32 data:" << data[i + j];
+			if(Dictionary.end() == std::find(Dictionary.begin(), Dictionary.end(), c)) {
+				std::cerr << "invalid base32 character found\n";
 				m_isValid = false;
-				m_plain.clear();
-				return;
+				return false;
 			}
-
-			out <<= 5;
-			out |= (pos & 0x1f);
 		}
 
-		/* in any chunk we must have processed either 2, 4, 5, 7 or 8 bytes */
-		int outByteCount;
+		m_isValid = true;
+		m_encoded = base32;
+		m_plainInSync = false;
+		m_encodedInSync = true;
+		return true;
+	}
 
-		switch(j) {
-			case 8:
-				outByteCount = 5;
-				break;
 
-			case 7:
-				outByteCount = 4;
-				out <<= 5;
-				break;
+	/** \brief Encode the plain data into the Base32 data member. */
+	void Base32::encode(void) {
+		ByteArray ba = m_plain;
+		m_encoded.clear();
 
-			case 5:
-				outByteCount = 3;
-				out <<= 15;
-				break;
+		/* pad to a multiple of 5 chars with null bytes
+		 * TODO use std::insert() or similar rather than loop */
+		for(int i = 5 - (ba.length() % 5); i >= 0; --i) {
+			ba.push_back(0);
+		}
 
-			case 4:
-				outByteCount = 2;
-				out <<= 20;
+		unsigned int pos = 0;
+		const unsigned char * data = ba.data();
+
+		while(pos < ba.length()) {
+			uint64_t bits = 0x00 | ((uint64_t(data[pos])) << 32) |
+								 ((uint64_t(data[pos + 1])) << 24) |
+								 ((uint64_t(data[pos + 2])) << 16) |
+								 ((uint64_t(data[pos + 3])) << 8) | ((uint64_t(data[pos + 4])));
+			std::array<Byte, 8> out;
+
+			for(int i = 7; i >= 0; --i) {
+				out[static_cast<decltype(out)::size_type>(i)] = Dictionary[bits & 0x1f];
+				bits = bits >> 5;
+			}
+
+			/* append the bytes from out to the encoded data
+			* TODO use an algorithm to do this rather than a loop */
+			for(int i = 0; i < 8; ++i) {
+				m_encoded.push_back(out[static_cast<decltype(out)::size_type>(i)]);
+			}
+
+			pos += 5;
+		}
+
+		ByteArray::size_type overrideLength = 0;
+
+		switch(m_plain.length() % 5) {
+			case 1:
+				overrideLength = 6;
 				break;
 
 			case 2:
-				outByteCount = 1;
-				out <<= 30;
+				overrideLength = 4;
 				break;
 
-			default:
-				qDebug() << "invalid base32 sequence" << ba.mid(i, 8);
-				m_isValid = false;
-				m_plain.clear();
-				return;
+			case 3:
+				overrideLength = 3;
+				break;
+
+			case 4:
+				overrideLength = 1;
+				break;
 		}
 
-		unsigned char outBytes[5];
-		outBytes[4] = (unsigned char)(out & 0xff);
-		outBytes[3] = (unsigned char)((out >> 8) & 0xff);
-		outBytes[2] = (unsigned char)((out >> 16) & 0xff);
-		outBytes[1] = (unsigned char)((out >> 24) & 0xff);
-		outBytes[0] = (unsigned char)((out >> 32) & 0xff);
-		m_plain.append((const char *) outBytes, outByteCount);
+		if(0 < overrideLength) {
+			m_encoded.resize(m_encoded.length() - overrideLength);
+
+			for(ByteArray::size_type i = 0; i < overrideLength; ++i) {
+				m_encoded.push_back('=');
+			}
+		}
+
+		m_encodedInSync = true;
 	}
 
-	m_isValid = true;
-	m_plainInSync = true;
-}
+
+	/** \brief Decode the Base32-encoded data into the plain data member. */
+	void Base32::decode(void) {
+		ByteArray ba = m_encoded;
+
+		/* convert to upper-case
+		* TODO create a function template to do this rather than a loop */
+		for(auto it = ba.begin(); it != ba.end(); ++it) {
+			auto c = *it;
+
+			if('a' <= c && 'z' >= c) {
+				c -= 32;
+				*it = c;
+			}
+		}
+
+		/* tolerate badly terminated encoded strings by padding with = to an appropriate
+		 * length
+		 * TODO use an algorithm to do this rather than a loop */
+		for(int i = ba.size() % 8; i >= 0; --i) {
+			ba.push_back('=');
+		}
+
+		m_plain.clear();
+		const Byte * data = ba.data();
+		ByteArray::size_type j;
+
+		for(ByteArray::size_type i = 0; i < ba.length(); i += 8) {
+			uint64_t out = 0x00;
+
+			for(j = 0; j < 8; ++j) {
+				if('=' == data[i + j]) {
+					break;
+				}
+
+				auto pos = std::find(Dictionary.begin(), Dictionary.end(), data[i + j]);
+
+				if(Dictionary.end() == pos) {
+					std::cerr << "invalid character in base32 data:" << data[i + j] << "\n";
+					m_isValid = false;
+					m_plain.clear();
+					return;
+				}
+
+				out <<= 5;
+				out |= (std::distance(Dictionary.begin(), pos) & 0x1f);
+			}
+
+			/* in any chunk we must have processed either 2, 4, 5, 7 or 8 bytes */
+			unsigned int outByteCount;
+
+			switch(j) {
+				case 8:
+					outByteCount = 5;
+					break;
+
+				case 7:
+					outByteCount = 4;
+					out <<= 5;
+					break;
+
+				case 5:
+					outByteCount = 3;
+					out <<= 15;
+					break;
+
+				case 4:
+					outByteCount = 2;
+					out <<= 20;
+					break;
+
+				case 2:
+					outByteCount = 1;
+					out <<= 30;
+					break;
+
+				default:
+					std::cerr << "invalid base32 sequence" << ba.substr(i, 8).data() << "\n";
+					m_isValid = false;
+					m_plain.clear();
+					return;
+			}
+
+			std::array<Byte, 5> outBytes;
+			outBytes[4] = static_cast<Byte>(out & 0xff);
+			outBytes[3] = static_cast<Byte>((out >> 8) & 0xff);
+			outBytes[2] = static_cast<Byte>((out >> 16) & 0xff);
+			outBytes[1] = static_cast<Byte>((out >> 24) & 0xff);
+			outBytes[0] = static_cast<Byte>((out >> 32) & 0xff);
+
+			for(ByteArray::size_type i = 0; i < outByteCount; ++i) {
+				m_plain.push_back(outBytes[i]);
+			}
+		}
+
+		m_isValid = true;
+		m_plainInSync = true;
+	}
 
 
 #if defined(QT_DEBUG)
-template <typename T> QByteArray Base32::toBinary( const T & value, int sep ) {
-	int n = sizeof(T);
-	QByteArray ret;
-	char * data = (char *) &value;
-	int bit = 0;
-	ret.reserve(n * 8 + (double(n) / sep) + 1);
+	template<typename T>
+	ByteArray Base32::toBinary(const T & value, int sep) {
+		int n = sizeof(T);
+		ByteArray ret;
+		char * data = (char *) &value;
+		int bit = 0;
+		ret.reserve(n * 8 + (double(n) / sep) + 1);
 
-	for(int i = 0; i < n; ++i) {
-		unsigned char mask = 0x80;
+		for(int i = 0; i < n; ++i) {
+			unsigned char mask = 0x80;
 
-		while(mask) {
-			ret.append(*data & mask ? '1' : '0');
-			mask >>= 1;
+			while(mask) {
+				ret.push_back(*data & mask ? '1' : '0');
+				mask >>= 1;
 
-			++bit;
+				++bit;
 
-			if(0 == (bit % sep)) {
-				ret.append(' ');
+				if(0 == (bit % sep)) {
+					ret.push_back(' ');
+				}
 			}
+
+			++data;
 		}
 
-		++data;
+		return ret;
 	}
 
-	return ret;
-}
 
+	ByteArray Base32::toBinary(const ByteArray & data, int sep) {
+		int n = data.size();
+		Byte * start = data.data();
+		Byte * end = start + n;
+		char * d = reinterpret_cast<char *>(start);
+		ByteArray ret;
+		ret.reserve(n * 8 + (double(n) / sep) + 1);
+		int bit = 0;
 
-QByteArray Base32::toBinary( const QByteArray & data, int sep ) {
-	int n = data.length();
-	const char * start = data.data();
-	const char * end = start + n;
-	char * d = (char *) start;
-	QByteArray ret;
-	ret.reserve(n * 8 + (double(n) / sep) + 1);
-	int bit = 0;
+		while(d < end) {
+			unsigned char mask = 0x80;
 
-	while(d < end) {
-		unsigned char mask = 0x80;
+			while(mask) {
+				ret.push_back(*d & mask ? '1' : '0');
+				mask >>= 1;
 
-		while(mask) {
-			ret.append(*d & mask ? '1' : '0');
-			mask >>= 1;
+				++bit;
 
-			++bit;
-
-			if(0 == (bit % sep)) {
-				ret.append(' ');
+				if(0 == (bit % sep)) {
+					ret.append(' ');
+				}
 			}
+
+			++d;
 		}
 
-		++d;
+		return ret;
 	}
-
-	return ret;
-}
 #endif
+
+
+	/**
+	 * \fn Base32::isValid()
+	 * \brief Check whether the Base32 object is valid.
+	 *
+	 * A valid object is one where encoded() is guaranteed to return
+	 * the Base32-encoded version of plain() and where plain() will
+	 * return the Base32 decoded version of encoded().
+	 *
+	 * An invalid object will result if setEncoded() is provided with
+	 * an invalid Base32 string.
+	 *
+	 * An invalid object will provide undefined results from plain()
+	 * and encoded().
+	 *
+	 * \return \b true if the object is valid, \b false otherwise.
+	 */
+
+
+	/**
+	 * \fn Base32::plaine()
+	 * \brief Fetch the plain (unencoded) data.
+	 *
+	 * This method will return the plain data decoded from the Base32-
+	 * encoded data set with setEncoded(), or the plain data set with
+	 * setPlain(), depending on whether the object was provided with
+	 * plain or encoded data most recently.
+	 *
+	 * \return The plain (unencoded) data.
+	 */
+
+
+	/**
+	 * \fn Base32::encoded()
+	 * \brief Fetch the Base32-encoded data.
+	 *
+	 * This method will return the Base32-encoded data encoded from
+	 * plain data set with setPlain(), or the encoded data set with
+	 * setEncoded(), depending on whether the object was provided with
+	 * plain or encoded data most recently.
+	 *
+	 * \return The Base32-encoded data.
+	 */
+
+
+}  // namespace Qonvince
