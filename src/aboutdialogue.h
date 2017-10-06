@@ -31,17 +31,17 @@ namespace Qonvince {
 	}
 
 	class AboutDialogue
-	:	public QDialog {
+	: public QDialog {
+		Q_OBJECT
 
-			Q_OBJECT
+	public:
+		explicit AboutDialogue(QWidget * parent = nullptr);
+		~AboutDialogue(void);
 
-		public:
-			explicit AboutDialogue( QWidget * parent = nullptr );
-			~AboutDialogue( void );
-
-		private:
-			std::unique_ptr<Ui::AboutDialogue> m_ui;
+	private:
+		std::unique_ptr<Ui::AboutDialogue> m_ui;
 	};
-}
 
-#endif // QONVINCE_ABOUTDIALOGUE_H
+}  // namespace Qonvince
+
+#endif  // QONVINCE_ABOUTDIALOGUE_H

@@ -27,6 +27,7 @@
 #include <QApplication>
 #include <QString>
 #include <QSystemTrayIcon>
+#include <QMenu>
 #include <QObject>
 #include <QSharedMemory>
 #include <QSystemSemaphore>
@@ -35,12 +36,12 @@
 #include <QtCrypto>
 
 #include "algorithms.h"
+#include "mainwindow.h"
 #include "settings.h"
 #include "aboutdialogue.h"
 #include "otpdisplayplugin.h"
 
 class QAction;
-class QMenu;
 
 #define qonvinceApp (Qonvince::Application::qonvince())
 
@@ -56,129 +57,130 @@ namespace Qonvince {
 
 	class Application
 	: public QApplication {
-
 		Q_OBJECT
 
-		public:
-			enum class DesktopEnvironment {
-				Unknown,
-				Kde,
-				Gnome,
-				Unity,
-				Xfce,
-				Lxde,
-				WindowsDesktop,
-				MacOSx,
-				Android,
-				WindowsPhone,
-			};
+	public:
+		enum class DesktopEnvironment {
+			Unknown,
+			Kde,
+			Gnome,
+			Unity,
+			Xfce,
+			Lxde,
+			WindowsDesktop,
+			MacOSx,
+			Android,
+			WindowsPhone,
+		};
 
-			Application( int & argc, char ** argv );
-			virtual ~Application( void );
+		Application(int & argc, char ** argv);
+		virtual ~Application(void);
 
-			static DesktopEnvironment desktopEnvironment( void );
+		static DesktopEnvironment desktopEnvironment(void);
 
-			static inline constexpr int doubleClickInterval( void ) {
-				return 200;
-			}
+		inline static constexpr int doubleClickInterval(void) {
+			return 200;
+		}
 
-			inline static bool ensureDataDirectory( const QString & path ) {
-				return ensureDirectory(QStandardPaths::AppLocalDataLocation, path);
-			}
+		inline static bool ensureDataDirectory(const QString & path) {
+			return ensureDirectory(QStandardPaths::AppLocalDataLocation, path);
+		}
 
-			inline static bool ensureConfigDirectory( const QString & path ) {
-				return ensureDirectory(QStandardPaths::AppConfigLocation, path);
-			}
+		inline static bool ensureConfigDirectory(const QString & path) {
+			return ensureDirectory(QStandardPaths::AppConfigLocation, path);
+		}
 
-			static inline Application * qonvince( void ) {
-				return s_instance;
-			}
+		inline static Application * qonvince(void) {
+			return s_instance;
+		}
 
-			std::weak_ptr<MainWindow> mainWindow( void );
+		MainWindow & mainWindow(void) {
+			return m_mainWindow;
+		}
 
-			inline QSystemTrayIcon * trayIcon( void ) const {
-				return m_trayIcon;
-			}
+		//			inline QSystemTrayIcon * trayIcon( void ) const {
+		//				return m_trayIcon;
+		//			}
 
-			inline Settings & settings( void ) {
-				return m_settings;
-			}
+		inline Settings & settings(void) {
+			return m_settings;
+		}
 
-			PluginPtr codeDisplayPluginByName( const QString & name ) const;
+		PluginPtr codeDisplayPluginByName(const QString & name) const;
 
-			PluginArray codeDisplayPlugins( void ) const;
+		PluginArray codeDisplayPlugins(void) const;
 
-//			/* note Don't make this return a const reference for security reasons. returning
-//			 * a reference could allow a malicious client to cast away the const-ness and therefore
-//			 * alter the stored passphrase, rendering the settings unreadable to the actual
-//			 * owner once they've been saved. */
-//			inline QString cryptPassphrase( void ) const {
-//				return m_cryptPassphrase;
-//			}
+		//			/* note Don't make this return a const reference for security reasons. returning
+		//			 * a reference could allow a malicious client to cast away the const-ness and therefore
+		//			 * alter the stored passphrase, rendering the settings unreadable to the actual
+		//			 * owner once they've been saved. */
+		//			inline QString cryptPassphrase( void ) const {
+		//				return m_cryptPassphrase;
+		//			}
 
-			static int exec( void );
+		static int exec(void);
 
-		public Q_SLOTS:
-			void showMessage( const QString & title, const QString & message, int timeout = 10000 );
-			void showMessage( const QString & message, int timeout = 10000 );
-			void readQrCode( void );
-			void readQrCode( const QString & fileName );
-			bool readApplicationSettings( void );
-			bool readCodeSettings( void );
-			void writeSettings( void ) const;
-			void aboutQonvince( void );
-			void clearClipboard( void );
-			void showSettingsWidget( void );
+	public Q_SLOTS:
+		void showMessage(const QString & title, const QString & message, int timeout = 10000);
+		void showMessage(const QString & message, int timeout = 10000);
+		void readQrCode(void);
+		void readQrCode(const QString & fileName);
+		bool readApplicationSettings(void);
+		bool readCodeSettings(void);
+		void writeSettings(void) const;
+		void aboutQonvince(void);
+		void clearClipboard(void);
+		void showSettingsWidget(void);
 
-		private Q_SLOTS:
-			void onTrayIconActivated( QSystemTrayIcon::ActivationReason reason );
-			void onSettingsChanged( void );
-			void codeAdded( Otp * code );
-			void codeDestroyed( QObject * code );
+	private Q_SLOTS:
+		void onTrayIconActivated(QSystemTrayIcon::ActivationReason reason);
+		void onSettingsChanged(void);
+		void codeAdded(Otp * code);
+		void codeDestroyed(QObject * code);
 
-		private:
-			/* RunGuard code from
+	private:
+		/* RunGuard code from
 			 * http://stackoverflow.com/questions/5006547/qt-best-practice-for-a-single-instance-app-protection
 			 */
-			class SingleInstanceGuard {
-				public:
-					SingleInstanceGuard( const QString & key );
-					~SingleInstanceGuard( void );
+		class SingleInstanceGuard {
+		public:
+			SingleInstanceGuard(const QString & key);
+			~SingleInstanceGuard(void);
 
-					bool isAnotherRunning( void );
-					bool tryToRun( void );
-					void release( void );
+			bool isAnotherRunning(void);
+			bool tryToRun(void);
+			void release(void);
 
-				private:
-					const QString m_key;
-					const QString m_memLockKey;
-					const QString m_sharedmemKey;
+		private:
+			const QString m_key;
+			const QString m_memLockKey;
+			const QString m_sharedmemKey;
 
-					QSharedMemory m_sharedMem;
-					QSystemSemaphore m_memLock;
+			QSharedMemory m_sharedMem;
+			QSystemSemaphore m_memLock;
 
-					Q_DISABLE_COPY(SingleInstanceGuard)
-			};
+			Q_DISABLE_COPY(SingleInstanceGuard)
+		};
 
-			static bool ensureDirectory( const QStandardPaths::StandardLocation & location, const QString & path );
+		static bool ensureDirectory(const QStandardPaths::StandardLocation & location, const QString & path);
 
-			static Application * s_instance;
+		static Application * s_instance;
 
-			std::unique_ptr<SingleInstanceGuard> m_runChecker;
-			Settings m_settings;
-			std::shared_ptr<MainWindow> m_mainWindow;
-			std::unique_ptr<SettingsWidget> m_settingsWidget;
-			std::unique_ptr<AboutDialogue> m_aboutDialogue;
-			QSystemTrayIcon * m_trayIcon;
-			QMenu * m_trayIconMenu;
-			QAction * m_quitAction, * m_loadQrImageAction, * m_mainWindowAction, * m_settingsAction;
-			QMetaObject::Connection m_quitConnection;
+		std::unique_ptr<SingleInstanceGuard> m_runChecker;
+		Settings m_settings;
+		MainWindow m_mainWindow;
+		std::unique_ptr<SettingsWidget> m_settingsWidget;
+		std::unique_ptr<AboutDialogue> m_aboutDialogue;
+		QSystemTrayIcon m_trayIcon;
+		QMenu m_trayIconMenu;
+		QAction *m_quitAction, *m_loadQrImageAction, *m_mainWindowAction, *m_settingsAction;
+		QMetaObject::Connection m_quitConnection;
 
-			PluginMap m_codeDisplayPlugins;
+		PluginMap m_codeDisplayPlugins;
 
-			QCA::Initializer m_qcaInit;
-			QString m_cryptPassphrase;
+		QCA::Initializer m_qcaInit;
+		QString m_cryptPassphrase;
 	};
-}
+}  // namespace Qonvince
 
-#endif // QONVINCE_APPLICATION_H
+#endif  // QONVINCE_APPLICATION_H
