@@ -74,13 +74,9 @@ namespace Qonvince {
 		};
 
 		Application(int & argc, char ** argv);
-		virtual ~Application(void);
+		virtual ~Application();
 
-		static DesktopEnvironment desktopEnvironment(void);
-
-		inline static constexpr int doubleClickInterval(void) {
-			return 200;
-		}
+		static DesktopEnvironment desktopEnvironment();
 
 		inline static bool ensureDataDirectory(const QString & path) {
 			return ensureDirectory(QStandardPaths::AppLocalDataLocation, path);
@@ -90,66 +86,70 @@ namespace Qonvince {
 			return ensureDirectory(QStandardPaths::AppConfigLocation, path);
 		}
 
-		inline static Application * qonvince(void) {
+		inline static Application * qonvince() {
 			return s_instance;
 		}
 
-		MainWindow & mainWindow(void) {
+		MainWindow & mainWindow() {
 			return m_mainWindow;
 		}
 
-		//			inline QSystemTrayIcon * trayIcon( void ) const {
+		//			inline QSystemTrayIcon * trayIcon() const {
 		//				return m_trayIcon;
 		//			}
 
-		inline Settings & settings(void) {
+		inline Settings & settings() {
 			return m_settings;
 		}
 
 		PluginPtr codeDisplayPluginByName(const QString & name) const;
 
-		PluginArray codeDisplayPlugins(void) const;
+		PluginArray codeDisplayPlugins() const;
 
 		//			/* note Don't make this return a const reference for security reasons. returning
 		//			 * a reference could allow a malicious client to cast away the const-ness and therefore
 		//			 * alter the stored passphrase, rendering the settings unreadable to the actual
 		//			 * owner once they've been saved. */
-		//			inline QString cryptPassphrase( void ) const {
+		//			inline QString cryptPassphrase() const {
 		//				return m_cryptPassphrase;
 		//			}
 
-		static int exec(void);
+		static int exec();
 
 	public Q_SLOTS:
 		void showMessage(const QString & title, const QString & message, int timeout = 10000);
 		void showMessage(const QString & message, int timeout = 10000);
-		void readQrCode(void);
-		void readQrCode(const QString & fileName);
-		bool readApplicationSettings(void);
-		bool readCodeSettings(void);
-		void writeSettings(void) const;
-		void aboutQonvince(void);
-		void clearClipboard(void);
-		void showSettingsWidget(void);
+		void readQrCode();
+		void readQrCodeFrom(const QString & fileName);
+		bool readApplicationSettings();
+		bool readCodeSettings();
+		void writeSettings() const;
+		void aboutQonvince();
+		void clearClipboard();
+		void showSettingsWidget();
 
 	private Q_SLOTS:
 		void onTrayIconActivated(QSystemTrayIcon::ActivationReason reason);
-		void onSettingsChanged(void);
-		void codeAdded(Otp * code);
-		void codeDestroyed(QObject * code);
+		void onSettingsChanged();
+		void onCodeAdded(Otp * code);
+		void onCodeDestroyed(QObject * code);
 
 	private:
-		/* RunGuard code from
-			 * http://stackoverflow.com/questions/5006547/qt-best-practice-for-a-single-instance-app-protection
-			 */
+		// Based on RunGuard code from
+		// http://stackoverflow.com/questions/5006547/qt-best-practice-for-a-single-instance-app-protection
 		class SingleInstanceGuard {
 		public:
-			SingleInstanceGuard(const QString & key);
-			~SingleInstanceGuard(void);
+			explicit SingleInstanceGuard(const QString &);
+			SingleInstanceGuard(const SingleInstanceGuard &) = delete;
+			SingleInstanceGuard(SingleInstanceGuard &&) = delete;
+			~SingleInstanceGuard();
 
-			bool isAnotherRunning(void);
-			bool tryToRun(void);
-			void release(void);
+			void operator=(const SingleInstanceGuard &) = delete;
+			void operator=(SingleInstanceGuard &&) = delete;
+
+			bool isAnotherRunning();
+			bool tryToRun();
+			void release();
 
 		private:
 			const QString m_key;
@@ -158,8 +158,6 @@ namespace Qonvince {
 
 			QSharedMemory m_sharedMem;
 			QSystemSemaphore m_memLock;
-
-			Q_DISABLE_COPY(SingleInstanceGuard)
 		};
 
 		static bool ensureDirectory(const QStandardPaths::StandardLocation & location, const QString & path);
@@ -173,7 +171,10 @@ namespace Qonvince {
 		std::unique_ptr<AboutDialogue> m_aboutDialogue;
 		QSystemTrayIcon m_trayIcon;
 		QMenu m_trayIconMenu;
-		QAction *m_quitAction, *m_loadQrImageAction, *m_mainWindowAction, *m_settingsAction;
+		QAction * m_quitAction;
+		QAction * m_loadQrImageAction;
+		QAction * m_mainWindowAction;
+		QAction * m_settingsAction;
 		QMetaObject::Connection m_quitConnection;
 
 		PluginMap m_codeDisplayPlugins;

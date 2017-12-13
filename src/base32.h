@@ -36,14 +36,14 @@ namespace Qonvince {
 
 		explicit Base32(const ByteArray & plainData = {});
 
-		inline bool isValid(void) {
+		inline bool isValid() {
 			return m_isValid;
 		}
 
 		bool setPlain(const ByteArray & data);
 		bool setEncoded(const ByteArray & base32);
 
-		inline const ByteArray & plain(void) {
+		inline const ByteArray & plain() {
 			if(!m_plainInSync) {
 				decode();
 			}
@@ -51,7 +51,7 @@ namespace Qonvince {
 			return m_plain;
 		}
 
-		inline const ByteArray & encoded(void) {
+		inline const ByteArray & encoded() {
 			if(!m_encodedInSync) {
 				encode();
 			}
@@ -60,8 +60,6 @@ namespace Qonvince {
 		}
 
 	private:
-		static const std::array<Byte, 32> Dictionary;
-
 		/** Whether or not the encoder/decoder is valid. */
 		bool m_isValid;
 
@@ -85,8 +83,8 @@ namespace Qonvince {
 		ByteArray toBinary(const ByteArray & data, int sep);
 #endif
 
-		void decode(void);
-		void encode(void);
+		void decode();
+		void encode();
 	};
 
 }  // namespace Qonvince

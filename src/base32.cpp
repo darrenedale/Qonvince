@@ -71,7 +71,7 @@ namespace Qonvince {
 
 
 	/** The dictionary of Base32 characters. */
-	const std::array<Base32::Byte, 32> Base32::Dictionary = {{'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', '2', '3', '4', '5', '6', '7'}};
+	static constexpr const std::array<Base32::Byte, 32> Dictionary = {{'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', '2', '3', '4', '5', '6', '7'}};
 
 
 	/**
@@ -115,17 +115,17 @@ namespace Qonvince {
 
 		for(auto i = static_cast<int>(base32.length()) - 1; 0 <= i; --i) {
 			auto idx = static_cast<ByteArray::size_type>(i);
-			unsigned char c = base32.at(idx);
+			unsigned char ch = base32.at(idx);
 
 			if(stillTrimmingTrailingEquals) {
-				if('=' == c) {
+				if('=' == ch) {
 					continue;
 				}
 
 				stillTrimmingTrailingEquals = false;
 			}
 
-			if(Dictionary.end() == std::find(Dictionary.begin(), Dictionary.end(), c)) {
+			if(Dictionary.cend() == std::find(Dictionary.cbegin(), Dictionary.cend(), ch)) {
 				std::cerr << "invalid base32 character found\n";
 				m_isValid = false;
 				return false;
@@ -141,24 +141,25 @@ namespace Qonvince {
 
 
 	/** \brief Encode the plain data into the Base32 data member. */
-	void Base32::encode(void) {
+	void Base32::encode() {
 		ByteArray ba = m_plain;
 		m_encoded.clear();
 
-		/* pad to a multiple of 5 chars with null bytes
-		 * TODO use std::insert() or similar rather than loop */
-		for(int i = 5 - (ba.length() % 5); i >= 0; --i) {
-			ba.push_back(0);
-		}
+		// pad to a multiple of 5 chars with null bytes
+		ba.insert(ba.end(), 5 - (ba.length() % 5), 0);
+//		for(int i = 5 - (ba.length() % 5); i >= 0; --i) {
+//			ba.push_back(0);
+//		}
 
 		unsigned int pos = 0;
-		const unsigned char * data = ba.data();
+//		const unsigned char * data = ba.data();
 
 		while(pos < ba.length()) {
-			uint64_t bits = 0x00 | ((uint64_t(data[pos])) << 32) |
-								 ((uint64_t(data[pos + 1])) << 24) |
-								 ((uint64_t(data[pos + 2])) << 16) |
-								 ((uint64_t(data[pos + 3])) << 8) | ((uint64_t(data[pos + 4])));
+			uint64_t bits = 0x00 | ((uint64_t(ba[pos])) << 32) |
+								 ((uint64_t(ba[pos + 1])) << 24) |
+								 ((uint64_t(ba[pos + 2])) << 16) |
+								 ((uint64_t(ba[pos + 3])) << 8) |
+								 ((uint64_t(ba[pos + 4])));
 			std::array<Byte, 8> out;
 
 			for(int i = 7; i >= 0; --i) {
@@ -166,11 +167,10 @@ namespace Qonvince {
 				bits = bits >> 5;
 			}
 
-			/* append the bytes from out to the encoded data
-			* TODO use an algorithm to do this rather than a loop */
-			for(int i = 0; i < 8; ++i) {
-				m_encoded.push_back(out[static_cast<decltype(out)::size_type>(i)]);
-			}
+			std::copy(out.cbegin(), out.cend(), std::back_inserter(m_encoded));
+//			for(int i = 0; i < 8; ++i) {
+//				m_encoded.push_back(out[static_cast<decltype(out)::size_type>(i)]);
+//			}
 
 			pos += 5;
 		}
@@ -196,11 +196,10 @@ namespace Qonvince {
 		}
 
 		if(0 < overrideLength) {
-			m_encoded.resize(m_encoded.length() - overrideLength);
-
-			for(ByteArray::size_type i = 0; i < overrideLength; ++i) {
-				m_encoded.push_back('=');
-			}
+			m_encoded.insert(m_encoded.end(), overrideLength, '=');
+//			for(ByteArray::size_type i = 0; i < overrideLength; ++i) {
+//				m_encoded.push_back('=');
+//			}
 		}
 
 		m_encodedInSync = true;
@@ -208,50 +207,52 @@ namespace Qonvince {
 
 
 	/** \brief Decode the Base32-encoded data into the plain data member. */
-	void Base32::decode(void) {
+	void Base32::decode() {
+		static const auto dictBegin = Dictionary.cbegin();
 		ByteArray ba = m_encoded;
 
-		/* convert to upper-case
-		* TODO create a function template to do this rather than a loop */
-		for(auto it = ba.begin(); it != ba.end(); ++it) {
-			auto c = *it;
+		std::transform(ba.begin(), ba.end(), ba.begin(), [](const ByteArray::value_type & ch) -> ByteArray::value_type {
+			return static_cast<ByteArray::value_type>(std::toupper(ch));
+		});
+//		for(auto & ch: ba) {
+////		for(auto it = ba.begin(); it != ba.end(); ++it) {
+////			auto ch = *it;
 
-			if('a' <= c && 'z' >= c) {
-				c -= 32;
-				*it = c;
-			}
-		}
+//			if('a' <= ch && 'z' >= ch) {
+//				ch -= 32;
+//			}
+//		}
 
 		/* tolerate badly terminated encoded strings by padding with = to an appropriate
 		 * length
 		 * TODO use an algorithm to do this rather than a loop */
-		for(int i = ba.size() % 8; i >= 0; --i) {
-			ba.push_back('=');
-		}
+		ba.insert(ba.end(), ba.size() % 8, '=');
+//		for(int i = ba.size() % 8; i >= 0; --i) {
+//			ba.push_back('=');
+//		}
 
 		m_plain.clear();
-		const Byte * data = ba.data();
 		ByteArray::size_type j;
 
 		for(ByteArray::size_type i = 0; i < ba.length(); i += 8) {
 			uint64_t out = 0x00;
 
 			for(j = 0; j < 8; ++j) {
-				if('=' == data[i + j]) {
+				if('=' == ba[i + j]) {
 					break;
 				}
 
-				auto pos = std::find(Dictionary.begin(), Dictionary.end(), data[i + j]);
+				auto pos = std::find(dictBegin, Dictionary.end(), ba[i + j]);
 
 				if(Dictionary.end() == pos) {
-					std::cerr << "invalid character in base32 data:" << data[i + j] << "\n";
+					std::cerr << "invalid character in base32 data:" << ba[i + j] << "\n";
 					m_isValid = false;
 					m_plain.clear();
 					return;
 				}
 
 				out <<= 5;
-				out |= (std::distance(Dictionary.begin(), pos) & 0x1f);
+				out |= (std::distance(dictBegin, pos) & 0x1f);
 			}
 
 			/* in any chunk we must have processed either 2, 4, 5, 7 or 8 bytes */
@@ -296,9 +297,11 @@ namespace Qonvince {
 			outBytes[1] = static_cast<Byte>((out >> 24) & 0xff);
 			outBytes[0] = static_cast<Byte>((out >> 32) & 0xff);
 
-			for(ByteArray::size_type i = 0; i < outByteCount; ++i) {
-				m_plain.push_back(outBytes[i]);
-			}
+			const auto begin = outBytes.cbegin();
+			std::copy(begin, begin + outByteCount, std::back_inserter(m_plain));
+//			for(ByteArray::size_type i = 0; i < outByteCount; ++i) {
+//				m_plain.push_back(outBytes[i]);
+//			}
 		}
 
 		m_isValid = true;

@@ -28,7 +28,7 @@ using namespace Qonvince;
 
 AboutDialogue::AboutDialogue(QWidget * parent)
 : QDialog(parent),
-  m_ui{std::make_unique<Ui::AboutDialogue>()} {
+  m_ui(std::make_unique<Ui::AboutDialogue>()) {
 	m_ui->setupUi(this);
 	m_ui->aboutText->setText(m_ui->aboutText->text().arg(Application::applicationDisplayName()).arg(Application::applicationVersion()));
 	adjustSize();

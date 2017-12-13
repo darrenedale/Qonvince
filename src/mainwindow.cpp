@@ -126,7 +126,7 @@ void MainWindow::dropEvent( QDropEvent * ev ) {
 	for(const QUrl & u : ev->mimeData()->urls()) {
 		if("file" == u.scheme()) {
 qDebug() << "decoding image" << u.path();
-			qonvinceApp->readQrCode(u.path());
+			qonvinceApp->readQrCodeFrom(u.path());
 //			OtpQrCodeReader r(u.path());
 //
 //			if(r.decode()) {

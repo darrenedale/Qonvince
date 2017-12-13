@@ -56,18 +56,7 @@
 #include "steamotpdisplayplugin.h"
 
 
-/* just a random-ish string to identify the shared memory that is in place
- * if the application is already running */
-#define QONVINCE_APPLICATION_RUNCHECK_KEY "blarglefangledungle"
-
-
-//template<>
-//class std::hash<QString> {
-//public:
-//	std::size_t operator()(const QString & str) const {
-//		return static_cast<std::size_t>(qHash(str));
-//	}
-//};
+#define QONVINCE_APPLICATION_SINGLEINSTANCE_KEY ""
 
 
 namespace Qonvince {
@@ -78,7 +67,9 @@ namespace Qonvince {
 
 	Application::Application(int & argc, char ** argv)
 	: QApplication(argc, argv),
-	  m_runChecker{std::make_unique<SingleInstanceGuard>(QONVINCE_APPLICATION_RUNCHECK_KEY)},
+	  // random-ish string identifying the shared memory that is in place
+	  // if application is already running
+	  m_runChecker{std::make_unique<SingleInstanceGuard>("blarglefangledungle")},
 	  m_settings{},
 	  m_mainWindow{},
 	  m_settingsWidget{std::make_unique<SettingsWidget>(m_settings)},
@@ -101,7 +92,7 @@ namespace Qonvince {
 		setQuitOnLastWindowClosed(false);
 		QSettings::setDefaultFormat(QSettings::IniFormat);
 
-		/* add the built-in code display plugins */
+		// add the built-in code display plugins
 		std::shared_ptr<OtpDisplayPlugin> plugin = std::make_shared<IntegerOtpDisplayPlugin>(6);
 		m_codeDisplayPlugins.insert({plugin->pluginName(), plugin});
 		plugin = std::make_shared<IntegerOtpDisplayPlugin>(8);
@@ -116,13 +107,13 @@ namespace Qonvince {
 		m_mainWindowAction = new QAction(tr("Show main window"), this);
 		m_settingsAction = new QAction(QIcon::fromTheme("system-settings", QIcon(":/icons/app/settings")), tr("Settings..."), this);
 
-		connect(m_quitAction, SIGNAL(triggered(bool)), this, SLOT(quit()));
+		connect(m_quitAction, &QAction::triggered, this, &Application::quit);
 		m_trayIconMenu.addAction(m_mainWindowAction);
 		m_trayIconMenu.addAction(m_settingsAction);
 
 		if(OtpQrCodeReader::isAvailable()) {
 			m_loadQrImageAction = new QAction(QIcon::fromTheme("image-png", QIcon(":/icons/app/readqrcode")), tr("Read a QR code image"), this);
-			connect(m_loadQrImageAction, SIGNAL(triggered(bool)), this, SLOT(readQrCode()));
+			connect(m_loadQrImageAction, &QAction::triggered, this, &Application::readQrCode);
 			m_trayIconMenu.addSeparator();
 			m_trayIconMenu.addAction(m_loadQrImageAction);
 		}
@@ -144,18 +135,18 @@ namespace Qonvince {
 		connect(m_settingsAction, SIGNAL(triggered(bool)), this, SLOT(showSettingsWidget()));
 		connect(&m_settings, &Settings::changed, this, &Application::onSettingsChanged);
 		connect(this, &Application::aboutToQuit, this, &Application::writeSettings);
-		connect(m_mainWindow.codeList(), &OtpListWidget::codeAdded, this, &Application::codeAdded);
+		connect(m_mainWindow.codeList(), &OtpListWidget::codeAdded, this, &Application::onCodeAdded);
 	}
 
 
-	Application::~Application(void) {
+	Application::~Application() {
 		m_codeDisplayPlugins.clear();
 	}
 
 
-	Application::DesktopEnvironment Application::desktopEnvironment(void) {
+	Application::DesktopEnvironment Application::desktopEnvironment() {
 		static DesktopEnvironment ret = DesktopEnvironment::Unknown;
-		static bool done(false);
+		static bool done = false;
 
 		if(!done) {
 #if defined(Q_OS_UNIX)
@@ -212,8 +203,8 @@ namespace Qonvince {
 		PluginArray ret;
 		ret.reserve(m_codeDisplayPlugins.size());
 
-		for(const auto & pair : m_codeDisplayPlugins) {
-			ret.push_back(pair.second);
+		for(const auto & item : m_codeDisplayPlugins) {
+			ret.push_back(item.second);
 		}
 
 		return ret;
@@ -221,52 +212,41 @@ namespace Qonvince {
 
 
 	bool Application::ensureDirectory(const QStandardPaths::StandardLocation & location, const QString & path) {
-		static std::array<QChar, 6> s_validChars = {{'-', '_', ' ', '.', '~', '/'}};
-
 		QString rootPath = QStandardPaths::writableLocation(location);
 
 		if(rootPath.isEmpty()) {
 			return false;
 		}
 
-		/* check that the path is not malicious */
+		// check that the path is not malicious
 		if(rootPath != QDir(rootPath % "/" % path).absolutePath().left(rootPath.length())) {
-			/* the path contains some ".." components that move it out of the
-		 * root data directory - this is not allowed */
+			// path contains ".." components that move it out of root data directory
 			qWarning() << path << "is not a valid subdirectory";
 			return false;
 		}
 
-		/* ensure the path is sane */
 		if(path.isEmpty() || path.trimmed().isEmpty()) {
 			qWarning() << "path" << path << "is enmpty or contains only whitespace";
 		}
 
-		/* TODO use algorithms if possible */
-		for(QChar c : path) {
-			bool ok = false;
+		auto isValidPathChar = [](const QChar & ch) -> bool {
+			static std::array<QChar, 6> s_validChars = {{'-', '_', ' ', '.', '~', '/'}};
+			return ch.isLetterOrNumber() || (s_validChars.cend() != std::find(s_validChars.cbegin(), s_validChars.cend(), ch));
+		};
 
-			for(QChar v : s_validChars) {
-				if(c == v) {
-					ok = true;
-					break;
-				}
-			}
+		const auto end = path.cend();
+		const auto invalidChar = std::find_if_not(path.cbegin(), end, isValidPathChar);
 
-			if(ok || c.isLetterOrNumber()) {
-				continue;
-			}
-
-			qWarning() << "path" << path << "contains the invalid character" << c;
+		if(end != invalidChar) {
+			qWarning() << "path" << path << "contains the invalid character" << *invalidChar;
 			return false;
 		}
 
-		/* mkpath returns true if the path already exists */
 		return QDir(rootPath).mkpath(path);
 	}
 
 
-	int Application::exec(void) {
+	int Application::exec() {
 		Application * app(qonvinceApp);
 
 		if(app->m_settings.singleInstance()) {
@@ -279,6 +259,7 @@ namespace Qonvince {
 		/* read command-line args */
 		bool forceStartMinimised(false);
 
+		// TODO arguments() is slow - find another way
 		for(const QString & arg : arguments()) {
 			if(arg == "-m" || arg == "--minimised") {
 				forceStartMinimised = true;
@@ -294,7 +275,7 @@ namespace Qonvince {
 					return 0;
 				}
 
-				QString pw(dlg.password());
+				QString pw = dlg.password();
 
 				if(pw.isEmpty()) {
 					qWarning() << "passphrase is empty" << pw;
@@ -306,17 +287,16 @@ namespace Qonvince {
 					app->m_cryptPassphrase = pw;
 
 					if(app->readCodeSettings()) {
-						/* if reading succeeds, passphrase was correct, so
-					 * exit loop and continue app execution */
+						// if reading succeeds, passphrase was correct, so
+						// exit loop and continue app execution
 						break;
 					}
 
 					app->m_cryptPassphrase = QString();
 					qWarning() << "failed to read code settings - likely incorrect passphrase";
-					/* sleep for a short period before allowing another attempt */
 				}
 
-				/* we can only get here if the passphrase was not correct */
+				// we can only get here if the passphrase was not correct
 				QThread::msleep(1000);
 				dlg.setMessage(tr("The passphrase you entered is not correct. Enter the passphrase used to encrypt your settings."));
 			}
@@ -357,18 +337,18 @@ namespace Qonvince {
 	}
 
 
-	void Application::readQrCode(void) {
+	void Application::readQrCode() {
 		QString fileName = QFileDialog::getOpenFileName(&m_mainWindow, tr("Open QR code image"));
 
 		if(fileName.isEmpty()) {
 			return;
 		}
 
-		readQrCode(fileName);
+		readQrCodeFrom(fileName);
 	}
 
 
-	void Application::readQrCode(const QString & fileName) {
+	void Application::readQrCodeFrom(const QString & fileName) {
 		OtpQrCodeReader r(fileName);
 
 		if(!r.decode()) {
@@ -380,7 +360,7 @@ namespace Qonvince {
 	}
 
 
-	bool Application::readApplicationSettings(void) {
+	bool Application::readApplicationSettings() {
 		QSettings settings;
 
 		settings.beginGroup("mainwindow");
@@ -395,7 +375,7 @@ namespace Qonvince {
 	}
 
 
-	bool Application::readCodeSettings(void) {
+	bool Application::readCodeSettings() {
 		QSettings settings;
 
 		/* read the crypt_check value. if decryption indicates an error, the passphrase
@@ -422,10 +402,6 @@ namespace Qonvince {
 					switch(err) {
 						case Crypt::ErrOk:
 							break;
-
-						default:
-							qDebug() << "unkown error code from Crypt::decrypt()";
-							return false;
 
 						case Crypt::ErrKeyTooShort: /*!< The key provided contained fewer than 8 bytes */
 							qDebug() << "decryption failure - key is too short";
@@ -461,7 +437,7 @@ namespace Qonvince {
 			settings.beginGroup(QString("code-%1").arg(i));
 			Otp * code = Otp::fromSettings(settings, m_cryptPassphrase);
 
-			if(!!code) {
+			if(code) {
 				m_mainWindow.codeList()->addCode(code);
 				connect(code, &Otp::changed, this, &Application::writeSettings);
 			}
@@ -476,7 +452,7 @@ namespace Qonvince {
 	}
 
 
-	void Application::writeSettings(void) const {
+	void Application::writeSettings() const {
 		QSettings settings;
 
 		/* write a random string to the settings which, when read, will indicate
@@ -543,7 +519,7 @@ namespace Qonvince {
 	}
 
 
-	void Application::onSettingsChanged(void) {
+	void Application::onSettingsChanged() {
 		disconnect(m_quitConnection);
 
 		if(m_settings.quitOnMainWindowClosed()) {
@@ -552,21 +528,21 @@ namespace Qonvince {
 	}
 
 
-	void Application::codeDestroyed(QObject * obj) {
+	void Application::onCodeDestroyed(QObject * obj) {
 		Otp * code = qobject_cast<Otp *>(obj);
 
-		if(!!code) {
+		if(code) {
 			code->disconnect(this);
 		}
 	}
 
 
-	void Application::codeAdded(Otp * code) {
-		connect(code, &QObject::destroyed, this, &Application::codeDestroyed);
+	void Application::onCodeAdded(Otp * code) {
+		connect(code, &QObject::destroyed, this, &Application::onCodeDestroyed);
 	}
 
 
-	void Application::aboutQonvince(void) {
+	void Application::aboutQonvince() {
 		if(!m_aboutDialogue) {
 			m_aboutDialogue = std::make_unique<AboutDialogue>();
 		}
@@ -580,7 +556,7 @@ namespace Qonvince {
 	}
 
 
-	void Application::showSettingsWidget(void) {
+	void Application::showSettingsWidget() {
 		m_settingsWidget->show();
 		m_settingsWidget->activateWindow();
 		m_settingsWidget->raise();
@@ -607,12 +583,12 @@ namespace Qonvince {
 	}
 
 
-	Application::SingleInstanceGuard::~SingleInstanceGuard(void) {
+	Application::SingleInstanceGuard::~SingleInstanceGuard() {
 		release();
 	}
 
 
-	bool Application::SingleInstanceGuard::isAnotherRunning(void) {
+	bool Application::SingleInstanceGuard::isAnotherRunning() {
 		if(m_sharedMem.isAttached()) {
 			return false;
 		}
@@ -629,7 +605,7 @@ namespace Qonvince {
 	}
 
 
-	bool Application::SingleInstanceGuard::tryToRun(void) {
+	bool Application::SingleInstanceGuard::tryToRun() {
 		if(isAnotherRunning()) {  // Extra check
 			return false;
 		}
@@ -647,7 +623,7 @@ namespace Qonvince {
 	}
 
 
-	void Application::SingleInstanceGuard::release(void) {
+	void Application::SingleInstanceGuard::release() {
 		m_memLock.acquire();
 
 		if(m_sharedMem.isAttached()) {
@@ -656,4 +632,6 @@ namespace Qonvince {
 
 		m_memLock.release();
 	}
+
+
 }  // namespace Qonvince

@@ -27,21 +27,23 @@
 
 
 extern "C" {
-	typedef struct {
-		int version;         ///< version of the symbol
-		int width;           ///< width of the symbol
-		unsigned char *data; ///< symbol data
-	} QRcode;
+	struct QRcode {
+		int version;          ///< version of the symbol
+		int width;            ///< width of the symbol
+		unsigned char * data; ///< symbol data
+	};
 
-	typedef enum {
+	enum DummyEnum {
 		Zero = 0,
 		One,
 		Two,
 		Three,
-	} DummyEnum;
+	};
 
-	typedef QRcode * (* EncodeFunction) ( const char * string, int version, DummyEnum level, DummyEnum hint, int casesensitive );
-	typedef void (* FreeFunction) ( QRcode * code );
+//	typedef QRcode * (* EncodeFunction) ( const char * string, int version, DummyEnum level, DummyEnum hint, int casesensitive );
+//	typedef void (* FreeFunction) ( QRcode * code );
+	using EncodeFunction = QRcode * (*) ( const char * string, int version, DummyEnum level, DummyEnum hint, int casesensitive );
+	using FreeFunction = void (*) ( QRcode * code );
 }
 
 
@@ -76,17 +78,17 @@ LibQrEncode::QrCode LibQrEncode::encodeString( const QString & data ) const {
 			return ret;
 		}
 
-		QRcode_encodeString = (EncodeFunction) sym;
+		QRcode_encodeString = reinterpret_cast<EncodeFunction>(sym);
 
 		if(!symbol("QRcode_free", &sym)) {
 			QRcode_encodeString = nullptr;
 			return ret;
 		}
 
-		QRcode_free = (FreeFunction) sym;
+		QRcode_free = reinterpret_cast<FreeFunction>(sym);
 	}
 
-	/* (data, version = 1, level = 0 (lowest), mode = 2 (8-bit mode), caseSensitive = 1 ) */
+	// (data, version = 1, level = 0 (lowest), mode = 2 (8-bit mode), caseSensitive = 1 )
 	QRcode * qr = QRcode_encodeString(data.toStdString().c_str(), 1, Zero, Two, 1);
 
 	if(!qr) {
@@ -95,7 +97,7 @@ LibQrEncode::QrCode LibQrEncode::encodeString( const QString & data ) const {
 
 	ret.isValid = true;
 	ret.size = qr->width;
-	ret.data.append((const char *) qr->data, qr->width * qr->width);
+	ret.data.append(reinterpret_cast<const char *>(qr->data), qr->width * qr->width);
 	QRcode_free(qr);
 	return ret;
 }

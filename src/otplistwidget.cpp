@@ -44,6 +44,7 @@
 #include <QMessageBox>
 #include <QStringBuilder>
 #include <QToolTip>
+#include <QStyleHints>
 #include <qmath.h>
 
 #include "application.h"
@@ -95,7 +96,7 @@ OtpListWidget::OtpListWidget( QWidget * parent )
 	m_countdownCriticalColour = m_countdownColour;
 
 	m_doubleClickWaitTimer = new QTimer(this);
-	m_doubleClickWaitTimer->setInterval(Application::doubleClickInterval());
+	m_doubleClickWaitTimer->setInterval(qonvinceApp->styleHints()->mouseDoubleClickInterval());
 	connect(m_doubleClickWaitTimer, &QTimer::timeout, this, &OtpListWidget::callMouseClickEvent);
 
 	synchroniseTickTimer();

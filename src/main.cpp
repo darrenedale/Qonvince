@@ -19,15 +19,8 @@
 
 #include "application.h"
 
-#include <QDebug>
-
-#include "crypt.h"
-
-
-using namespace Qonvince;
-
 
 int main( int argc, char *argv[] ) {
-	Application q(argc, argv);
+	Qonvince::Application q(argc, argv);
 	return q.exec();
 }

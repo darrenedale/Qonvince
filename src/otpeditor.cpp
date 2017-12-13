@@ -293,7 +293,7 @@ void OtpEditor::dragEnterEvent( QDragEnterEvent * ev ) {
 void OtpEditor::dropEvent( QDropEvent * ev ) {
 	for(const QUrl & u : ev->mimeData()->urls()) {
 		if("file" == u.scheme()) {
-			qonvinceApp->readQrCode(u.path());
+			qonvinceApp->readQrCodeFrom(u.path());
 		}
 	}
 
