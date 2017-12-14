@@ -32,17 +32,20 @@
 namespace LibQonvince {
 	template<class ByteArrayT = std::basic_string<char>, typename ByteT = typename ByteArrayT::value_type>
 	class Base32 final {
-		public:
-			using ByteArray = ByteArrayT;
-			using Byte = ByteT;
-			
-		explicit Base32(const ByteArrayT & plainData = {})
-				: m_isValid(false),
-				  m_plainInSync(true),
-				  m_encodedInSync(false),
-				  m_plain(plainData) {}
+	public:
+		using ByteArray = ByteArrayT;
+		using Byte = ByteT;
 
-		inline bool isValid() {
+		explicit Base32(const ByteArrayT & plainData = {})
+		: m_isValid(false),
+		  m_plainInSync(true),
+		  m_encodedInSync(false),
+		  m_plain(plainData) {}
+
+		inline bool isValid() const {
+			return m_isValid;
+		}
+
 		bool setPlain(const ByteArrayT & data) {
 			m_plain = data;
 			m_plainInSync = true;
@@ -51,8 +54,6 @@ namespace LibQonvince {
 		}
 
 		bool setEncoded(const ByteArrayT & base32) {
-			static const auto DictBegin = Dictionary.cbegin();
-			static const auto DictEnd = Dictionary.cend();
 			bool stillTrimmingTrailingEquals = true;
 
 			for(auto i = static_cast<int>(base32.size()) - 1; 0 <= i; --i) {
@@ -68,7 +69,7 @@ namespace LibQonvince {
 				}
 
 				if(DictEnd == std::find(DictBegin, DictEnd, ch)) {
-					std::cerr << "invalid base32 character found\n";
+					std::cerr << "invalid base32 character found at byte position " << i << "\n";
 					m_isValid = false;
 					return false;
 				}
@@ -81,7 +82,7 @@ namespace LibQonvince {
 			return true;
 		}
 
-		inline const ByteArrayT & plain() {
+		inline const ByteArrayT & plain() const {
 			if(!m_plainInSync) {
 				decode();
 			}
@@ -89,7 +90,7 @@ namespace LibQonvince {
 			return m_plain;
 		}
 
-		inline const ByteArrayT & encoded() {
+		inline const ByteArrayT & encoded() const {
 			if(!m_encodedInSync) {
 				encode();
 			}
@@ -98,54 +99,31 @@ namespace LibQonvince {
 		}
 
 	private:
-		static constexpr const std::array<char, 32> Dictionary = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', '2', '3', '4', '5', '6', '7'};
-		
-		/** Whether or not the plain data member is the plain representation of
-		 * the Base32-encoded data member. */
-		mutable bool m_plainInSync;
-
-		/** Whether or not the Base32-encoded data member is the Base32
-		 * representation of the plain data member. */
-		mutable bool m_encodedInSync;
-
-		/** The plain (unencoded) data. */
-		ByteArrayT m_plain;
-
-		/** The Base32-encoded data. */
-		ByteArrayT m_encoded;
-
-#if defined(QT_DEBUG)
-		template<typename T>
-		ByteArray toBinary(const T & value, int sep = 8);
-		ByteArray toBinary(const ByteArrayT & data, int sep);
-#endif
-
-		void decode() {
-			static const auto DictBegin = Dictionary.cbegin();
-			static const auto DictEnd = Dictionary.cend();
-			ByteArrayT ba = m_encoded;
+		void decode() const {
+			auto & ba = m_encoded;
 
 			std::transform(ba.begin(), ba.end(), ba.begin(), [](const ByteT & ch) -> ByteT {
 				return static_cast<ByteT>(std::toupper(ch));
 			});
-	//		for(auto & ch: ba) {
-	////		for(auto it = ba.begin(); it != ba.end(); ++it) {
-	////			auto ch = *it;
-
-	//			if('a' <= ch && 'z' >= ch) {
-	//				ch -= 32;
-	//			}
-	//		}
-
-			/* tolerate badly terminated encoded strings by padding with = to an appropriate
-			 * length
-			 * TODO use an algorithm to do this rather than a loop */
-			ba.insert(ba.end(), ba.size() % 8, '=');
-	//		for(int i = ba.size() % 8; i >= 0; --i) {
-	//			ba.push_back('=');
-	//		}
 
 			m_plain.clear();
+
+			// tolerate badly terminated encoded strings by padding with = to appropriate len
+			auto len = ba.size();
+
+			if(0 == len) {
+				return;
+			}
+
+			auto remainder = len % 8;
+
+			if(0 < remainder) {
+				std::fill_n(std::back_inserter(ba), 8 - remainder, '=');
+				//		for(int i = 8 - (ba.size() % 8); i >= 0; --i) {
+				//			ba.push_back('=');
+				//		}
+			}
+
 			int j;
 
 			for(int i = 0; i < ba.size(); i += 8) {
@@ -213,34 +191,38 @@ namespace LibQonvince {
 
 				const auto begin = outBytes.cbegin();
 				std::copy(begin, begin + outByteCount, std::back_inserter(m_plain));
-	//			for(ByteArrayT::size_type i = 0; i < outByteCount; ++i) {
-	//				m_plain.push_back(outBytes[i]);
-	//			}
+				//			for(ByteArrayT::size_type i = 0; i < outByteCount; ++i) {
+				//				m_plain.push_back(outBytes[i]);
+				//			}
 			}
 
 			m_isValid = true;
 			m_plainInSync = true;
 		}
 
-		void encode()  {
-			ByteArrayT ba = m_plain;
+		void encode() const {
 			m_encoded.clear();
+			auto len = m_plain.size();
 
-			// pad to a multiple of 5 chars with null bytes
-			ba.insert(ba.end(), 5 - (ba.size() % 5), 0);
-	//		for(int i = 5 - (ba.size() % 5); i >= 0; --i) {
-	//			ba.push_back(0);
-	//		}
+			if(0 == len) {
+				return;
+			}
 
+			auto remainder = len % 5;
+
+			if(0 < remainder) {
+				std::fill_n(std::back_inserter(m_plain), 5 - remainder, 0);
+			}
+
+			auto paddedLen = len + (5 - remainder);
 			unsigned int pos = 0;
-	//		const unsigned char * data = ba.data();
 
-			while(pos < ba.size()) {
-				uint64_t bits = 0x00 | ((uint64_t(ba[pos])) << 32) |
-									 ((uint64_t(ba[pos + 1])) << 24) |
-									 ((uint64_t(ba[pos + 2])) << 16) |
-									 ((uint64_t(ba[pos + 3])) << 8) |
-									 ((uint64_t(ba[pos + 4])));
+			while(pos < paddedLen) {
+				uint64_t bits = 0x00 | ((uint64_t(m_plain[pos])) << 32) |
+									 ((uint64_t(m_plain[pos + 1])) << 24) |
+									 ((uint64_t(m_plain[pos + 2])) << 16) |
+									 ((uint64_t(m_plain[pos + 3])) << 8) |
+									 ((uint64_t(m_plain[pos + 4])));
 				std::array<ByteT, 8> out;
 
 				for(int i = 7; i >= 0; --i) {
@@ -249,43 +231,68 @@ namespace LibQonvince {
 				}
 
 				std::copy(out.cbegin(), out.cend(), std::back_inserter(m_encoded));
-	//			for(int i = 0; i < 8; ++i) {
-	//				m_encoded.push_back(out[static_cast<decltype(out)::size_type>(i)]);
-	//			}
-
 				pos += 5;
 			}
 
-			unsigned overrideLength = 0;
+			switch(remainder) {
+				case 0:
+					break;
 
-			switch(m_plain.size() % 5) {
 				case 1:
-					overrideLength = 6;
+					std::fill_n(m_encoded.end() - 6, 6, '=');
+					m_plain.resize(len);
 					break;
 
 				case 2:
-					overrideLength = 4;
+					std::fill_n(m_encoded.end() - 4, 4, '=');
+					m_plain.resize(len);
 					break;
 
 				case 3:
-					overrideLength = 3;
+					std::fill_n(m_encoded.end() - 3, 3, '=');
+					m_plain.resize(len);
 					break;
 
 				case 4:
-					overrideLength = 1;
+					std::fill_n(m_encoded.end() - 1, 1, '=');
+					m_plain.resize(len);
 					break;
-			}
-
-			if(0 < overrideLength) {
-				m_encoded.insert(m_encoded.end(), overrideLength, '=');
-	//			for(ByteArrayT::size_type i = 0; i < overrideLength; ++i) {
-	//				m_encoded.push_back('=');
-	//			}
 			}
 
 			m_encodedInSync = true;
 		}
 
-}  // namespace Qonvince
+		using DictionaryT = std::array<char, 32>;
+		static const DictionaryT Dictionary;
+		static const DictionaryT::const_iterator DictBegin;
+		static const DictionaryT::const_iterator DictEnd;
+
+		mutable bool m_isValid;
+
+		/** Whether or not the plain data member is the plain representation of
+		 * the Base32-encoded data member. */
+		mutable bool m_plainInSync;
+
+		/** Whether or not the Base32-encoded data member is the Base32
+		 * representation of the plain data member. */
+		mutable bool m_encodedInSync;
+
+		/** The plain (unencoded) data. */
+		mutable ByteArrayT m_plain;
+
+		/** The Base32-encoded data. */
+		mutable ByteArrayT m_encoded;
+	};
+
+	template<class ByteArrayT, typename ByteT>
+	const typename Base32<ByteArrayT, ByteT>::DictionaryT Base32<ByteArrayT, ByteT>::Dictionary = {{'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', '2', '3', '4', '5', '6', '7'}};
+
+	template<class ByteArrayT, typename ByteT>
+	const typename Base32<ByteArrayT, ByteT>::DictionaryT::const_iterator Base32<ByteArrayT, ByteT>::DictBegin = Dictionary.cbegin();
+
+	template<class ByteArrayT, typename ByteT>
+	const typename Base32<ByteArrayT, ByteT>::DictionaryT::const_iterator Base32<ByteArrayT, ByteT>::DictEnd = Dictionary.cend();
+
+}  // namespace LibQonvince
 
 #endif  // LIBQONVINCE_BASE32_H
