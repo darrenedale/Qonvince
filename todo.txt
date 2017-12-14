@@ -6,4 +6,3 @@ x 2017-04-06 Detect when user has entered incorrect passphrase to decrypt settin
 x 2017-04-06 Add icon to password dialogue, and any other bling?  +Qonvince @UI
 (2) 2017-04-06 Integrate into platform keyring/wallet/etc.  +Qonvince @UX
 (1) 2017-04-23 Ability to change password for settings.  +Qonvince
-(1) 2017-12-13 Fix Qt4 @build for +Qonvince

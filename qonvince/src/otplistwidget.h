@@ -38,134 +38,137 @@ namespace Qonvince {
 	class OtpListWidgetItem;
 
 	class OtpListWidget
-	:	public QListWidget {
+	: public QListWidget {
 		Q_OBJECT
 
-		public:
+	public:
+		explicit OtpListWidget(QWidget * parent = nullptr);
+		virtual ~OtpListWidget();
 
-			explicit OtpListWidget( QWidget * parent = nullptr );
-			virtual ~OtpListWidget( void );
+		inline int hoveredCodeIndex() const {
+			return m_hoverItemIndex;
+		}
 
-			inline int hoveredCodeIndex( void ) const {
-				return m_hoverItemIndex;
+		Otp * hoveredCodeSpecification() const;
+
+		inline QString hoveredCode() const {
+			Otp * code = hoveredCodeSpecification();
+
+			if(!code) {
+				return QString();
 			}
 
-			Otp * hoveredCodeSpecification( void ) const;
+			return code->code();
+		}
 
-			inline QString hoveredCode( void ) const {
-				Otp * code = hoveredCodeSpecification();
+		inline int selectedCodeIndex() const {
+			return hoveredCodeIndex();
+		}
 
-				if(!code) {
-					return QString();
-				}
+		inline Otp * selectedCodeSpecification() const {
+			return hoveredCodeSpecification();
+		}
 
-				return code->code();
-			}
+		inline QString selectedCode() const {
+			return hoveredCode();
+		}
 
-			inline int selectedCodeIndex( void ) const {
-				return hoveredCodeIndex();
-			}
+		void addItem(Otp * code);
+		void addItem(OtpListWidgetItem * item);
 
-			inline Otp * selectedCodeSpecification( void ) const {
-				return hoveredCodeSpecification();
-			}
+		inline int itemHeight() const {
+			return 40;
+		}
 
-			inline QString selectedCode( void ) const {
-				return hoveredCode();
-			}
+		inline const QColor & countdownColour() const {
+			return m_countdownColour;
+		}
 
-			void addItem( Otp * code );
-			void addItem( OtpListWidgetItem * item );
+		inline const QColor & countdownWarningColour() const {
+			return m_countdownWarningColour;
+		}
 
-			inline int itemHeight( void ) const {
-				return 40;
-			}
+		inline const QColor & countdownCriticalColour() const {
+			return m_countdownCriticalColour;
+		}
 
-			inline const QColor & countdownColour( void ) const {
-				return m_countdownColour;
-			}
+		Otp * code(int i) const;
 
-			inline const QColor & countdownWarningColour( void ) const {
-				return m_countdownWarningColour;
-			}
+	public Q_SLOTS:
+		void setCountdownColour(const QColor & c);
+		void setCountdownWarningColour(const QColor & c);
+		void setCountdownCriticalColour(const QColor & c);
+		void addCode(const QByteArray & seed);
+		void addCode(const QString & name, const QByteArray & seed);
+		void addCode(Otp * code);
 
-			inline const QColor & countdownCriticalColour( void ) const {
-				return m_countdownCriticalColour;
-			}
+		/* only for dev purposes, to log when settings changes update the widget */
+		void onSettingsChanged();
 
-			Otp * code( int i ) const;
+	Q_SIGNALS:
+		void codeAdded(Otp * code);
+		void codeRemoved(Otp * code);
+		void codeClicked(Otp * code);
+		void codeDoubleClicked(Otp * code);
+		void editCodeRequested(Otp * code);
 
-		public Q_SLOTS:
-			void setCountdownColour( const QColor & c );
-			void setCountdownWarningColour( const QColor & c );
-			void setCountdownCriticalColour( const QColor & c );
-			void addCode( const QByteArray & seed );
-			void addCode( const QString & name, const QByteArray & seed );
-			void addCode( Otp * code );
+	protected:
+		virtual bool event(QEvent *) override;
+		virtual void timerEvent(QTimerEvent *) override;
+		virtual void enterEvent(QEvent *) override;
+		virtual void leaveEvent(QEvent *) override;
+		virtual void mouseMoveEvent(QMouseEvent *) override;
+		virtual void mousePressEvent(QMouseEvent *) override;
+		virtual void mouseReleaseEvent(QMouseEvent *) override;
+		virtual void mouseDoubleClickEvent(QMouseEvent *) override;
+		virtual void paintEvent(QPaintEvent *) override;
+		virtual void contextMenuEvent(QContextMenuEvent *) override;
+		virtual void keyReleaseEvent(QKeyEvent *) override;
 
-			/* only for dev purposes, to log when settings changes update the widget */
-			void settingsUpdate( void );
-
-		Q_SIGNALS:
-			void codeAdded( Otp * code );
-			void codeRemoved( Otp * code );
-			void codeClicked( Otp * code );
-			void codeDoubleClicked( Otp * code );
-			void editCodeRequested( Otp * code );
-
-		protected:
-			virtual bool event( QEvent * ev ) override;
-			virtual void timerEvent( QTimerEvent * ev ) override;
-			virtual void enterEvent( QEvent * ev ) override;
-			virtual void leaveEvent( QEvent * ev ) override;
-			virtual void mouseMoveEvent( QMouseEvent * ev ) override;
-			virtual void mousePressEvent( QMouseEvent * ev) override;
-			virtual void mouseReleaseEvent( QMouseEvent * ev) override;
-			virtual void mouseDoubleClickEvent( QMouseEvent * ev ) override;
-			virtual void paintEvent( QPaintEvent * ev ) override;
-			virtual void contextMenuEvent( QContextMenuEvent * ev ) override;
-			virtual void keyReleaseEvent( QKeyEvent * ev ) override;
-
-			/* this is not a Qt event method, it's one we've synthesised by
-			 * filtering out cases where the click is part of a double-click */
-			virtual void mouseClickEvent( QMouseEvent * ev );
-
-			OtpListWidgetItem * itemFromOtp( const Otp * code ) const;
-			void synchroniseTickTimer( void );
-
-		private Q_SLOTS:
-			void onCodeDefinitionChanged( void );
-			void onCodeDefinitionChanged( Otp * code );
-			void onCodeChanged( void );
-			void onCodeChanged( Otp * code );
-			void updateCountdowns( void );
-			void emitCodeDoubleClicked( QListWidgetItem * it );
-			void emitCodeClicked( QListWidgetItem * it );
-
-			void onEditActionTriggered( void );
-			void onRefreshActionTriggered( void );
-			void onRemoveActionTriggered( void );
-			void onCopyActionTriggered( void );
-			void onRemoveIconActionTriggered( void );
-
-#if defined(QT_DEBUG)
-			void debugLogNewCode( const QString & code ) const;
+#ifndef NDEBUG
+		virtual void showEvent(QShowEvent *) override;
 #endif
 
-		private:
-			void callMouseClickEvent( void );
+		/* this is not a Qt event method, it's one we've synthesised by
+			 * filtering out cases where the click is part of a double-click */
+		virtual void mouseClickEvent(QMouseEvent * ev);
 
-			int m_hoverItemIndex;
+		OtpListWidgetItem * itemFromOtp(const Otp * code) const;
+		void synchroniseTickTimer();
 
-			QColor m_countdownColour;
-			QColor m_countdownWarningColour;
-			QColor m_countdownCriticalColour;
+	private Q_SLOTS:
+		void onCodeDefinitionChanged();
+		void onCodeDefinitionChanged(Otp * code);
+		void onCodeChanged();
+		void onCodeChanged(Otp * code);
+		void updateCountdowns();
+		void emitCodeDoubleClicked(QListWidgetItem * it);
+		void emitCodeClicked(QListWidgetItem * it);
 
-			bool m_tickResync;
-			bool m_imageDropEnabled;
-			QBasicTimer * m_tickTimer;
+		void onEditActionTriggered();
+		void onRefreshActionTriggered();
+		void onRemoveActionTriggered();
+		void onCopyActionTriggered();
+		void onRemoveIconActionTriggered();
 
-			/* inserts a delay between receiving a mouseReleaseEvent() that looks like a click
+#if defined(QT_DEBUG)
+		void debugLogNewCode(const QString & code) const;
+#endif
+
+	private:
+		void callMouseClickEvent();
+
+		int m_hoverItemIndex;
+
+		QColor m_countdownColour;
+		QColor m_countdownWarningColour;
+		QColor m_countdownCriticalColour;
+
+		bool m_tickResync;
+		bool m_imageDropEnabled;
+		QBasicTimer * m_tickTimer;
+
+		/* inserts a delay between receiving a mouseReleaseEvent() that looks like a click
 			 * on a code and actually acting on a click so that we can determine whether it's
 			 * actually a double-click. the timer is started by the mouseReleaseEvent() and
 			 * stopped either by the mouseDoubleClickEvent() or the mouseClickEvent(). any
@@ -174,19 +177,19 @@ namespace Qonvince {
 			 * the second click of a double-click occurs after the doubleClickEvent(), the
 			 * mouseClickEvent() is not called as well as the mouseDoubleClickEvent().
 			 */
-			QTimer * m_doubleClickWaitTimer;
-			bool m_receivedDoubleClickEvent;
+		QTimer * m_doubleClickWaitTimer;
+		bool m_receivedDoubleClickEvent;
 
-			QRect m_removeIconHitRect, m_refreshIconHitRect, m_copyIconHitRect, m_revealIconHitRect;
-			QPoint m_mousePressLeftStart;
+		QRect m_removeIconHitRect, m_refreshIconHitRect, m_copyIconHitRect, m_revealIconHitRect;
+		QPoint m_mousePressLeftStart;
 
-			QMenu * m_itemMenu;
-			OtpListWidgetItem * m_menuCodeItem;
+		QMenu * m_itemMenu;
+		OtpListWidgetItem * m_menuCodeItem;
 
-			/* list of hidden passcodes that are currently, temporarily revealed */
-			QList<Otp *> m_revealedPasscodes;
+		/* list of hidden passcodes that are currently, temporarily revealed */
+		QList<Otp *> m_revealedPasscodes;
 	};
 
-}
+}  // namespace Qonvince
 
-#endif // QUICKAUTH_OTPLISTWIDGET_H
+#endif  // QUICKAUTH_OTPLISTWIDGET_H

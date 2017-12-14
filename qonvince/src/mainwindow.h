@@ -43,54 +43,54 @@ namespace Qonvince {
 
 	class MainWindow
 	: public QMainWindow {
+		Q_OBJECT
 
-			Q_OBJECT
+	public:
+		explicit MainWindow(QWidget * parent = nullptr);
+		~MainWindow();
 
-		public:
-			explicit MainWindow( QWidget * parent = nullptr );
-			~MainWindow( void );
+		QString hoveredCode() const;
 
-			QString hoveredCode( void ) const;
+		inline QString selectedCode() const {
+			return hoveredCode();
+		}
 
-			inline QString selectedCode( void ) const {
-				return hoveredCode();
-			}
+		Otp * hoveredCodeSpecification() const;
 
-			Otp * hoveredCodeSpecification( void ) const;
+		inline Otp * selectedCodeSpecification() const {
+			return hoveredCodeSpecification();
+		}
 
-			inline Otp * selectedCodeSpecification( void ) const {
-				return hoveredCodeSpecification();
-			}
+		OtpListWidget * codeList() const;
 
-			OtpListWidget * codeList( void ) const;
+		void writeSettings(QSettings & settings) const;
+		void readSettings(const QSettings & settings);
 
-			void writeSettings( QSettings & settings ) const;
-			void readSettings( const QSettings & settings );
+	Q_SIGNALS:
+		void closing();
 
-		Q_SIGNALS:
-			void closing( void );
+	protected:
+		virtual void showEvent(QShowEvent *) override;
+		virtual void closeEvent(QCloseEvent * ev) override;
+		virtual void dragEnterEvent(QDragEnterEvent * ev) override;
+		virtual void dropEvent(QDropEvent * ev) override;
 
-		protected:
-			virtual void closeEvent( QCloseEvent * ev );
-			virtual void dragEnterEvent( QDragEnterEvent * ev );
-			virtual void dropEvent( QDropEvent * ev );
+	private Q_SLOTS:
+		void refreshTooltip();
+		void onAddCodeClicked();
+		void onSettingsClicked();
 
-		private Q_SLOTS:
-			void refreshTooltip( void );
-			void onAddCodeClicked( void );
-			void onSettingsClicked( void );
+		inline void onCodeDoubleClicked(Otp * code) {
+			onEditCodeRequested(code);
+		}
 
-			inline void onCodeDoubleClicked( Otp * code ) {
-				onEditCodeRequested(code);
-			}
+		void onEditCodeRequested(Otp * code);
+		void onCodeClicked(Otp * code);
 
-			void onEditCodeRequested( Otp * code );
-			void onCodeClicked( Otp * code );
-
-		private:
-			std::unique_ptr<Ui::MainWindow> m_ui;
-			bool m_imageDropEnabled;
+	private:
+		std::unique_ptr<Ui::MainWindow> m_ui;
+		bool m_imageDropEnabled;
 	};
-}
+}  // namespace Qonvince
 
-#endif // QONVINCE_MAINWINDOW_H
+#endif  // QONVINCE_MAINWINDOW_H

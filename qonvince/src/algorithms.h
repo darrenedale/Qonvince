@@ -13,24 +13,6 @@ namespace Qonvince {
 		}
 	};
 
-	template<typename T>
-	void toUpper(std::basic_string<T> & str) {
-		for(auto & c : str) {
-			if('a' <= c && 'z' >= c) {
-				c -= 32;
-			}
-		}
-	}
-
-	template<typename T>
-	void toLower(std::basic_string<T> & str) {
-		for(auto & c : str) {
-			if('A' <= c && 'Z' >= c) {
-				c += 32;
-			}
-		}
-	}
-
 }  // namespace Qonvince
 
 #endif  // QONVINCE_ALGORITHMS_H

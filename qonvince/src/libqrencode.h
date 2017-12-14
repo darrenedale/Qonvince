@@ -23,6 +23,7 @@
 #include "sharedlibrary.h"
 
 #include <QByteArray>
+#include <QString>
 
 class QString;
 
@@ -53,19 +54,29 @@ namespace Qonvince {
 	  * likely the library has not been loaded) and there will be no data
 	  * to render to an image.
 	  */
-	class LibQrEncode
-	:	public SharedLibrary {
-		public:
-			struct QrCode {
-					bool isValid;
-					int size;
-					QByteArray data;
-			};
+	class LibQrEncode {
+	public:
+		struct QrCode {
+			bool isValid;
+			int size;
+			QByteArray data;
+		};
 
-			LibQrEncode( void );
+		LibQrEncode();
 
-			QrCode encodeString( const QString & data ) const;
+		QrCode encodeString(const QString & data) const;
+
+		inline bool isOpen() const {
+			return m_lib.isOpen();
+		}
+
+		inline bool close() {
+			return m_lib.close();
+		}
+
+	private:
+		LibQonvince::SharedLibrary m_lib;
 	};
-}
+}  // namespace Qonvince
 
-#endif // QONVINCE_LIBQRENCODE_H
+#endif  // QONVINCE_LIBQRENCODE_H

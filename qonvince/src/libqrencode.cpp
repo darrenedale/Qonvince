@@ -27,23 +27,23 @@
 
 
 extern "C" {
-	struct QRcode {
-		int version;          ///< version of the symbol
-		int width;            ///< width of the symbol
-		unsigned char * data; ///< symbol data
-	};
+struct QRcode {
+	int version;			  ///< version of the symbol
+	int width;				  ///< width of the symbol
+	unsigned char * data;  ///< symbol data
+};
 
-	enum DummyEnum {
-		Zero = 0,
-		One,
-		Two,
-		Three,
-	};
+enum DummyEnum {
+	Zero = 0,
+	One,
+	Two,
+	Three,
+};
 
 //	typedef QRcode * (* EncodeFunction) ( const char * string, int version, DummyEnum level, DummyEnum hint, int casesensitive );
 //	typedef void (* FreeFunction) ( QRcode * code );
-	using EncodeFunction = QRcode * (*) ( const char * string, int version, DummyEnum level, DummyEnum hint, int casesensitive );
-	using FreeFunction = void (*) ( QRcode * code );
+using EncodeFunction = QRcode * (*) (const char * string, int version, DummyEnum level, DummyEnum hint, int casesensitive);
+using FreeFunction = void (*)(QRcode * code);
 }
 
 
@@ -60,27 +60,29 @@ using namespace Qonvince;
 #endif
 
 
-LibQrEncode::LibQrEncode( void )
-:	SharedLibrary(QONVINCE_LIBQRENCODE_LIBNAME) {
+LibQrEncode::LibQrEncode()
+: m_lib(QONVINCE_LIBQRENCODE_LIBNAME) {
 }
 
 
-LibQrEncode::QrCode LibQrEncode::encodeString( const QString & data ) const {
+LibQrEncode::QrCode LibQrEncode::encodeString(const QString & data) const {
+	using Symbol = LibQonvince::SharedLibrary::Symbol;
+
 	static EncodeFunction QRcode_encodeString = nullptr;
 	static FreeFunction QRcode_free = nullptr;
 
-	QrCode ret = { false, 0, QByteArray() };
+	QrCode ret = {false, 0, {}};
 
 	if(nullptr == QRcode_encodeString) {
 		Symbol sym;
 
-		if(!symbol("QRcode_encodeString", &sym)) {
+		if(!m_lib.symbol("QRcode_encodeString", &sym)) {
 			return ret;
 		}
 
 		QRcode_encodeString = reinterpret_cast<EncodeFunction>(sym);
 
-		if(!symbol("QRcode_free", &sym)) {
+		if(!m_lib.symbol("QRcode_free", &sym)) {
 			QRcode_encodeString = nullptr;
 			return ret;
 		}

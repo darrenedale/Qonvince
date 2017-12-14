@@ -47,30 +47,6 @@
 namespace Qonvince {
 
 
-	namespace Detail {
-		namespace Otp {
-			inline QByteArray toQByteArray(const Base32::ByteArray & source) {
-				// want to do something like this:
-				// if constexpr(std::is_same<char, Base32::ByteArray::value_type>()) {
-				// 	return QByteArray::fromStdString(source);
-				// }
-
-				QByteArray ret;
-				std::copy(source.begin(), source.end(), ret.begin());
-				return ret;
-			}
-
-			inline Base32::ByteArray toByteArray(const QByteArray & source) {
-				Base32::ByteArray ret;
-				std::copy(source.begin(), source.end(), ret.begin());
-				return ret;
-			}
-		}  // namespace Otp
-	}		// namespace Detail
-
-
-	const int Otp::DefaultInterval = 30;
-	const int Otp::DefaultDigits = 6;
 	const QDateTime Otp::DefaultBaselineTime = QDateTime::fromMSecsSinceEpoch(0);
 
 
@@ -109,13 +85,14 @@ namespace Qonvince {
 	}
 
 
-	Otp::~Otp(void) {
+	Otp::~Otp() {
 		m_refreshTimer->stop();
+		// TODO why is this here? base class should emit this should it not?
 		Q_EMIT destroyed(this);
 	}
 
 
-	void Otp::resynchroniseRefreshTimer(void) {
+	void Otp::resynchroniseRefreshTimer() {
 		m_refreshTimer->stop();
 		m_resync = true;
 		m_refreshTimer->start(500 + (timeToNextCode() - 1) * 1000, this);
@@ -201,10 +178,10 @@ namespace Qonvince {
 
 	QByteArray Otp::seed(const SeedType & seedType) const {
 		if(SeedType::Base32 == seedType) {
-			return Detail::Otp::toQByteArray(m_seed.encoded());
+			return m_seed.encoded();
 		}
 
-		return Detail::Otp::toQByteArray(m_seed.plain());
+		return m_seed.plain();
 	}
 
 
@@ -221,37 +198,37 @@ namespace Qonvince {
 		QByteArray oldB32;
 
 		if(SeedType::Base32 == seedType) {
-			if(newSeed == Detail::Otp::toQByteArray(m_seed.encoded())) {
+			if(newSeed == m_seed.encoded()) {
 				/* no actual change */
 				return true;
 			}
 
-			oldSeed = Detail::Otp::toQByteArray(m_seed.plain());
-			oldB32 = Detail::Otp::toQByteArray(m_seed.encoded());
+			oldSeed = m_seed.plain();
+			oldB32 = m_seed.encoded();
 
-			if(!m_seed.setEncoded(Detail::Otp::toByteArray(newSeed))) {
+			if(!m_seed.setEncoded(newSeed)) {
 				/* invalid base32 sequence */
-				m_seed.setPlain(Detail::Otp::toByteArray(oldSeed));
+				m_seed.setPlain(oldSeed);
 				return false;
 			}
 		}
 		else {
-			if(newSeed == Detail::Otp::toQByteArray(m_seed.plain())) {
+			if(newSeed == m_seed.plain()) {
 				/* no actual change */
 				return true;
 			}
 
-			oldSeed = Detail::Otp::toQByteArray(m_seed.plain());
-			oldB32 = Detail::Otp::toQByteArray(m_seed.encoded());
-			m_seed.setPlain(Detail::Otp::toByteArray(newSeed));
+			oldSeed = m_seed.plain();
+			oldB32 = m_seed.encoded();
+			m_seed.setPlain((newSeed));
 		}
 
-		Q_EMIT seedChanged(oldSeed, Detail::Otp::toQByteArray(m_seed.plain()));
-		Q_EMIT seedChanged(Detail::Otp::toQByteArray(m_seed.plain()));
+		Q_EMIT seedChanged(oldSeed, m_seed.plain());
+		Q_EMIT seedChanged(m_seed.plain());
 
 		/* emit base32 signals */
-		Q_EMIT seedChanged(oldB32, Detail::Otp::toQByteArray(m_seed.encoded()));
-		Q_EMIT seedChanged(Detail::Otp::toQByteArray(m_seed.encoded()));
+		Q_EMIT seedChanged(oldB32, m_seed.encoded());
+		Q_EMIT seedChanged(m_seed.encoded());
 		Q_EMIT changed();
 		refreshCode();
 
@@ -297,15 +274,10 @@ namespace Qonvince {
 
 	void Otp::setBaselineTime(const qint64 & secSinceEpoch) {
 		if(secSinceEpoch != m_baselineTime) {
-			qint64 old = m_baselineTime;
 			m_baselineTime = secSinceEpoch;
 			refreshCode();
-			Q_EMIT baselineTimeChanged(old, m_baselineTime);
-			Q_EMIT baselineTimeChanged(m_baselineTime);
-			QDateTime oldTime(QDateTime::fromMSecsSinceEpoch(old * 1000));
-			QDateTime newTime(QDateTime::fromMSecsSinceEpoch(m_baselineTime * 1000));
-			Q_EMIT baselineTimeChanged(oldTime, newTime);
-			Q_EMIT baselineTimeChanged(newTime);
+			Q_EMIT baselineTimeChangedInSeconds(m_baselineTime);
+			Q_EMIT baselineTimeChanged(QDateTime::fromMSecsSinceEpoch(m_baselineTime * 1000));
 			Q_EMIT changed();
 			resynchroniseRefreshTimer();
 		}
@@ -383,22 +355,22 @@ namespace Qonvince {
 			}
 		}
 
-		if(!haveSeed) {
-			Crypt c(cryptKey.toUtf8());
-			Crypt::ErrorCode err;
-			ret->setSeed(c.decrypt(settings.value("seed").toString(), &err).toUtf8(), SeedType::Base32);
+		//		if(!haveSeed) {
+		//			Crypt c(cryptKey.toUtf8());
+		//			Crypt::ErrorCode err;
+		//			ret->setSeed(c.decrypt(settings.value("seed").toString(), &err).toUtf8(), SeedType::Base32);
 
-			if(Crypt::ErrOk == err) {
-				haveSeed = true;
-			}
-		}
+		//			if(Crypt::ErrOk == err) {
+		//				haveSeed = true;
+		//			}
+		//		}
 
 		if(!haveSeed) {
 			qCritical() << "decryption of seed failed";
 		}
 
 		if(CodeType::Hotp == t) {
-			ret->setCounter(settings.value("counter", 0).toInt());
+			ret->setCounter(static_cast<quint64>(settings.value("counter", 0).toInt()));
 		}
 		else {
 			ret->setInterval(settings.value("interval", 0).toInt());
@@ -456,12 +428,13 @@ namespace Qonvince {
 
 	void Otp::timerEvent(QTimerEvent * ev) {
 		if(ev->timerId() == m_refreshTimer->timerId()) {
+			ev->accept();
 			internalRefreshCode();
 		}
 	}
 
 
-	void Otp::refreshCode(void) {
+	void Otp::refreshCode() {
 		if(!m_displayPlugin) {
 			qWarning() << "no display plugin";
 			m_currentCode = QString();
@@ -505,17 +478,16 @@ namespace Qonvince {
 	}
 
 
-	void Otp::internalRefreshCode(void) {
+	void Otp::internalRefreshCode() {
 		refreshCode();
 
 		if(CodeType::Totp == m_type) {
 			if(1 < timeSinceLastCode()) {
-				/* we're too far out of sync, so resynchronise */
 				resynchroniseRefreshTimer();
 			}
 			else if(m_resync) {
-				/* we've just done a single-shot resync timer, so start the
-			 * timer on its normal cycle */
+				// just done single-shot resync timer, so start the
+				// timer on its normal cycle
 				m_resync = false;
 				m_refreshTimer->stop();
 
@@ -531,18 +503,17 @@ namespace Qonvince {
 	}
 
 
-	/* hmac() hotp() and totp() are candidates for optimisation - they are the most-called
- * in-application functions */
+	// hmac() hotp() and totp() are candidates for optimisation - they are the most-called
+	// in-application functions
 	QString Otp::totp(const QByteArray & seed, const std::shared_ptr<OtpDisplayPlugin> & plugin, time_t base, int interval) {
-		quint64 c = std::floor((QDateTime::currentDateTime().toUTC().toTime_t() - base) / interval);
-		return hotp(seed, plugin, c);
+		quint64 code = static_cast<quint64>(std::floor((QDateTime::currentDateTime().toUTC().toTime_t() - base) / interval));
+		return hotp(seed, plugin, code);
 	}
 
 
 	QString Otp::hotp(const QByteArray & seed, const std::shared_ptr<OtpDisplayPlugin> & plugin, quint64 counter) {
 		Q_ASSERT(plugin);
 
-		/* convert and pad counter to array of 8 bytes */
 		char myCounter[8];
 		quint64 c = counter;
 
@@ -551,15 +522,13 @@ namespace Qonvince {
 			c = c >> 8;
 		}
 
-		/* get hash */
 		QByteArray res = hmac(seed, QByteArray(myCounter, 8));
-
 		return plugin->displayString(res);
 	}
 
 
 	QByteArray Otp::hmac(const QByteArray & key, const QByteArray & message) {
-		/* algorithm from wikipedia */
+		// algorithm from wikipedia
 		static int blockSize = 64;
 		QByteArray myKey(key);
 

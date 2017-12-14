@@ -17,25 +17,19 @@
  * along with Qonvince. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "aboutdialogue.h"
-#include "ui_aboutdialogue.h"
-
 #include "application.h"
 
 
-namespace Qonvince {
+<<<<<<< Updated upstream:src/main.cpp
+int main( int argc, char *argv[] ) {
+	Qonvince::Application q(argc, argv);
+	return q.exec();
+=======
+using Qonvince::Application;
 
 
-	AboutDialogue::AboutDialogue(QWidget * parent)
-	: QDialog(parent),
-	  m_ui(std::make_unique<Ui::AboutDialogue>()) {
-		m_ui->setupUi(this);
-		m_ui->aboutText->setText(m_ui->aboutText->text().arg(Application::applicationDisplayName()).arg(Application::applicationVersion()));
-		adjustSize();
-	}
-
-
-	AboutDialogue::~AboutDialogue() = default;
-
-
-}  // namespace Qonvince
+int main(int argc, char * argv[]) {
+	Application qync(argc, argv);
+	return qync.exec();
+>>>>>>> Stashed changes:qonvince/src/main.cpp
+}

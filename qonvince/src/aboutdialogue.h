@@ -36,7 +36,7 @@ namespace Qonvince {
 
 	public:
 		explicit AboutDialogue(QWidget * parent = nullptr);
-		~AboutDialogue(void);
+		~AboutDialogue();
 
 	private:
 		std::unique_ptr<Ui::AboutDialogue> m_ui;

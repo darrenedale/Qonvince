@@ -18,5 +18,6 @@ DISTFILES += \
     dist/gplv3.txt \
     dist/Qonvince-Qt5.mkpx \
     CMakeLists.txt \
+    libqonvince/CMakeLists.txt \
     tests/CMakeLists.txt
 

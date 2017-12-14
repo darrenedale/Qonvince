@@ -46,6 +46,7 @@ class QAction;
 #define qonvinceApp (Qonvince::Application::qonvince())
 
 namespace Qonvince {
+
 	class MainWindow;
 	class SettingsWidget;
 	class AboutDialogue;
@@ -90,20 +91,15 @@ namespace Qonvince {
 			return s_instance;
 		}
 
-		MainWindow & mainWindow() {
-			return m_mainWindow;
-		}
-
-		//			inline QSystemTrayIcon * trayIcon() const {
-		//				return m_trayIcon;
-		//			}
-
 		inline Settings & settings() {
 			return m_settings;
 		}
 
-		PluginPtr codeDisplayPluginByName(const QString & name) const;
+		inline const Settings & settings() const {
+			return m_settings;
+		}
 
+		PluginPtr codeDisplayPluginByName(const QString & name) const;
 		PluginArray codeDisplayPlugins() const;
 
 		//			/* note Don't make this return a const reference for security reasons. returning
@@ -166,22 +162,19 @@ namespace Qonvince {
 
 		std::unique_ptr<SingleInstanceGuard> m_runChecker;
 		Settings m_settings;
-		MainWindow m_mainWindow;
+		std::unique_ptr<MainWindow> m_mainWindow;
 		std::unique_ptr<SettingsWidget> m_settingsWidget;
 		std::unique_ptr<AboutDialogue> m_aboutDialogue;
 		QSystemTrayIcon m_trayIcon;
 		QMenu m_trayIconMenu;
-		QAction * m_quitAction;
-		QAction * m_loadQrImageAction;
-		QAction * m_mainWindowAction;
-		QAction * m_settingsAction;
-		QMetaObject::Connection m_quitConnection;
+		QMetaObject::Connection m_quitOnMainWindowClosedConnection;
 
 		PluginMap m_codeDisplayPlugins;
 
 		QCA::Initializer m_qcaInit;
 		QString m_cryptPassphrase;
 	};
+
 }  // namespace Qonvince
 
 #endif  // QONVINCE_APPLICATION_H

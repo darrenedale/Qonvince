@@ -42,8 +42,6 @@
 
 #include <cstring>
 
-#include "crypt.h"
-//#include "algorithms.h"
 #include "mainwindow.h"
 #include "passworddialogue.h"
 #include "settingswidget.h"
@@ -69,19 +67,15 @@ namespace Qonvince {
 	: QApplication(argc, argv),
 	  // random-ish string identifying the shared memory that is in place
 	  // if application is already running
-	  m_runChecker{std::make_unique<SingleInstanceGuard>("blarglefangledungle")},
-	  m_settings{},
-	  m_mainWindow{},
-	  m_settingsWidget{std::make_unique<SettingsWidget>(m_settings)},
-	  m_aboutDialogue{nullptr},
-	  m_trayIcon{QIcon::fromTheme("qonvince", QIcon(":/icons/systray"))},
-	  m_trayIconMenu{tr("Qonvince")},
-	  m_quitAction{nullptr},
-	  m_loadQrImageAction{nullptr},
-	  m_mainWindowAction{nullptr},
-	  m_settingsAction{nullptr},
-	  m_qcaInit{} {
-		Q_ASSERT(nullptr == s_instance);
+	  m_runChecker(std::make_unique<SingleInstanceGuard>("blarglefangledungle")),
+	  m_settings(),
+	  m_mainWindow(nullptr),
+	  m_settingsWidget(std::make_unique<SettingsWidget>(m_settings)),
+	  m_aboutDialogue(nullptr),
+	  m_trayIcon(QIcon::fromTheme("qonvince", QIcon(":/icons/systray"))),
+	  m_trayIconMenu(tr("Qonvince")),
+	  m_qcaInit() {
+		Q_ASSERT_X(nullptr == s_instance, __PRETTY_FUNCTION__, "can't instantiate more than one Qonvince::Application object");
 		s_instance = this;
 
 		setOrganizationName("Équit");
@@ -100,28 +94,22 @@ namespace Qonvince {
 		plugin = std::make_shared<SteamOtpDisplayPlugin>();
 		m_codeDisplayPlugins.insert({plugin->pluginName(), plugin});
 
+		m_mainWindow = std::make_unique<MainWindow>();
 		//	m_trayIcon = new QSystemTrayIcon(QIcon::fromTheme("qonvince", QIcon(":/icons/systray")), this);
 		m_trayIcon.setToolTip(tr("%1: One-Time passcode generator.").arg(applicationDisplayName()));
 
-		m_quitAction = new QAction(QIcon::fromTheme("application-exit", QIcon(":/icons/app/quit")), tr("Quit Qonvince"), this);
-		m_mainWindowAction = new QAction(tr("Show main window"), this);
-		m_settingsAction = new QAction(QIcon::fromTheme("system-settings", QIcon(":/icons/app/settings")), tr("Settings..."), this);
-
-		connect(m_quitAction, &QAction::triggered, this, &Application::quit);
-		m_trayIconMenu.addAction(m_mainWindowAction);
-		m_trayIconMenu.addAction(m_settingsAction);
+		m_trayIconMenu.addAction(tr("Show main window"), m_mainWindow.get(), &MainWindow::show);
+		m_trayIconMenu.addAction(QIcon::fromTheme("system-settings", QIcon(":/icons/app/settings")), tr("Settings..."), this, &Application::showSettingsWidget);
 
 		if(OtpQrCodeReader::isAvailable()) {
-			m_loadQrImageAction = new QAction(QIcon::fromTheme("image-png", QIcon(":/icons/app/readqrcode")), tr("Read a QR code image"), this);
-			connect(m_loadQrImageAction, &QAction::triggered, this, &Application::readQrCode);
 			m_trayIconMenu.addSeparator();
-			m_trayIconMenu.addAction(m_loadQrImageAction);
+			m_trayIconMenu.addAction(QIcon::fromTheme("image-png", QIcon(":/icons/app/readqrcode")), tr("Read a QR code image"), this, &Application::readQrCode);
 		}
 
 		m_trayIconMenu.addSeparator();
 		m_trayIconMenu.addAction(tr("About %1").arg(applicationDisplayName()), this, &Application::aboutQonvince);
-		m_trayIconMenu.addAction(tr("About Qt"), this, &Application::aboutQt);
-		m_trayIconMenu.addAction(m_quitAction);
+		//		m_trayIconMenu.addAction(tr("About Qt"), this, &Application::aboutQt);
+		m_trayIconMenu.addAction(QIcon::fromTheme("application-exit", QIcon(":/icons/app/quit")), tr("Quit Qonvince"), this, &Application::quit);
 
 		m_trayIcon.setContextMenu(&m_trayIconMenu);
 
@@ -131,17 +119,13 @@ namespace Qonvince {
 		//	m_settingsWidget = std::make_unique<SettingsWidget>(m_settings);
 
 		connect(&m_trayIcon, &QSystemTrayIcon::activated, this, &Application::onTrayIconActivated);
-		connect(m_mainWindowAction, SIGNAL(triggered(bool)), &m_mainWindow, SLOT(show()));
-		connect(m_settingsAction, SIGNAL(triggered(bool)), this, SLOT(showSettingsWidget()));
 		connect(&m_settings, &Settings::changed, this, &Application::onSettingsChanged);
 		connect(this, &Application::aboutToQuit, this, &Application::writeSettings);
-		connect(m_mainWindow.codeList(), &OtpListWidget::codeAdded, this, &Application::onCodeAdded);
+		connect(m_mainWindow->codeList(), &OtpListWidget::codeAdded, this, &Application::onCodeAdded);
 	}
 
 
-	Application::~Application() {
-		m_codeDisplayPlugins.clear();
-	}
+	Application::~Application() = default;
 
 
 	Application::DesktopEnvironment Application::desktopEnvironment() {
@@ -306,7 +290,7 @@ namespace Qonvince {
 		app->m_trayIcon.show();
 
 		if(!forceStartMinimised && !app->m_settings.startMinimised()) {
-			app->m_mainWindow.show();
+			app->m_mainWindow->show();
 		}
 		//	else if(QX11Info::isPlatformX11()){
 		//		/* haven't mapped a main window, so manually inform the system that
@@ -319,7 +303,7 @@ namespace Qonvince {
 
 	void Application::showMessage(const QString & title, const QString & message, int timeout) {
 		if(!QSystemTrayIcon::supportsMessages()) {
-			QMessageBox::information(&m_mainWindow, title, message, QMessageBox::StandardButtons(QMessageBox::Ok));
+			QMessageBox::information(m_mainWindow.get(), title, message, QMessageBox::StandardButtons(QMessageBox::Ok));
 		}
 		else {
 			m_trayIcon.showMessage(title, message, QSystemTrayIcon::Information, timeout);
@@ -329,7 +313,7 @@ namespace Qonvince {
 
 	void Application::showMessage(const QString & message, int timeout) {
 		if(!QSystemTrayIcon::supportsMessages()) {
-			QMessageBox::information(&m_mainWindow, tr("%1 message").arg(applicationName()), message, QMessageBox::StandardButtons(QMessageBox::Ok));
+			QMessageBox::information(m_mainWindow.get(), tr("%1 message").arg(applicationName()), message, QMessageBox::StandardButtons(QMessageBox::Ok));
 		}
 		else {
 			m_trayIcon.showMessage(tr("%1 message").arg(applicationName()), message, QSystemTrayIcon::Information, timeout);
@@ -338,7 +322,7 @@ namespace Qonvince {
 
 
 	void Application::readQrCode() {
-		QString fileName = QFileDialog::getOpenFileName(&m_mainWindow, tr("Open QR code image"));
+		QString fileName = QFileDialog::getOpenFileName(m_mainWindow.get(), tr("Open QR code image"));
 
 		if(fileName.isEmpty()) {
 			return;
@@ -356,7 +340,7 @@ namespace Qonvince {
 			return;
 		}
 
-		m_mainWindow.codeList()->addCode(r.code());
+		m_mainWindow->codeList()->addCode(r.code());
 	}
 
 
@@ -364,10 +348,10 @@ namespace Qonvince {
 		QSettings settings;
 
 		settings.beginGroup("mainwindow");
-		m_mainWindow.readSettings(settings);
+		m_mainWindow->readSettings(settings);
 		settings.endGroup();
 
-		m_mainWindow.codeList()->clear();
+		m_mainWindow->codeList()->clear();
 		settings.beginGroup("application");
 		m_settings.read(settings);
 
@@ -378,57 +362,56 @@ namespace Qonvince {
 	bool Application::readCodeSettings() {
 		QSettings settings;
 
-		/* read the crypt_check value. if decryption indicates an error, the passphrase
-	 * is wrong; if it indicates success the passphrase is right. the purpose of
-	 * this check is to work out whether to continue reading the file or not. if
-	 * the passphrase is incorrect, it won't decrypt the seeds, in which case
-	 * subsequently writing the codes back will effectively delete them. if the
-	 * passphrase is correct, or someone somehow manages to work out how to trick
-	 * this check, the passcode must still correctly decrypt the seeds. in other
-	 * words, bypassing this check does not grant access to seeds */
+		// read the crypt_check value. if decryption indicates an error, the passphrase
+		// is wrong; if it indicates success the passphrase is right. this determines
+		// whether to continue reading the file or not. if the passphrase not correct,
+		// it won't successfully decrypt the seeds and subsequently when writing the
+		// codes back they will be encrypted with the erroneous passphrase and will
+		// effectively become inaccessible. if the passphrase is correct, or someone
+		// manages to trick this check, the passphrase must still correctly decrypt the
+		// seeds. in other words, bypassing this check does not grant access to seeds
 		if(settings.contains("crypt_check")) {
-			/* temporarily support reading files with old crypto as fallback for
-		 * transitional purposes */
-			{
-				QCA::SecureArray value{QCA::hexToArray(settings.value("crypt_check").toString())};
-				QCA::Cipher cipher("aes256", QCA::Cipher::CBC, QCA::Cipher::DefaultPadding, QCA::Decode, QCA::SymmetricKey{m_cryptPassphrase.toUtf8()}, QCA::InitializationVector{value.toByteArray().left(16)});
-				cipher.process(value.toByteArray().mid(16));
+			QCA::SecureArray value = QCA::hexToArray(settings.value("crypt_check").toString());
+			QCA::Cipher cipher("aes256", QCA::Cipher::CBC, QCA::Cipher::DefaultPadding, QCA::Decode, QCA::SymmetricKey{m_cryptPassphrase.toUtf8()}, QCA::InitializationVector{value.toByteArray().left(16)});
+			cipher.process(value.toByteArray().mid(16));
 
-				if(!cipher.ok()) {
-					Crypt c(m_cryptPassphrase.toUtf8());
-					Crypt::ErrorCode err;
-					c.decrypt(settings.value("crypt_check").toString(), &err);
-
-					switch(err) {
-						case Crypt::ErrOk:
-							break;
-
-						case Crypt::ErrKeyTooShort: /*!< The key provided contained fewer than 8 bytes */
-							qDebug() << "decryption failure - key is too short";
-							return false;
-
-						case Crypt::ErrNoKeySet: /*!< No key was set. You can not encrypt or decrypt without a valid key. */
-							qDebug() << "decryption failure - no passphrase";
-							return false;
-
-						case Crypt::ErrUnknownVersion: /*!< The version of this data is unknown, or the data is otherwise not valid. */
-							qDebug() << "decryption failure - unrecognised algorithm version";
-							return false;
-
-						case Crypt::ErrUuidMismatch: /*!< The UUID in the encrypted data does not match the UUID of the machine decrypting it */
-							/* this should never happen - the UUID is not in use */
-							qDebug() << "decryption failure - UUID mismatch";
-							return false;
-
-						case Crypt::ErrIntegrityCheckFailed: /*!< The integrity check of the data failed. Perhaps the wrong key was used. */
-							qDebug() << "decryption integrity check failure - probably incorrect passphrase";
-							return false;
-					}
-				}
+			if(!cipher.ok()) {
+				qDebug() << "decryption failure - incorrect passphrase";
 			}
+
+			//					Crypt c(m_cryptPassphrase.toUtf8());
+			//					Crypt::ErrorCode err;
+			//					c.decrypt(settings.value("crypt_check").toString(), &err);
+
+			//					switch(err) {
+			//						case Crypt::ErrOk:
+			//							break;
+
+			//						case Crypt::ErrKeyTooShort: /*!< The key provided contained fewer than 8 bytes */
+			//							qDebug() << "decryption failure - key is too short";
+			//							return false;
+
+			//						case Crypt::ErrNoKeySet: /*!< No key was set. You can not encrypt or decrypt without a valid key. */
+			//							qDebug() << "decryption failure - no passphrase";
+			//							return false;
+
+			//						case Crypt::ErrUnknownVersion: /*!< The version of this data is unknown, or the data is otherwise not valid. */
+			//							qDebug() << "decryption failure - unrecognised algorithm version";
+			//							return false;
+
+			//						case Crypt::ErrUuidMismatch: /*!< The UUID in the encrypted data does not match the UUID of the machine decrypting it */
+			//							/* this should never happen - the UUID is not in use */
+			//							qDebug() << "decryption failure - UUID mismatch";
+			//							return false;
+
+			//						case Crypt::ErrIntegrityCheckFailed: /*!< The integrity check of the data failed. Perhaps the wrong key was used. */
+			//							qDebug() << "decryption integrity check failure - probably incorrect passphrase";
+			//							return false;
+			//					}
+			//				}
 		}
 
-		m_mainWindow.codeList()->clear();
+		m_mainWindow->codeList()->clear();
 
 		settings.beginGroup("codes");
 		int n = settings.value("code_count", 0).toInt();
@@ -438,7 +421,7 @@ namespace Qonvince {
 			Otp * code = Otp::fromSettings(settings, m_cryptPassphrase);
 
 			if(code) {
-				m_mainWindow.codeList()->addCode(code);
+				m_mainWindow->codeList()->addCode(code);
 				connect(code, &Otp::changed, this, &Application::writeSettings);
 			}
 			else {
@@ -455,11 +438,9 @@ namespace Qonvince {
 	void Application::writeSettings() const {
 		QSettings settings;
 
-		/* write a random string to the settings which, when read, will indicate
-	 * whether the crypt key is correct */
+		// this "random" string in the settings will, when read, indicate whether the crypt key is correct
 		{
-			/* we use the length of the passphrase so that entry of a truncated
-		 * passphrase can never pass this check */
+			// use length of passphrase so that a truncated passphrase can never pass the check
 			int l = (2 * m_cryptPassphrase.toUtf8().length()) + (qrand() % 20);
 			QByteArray random(l, 0);
 
@@ -474,7 +455,7 @@ namespace Qonvince {
 			settings.setValue("crypt_check", QCA::arrayToHex(initVec.toByteArray() + cipher.process(random).toByteArray()));
 		}
 
-		OtpListWidget * list = m_mainWindow.codeList();
+		OtpListWidget * list = m_mainWindow->codeList();
 		int n = list->count();
 
 		settings.beginGroup("application");
@@ -482,7 +463,7 @@ namespace Qonvince {
 		settings.endGroup();
 
 		settings.beginGroup("mainwindow");
-		m_mainWindow.writeSettings(settings);
+		m_mainWindow->writeSettings(settings);
 		settings.endGroup();
 
 		settings.beginGroup("codes");
@@ -507,23 +488,26 @@ namespace Qonvince {
 
 	void Application::onTrayIconActivated(QSystemTrayIcon::ActivationReason reason) {
 		if(QSystemTrayIcon::Trigger == reason) {
-			if(m_mainWindow.isHidden() || !m_mainWindow.isActiveWindow()) {
-				m_mainWindow.show();
-				m_mainWindow.raise();
-				m_mainWindow.activateWindow();
+			if(m_mainWindow->isHidden() || !m_mainWindow->isActiveWindow()) {
+				m_mainWindow->show();
+				m_mainWindow->raise();
+				m_mainWindow->activateWindow();
 			}
 			else {
-				m_mainWindow.hide();
+				m_mainWindow->hide();
 			}
 		}
 	}
 
 
 	void Application::onSettingsChanged() {
-		disconnect(m_quitConnection);
+		disconnect(m_quitOnMainWindowClosedConnection);
 
 		if(m_settings.quitOnMainWindowClosed()) {
-			m_quitConnection = connect(&m_mainWindow, &MainWindow::closing, this, &QApplication::quit);
+			m_quitOnMainWindowClosedConnection = connect(m_mainWindow.get(), &MainWindow::closing, this, &QApplication::quit);
+		}
+		else {
+			disconnect(m_quitOnMainWindowClosedConnection);
 		}
 	}
 
@@ -563,9 +547,8 @@ namespace Qonvince {
 	}
 
 
-	/* SingleInstanceGuard is a mostly unmodified copy of the RunGuard code from
- * http://stackoverflow.com/questions/5006547/qt-best-practice-for-a-single-instance-app-protection
- */
+	// SingleInstanceGuard is a mostly unmodified copy of the RunGuard code from
+	// http://stackoverflow.com/questions/5006547/qt-best-practice-for-a-single-instance-app-protection
 	Application::SingleInstanceGuard::SingleInstanceGuard(const QString & key)
 	: m_key(key),
 	  m_memLockKey(QCryptographicHash::hash(key.toUtf8().append("_memLockKey"), QCryptographicHash::Sha1).toHex()),

@@ -53,7 +53,7 @@
 #include "otpqrcodereader.h"
 
 #define QONVINCE_OTPCODELISTWIDGET_CODE_ICON_SIZE 32
-#define QONVINCE_OTPCODELISTWIDGET_PROGRESS_GAUGE_SIZE 0.5L	/* ratio of gauge size to item height */
+#define QONVINCE_OTPCODELISTWIDGET_PROGRESS_GAUGE_SIZE 0.5L /* ratio of gauge size to item height */
 #define QONVINCE_OTPCODELISTWIDGET_INTERNAL_MARGIN 4
 #define QONVINCE_OTPCODELISTWIDGET_DO_BACKGROUND_MESSAGE true
 #define QONVINCE_OTPCODELISTWIDGET_BACKGROUND_MESSAGE_FONT_SIZE 20
@@ -67,16 +67,16 @@
 using namespace Qonvince;
 
 
-OtpListWidget::OtpListWidget( QWidget * parent )
-:	QListWidget(parent),
-	m_hoverItemIndex(-1),
-	m_tickResync(false),
-	m_imageDropEnabled(OtpQrCodeReader::isAvailable()),
-	m_tickTimer(new QBasicTimer),
-	m_doubleClickWaitTimer(nullptr),
-	m_receivedDoubleClickEvent(false),
-	m_itemMenu(nullptr),
-	m_menuCodeItem(nullptr) {
+OtpListWidget::OtpListWidget(QWidget * parent)
+: QListWidget(parent),
+  m_hoverItemIndex(-1),
+  m_tickResync(false),
+  m_imageDropEnabled(OtpQrCodeReader::isAvailable()),
+  m_tickTimer(new QBasicTimer),
+  m_doubleClickWaitTimer(nullptr),
+  m_receivedDoubleClickEvent(false),
+  m_itemMenu(nullptr),
+  m_menuCodeItem(nullptr) {
 	m_itemMenu = new QMenu(this);
 	auto editAction = m_itemMenu->addAction(QIcon::fromTheme("document-edit"), tr("Edit"));
 	auto removeIconAction = m_itemMenu->addAction(tr("Remove icon"));
@@ -84,7 +84,7 @@ OtpListWidget::OtpListWidget( QWidget * parent )
 	auto refreshAction = m_itemMenu->addAction(QIcon::fromTheme("view-refresh", QIcon(":/icons/codeactions/refresh")), tr("Refresh now"));
 	auto removeAction = m_itemMenu->addAction(QIcon::fromTheme("list-remove", QIcon(":/icons/codeactions/remove")), tr("Remove"));
 
-//	connect(m_itemMenu, SIGNAL(aboutToHide()), this, SLOT(itemMenuFinished()));
+	//	connect(m_itemMenu, &QMenu::aboutToHide, this, &OtpListWidget::itemMenuFinished);
 	connect(editAction, &QAction::triggered, this, &OtpListWidget::onEditActionTriggered);
 	connect(copyAction, &QAction::triggered, this, &OtpListWidget::onCopyActionTriggered);
 	connect(refreshAction, &QAction::triggered, this, &OtpListWidget::onRefreshActionTriggered);
@@ -100,24 +100,22 @@ OtpListWidget::OtpListWidget( QWidget * parent )
 	connect(m_doubleClickWaitTimer, &QTimer::timeout, this, &OtpListWidget::callMouseClickEvent);
 
 	synchroniseTickTimer();
-
-	connect(&(qonvinceApp->settings()), SIGNAL(codeLabelDisplayStyleChanged(CodeLabelDisplayStyle)), this, SLOT(settingsUpdate()));
 }
 
 
-OtpListWidget::~OtpListWidget( void ) {
+OtpListWidget::~OtpListWidget() {
 	m_tickTimer->stop();
 	delete m_tickTimer;
 	m_doubleClickWaitTimer->stop();
 }
 
 
-void OtpListWidget::settingsUpdate( void ) {
+void OtpListWidget::onSettingsChanged() {
 	QListWidget::update();
 }
 
 
-void OtpListWidget::callMouseClickEvent( void ) {
+void OtpListWidget::callMouseClickEvent() {
 	m_doubleClickWaitTimer->stop();
 	QMouseEvent * ev = new QMouseEvent(QMouseEvent::MouseButtonRelease, mapFromGlobal(QCursor::pos()), Qt::LeftButton, Qt::LeftButton, 0);
 	mouseClickEvent(ev);
@@ -125,7 +123,7 @@ void OtpListWidget::callMouseClickEvent( void ) {
 }
 
 
-void OtpListWidget::synchroniseTickTimer( void ) {
+void OtpListWidget::synchroniseTickTimer() {
 	m_tickTimer->stop();
 	m_tickResync = true;
 
@@ -140,7 +138,7 @@ void OtpListWidget::synchroniseTickTimer( void ) {
 }
 
 
-OtpListWidgetItem * OtpListWidget::itemFromOtp( const Otp * code ) const {
+OtpListWidgetItem * OtpListWidget::itemFromOtp(const Otp * code) const {
 	for(int i = 0; i < count(); ++i) {
 		OtpListWidgetItem * it = (OtpListWidgetItem *) item(i);
 
@@ -153,7 +151,7 @@ OtpListWidgetItem * OtpListWidget::itemFromOtp( const Otp * code ) const {
 }
 
 
-Otp * OtpListWidget::hoveredCodeSpecification( void ) const {
+Otp * OtpListWidget::hoveredCodeSpecification() const {
 	if(0 > m_hoverItemIndex) {
 		return nullptr;
 	}
@@ -168,7 +166,7 @@ Otp * OtpListWidget::hoveredCodeSpecification( void ) const {
 }
 
 
-void OtpListWidget::onCodeDefinitionChanged( void ) {
+void OtpListWidget::onCodeDefinitionChanged() {
 	Otp * c = dynamic_cast<Otp *>(sender());
 
 	if(!c) {
@@ -180,7 +178,7 @@ void OtpListWidget::onCodeDefinitionChanged( void ) {
 }
 
 
-void OtpListWidget::onCodeDefinitionChanged( Otp * code ) {
+void OtpListWidget::onCodeDefinitionChanged(Otp * code) {
 	OtpListWidgetItem * it = itemFromOtp(code);
 
 	if(!it) {
@@ -189,12 +187,12 @@ void OtpListWidget::onCodeDefinitionChanged( Otp * code ) {
 
 	code->refreshCode();
 	QRect itemViewportRect(0, itemHeight() * row(it) - verticalOffset(), width(), itemHeight());
-//qDebug() << "updating item" << code->name() << itemViewportRect;
+	//qDebug() << "updating item" << code->name() << itemViewportRect;
 	viewport()->update(itemViewportRect);
 }
 
 
-void OtpListWidget::onCodeChanged( void ) {
+void OtpListWidget::onCodeChanged() {
 	Otp * c = dynamic_cast<Otp *>(sender());
 
 	if(!c) {
@@ -206,7 +204,7 @@ void OtpListWidget::onCodeChanged( void ) {
 }
 
 
-void OtpListWidget::onCodeChanged( Otp * code ) {
+void OtpListWidget::onCodeChanged(Otp * code) {
 	OtpListWidgetItem * it = itemFromOtp(code);
 
 	if(!it) {
@@ -215,24 +213,24 @@ void OtpListWidget::onCodeChanged( Otp * code ) {
 	}
 
 	QRect itemViewportRect(0, itemHeight() * row(it) - verticalOffset(), width(), itemHeight());
-qDebug() << "updating item" << code->name() << itemViewportRect;
+	qDebug() << "updating item" << code->name() << itemViewportRect;
 	viewport()->update(itemViewportRect);
 }
 
 
-void OtpListWidget::updateCountdowns( void ) {
+void OtpListWidget::updateCountdowns() {
 	if(m_tickResync) {
 		m_tickTimer->stop();
 		m_tickResync = false;
 		m_tickTimer->start(1000, Qt::VeryCoarseTimer, this);
-qDebug() << "tick timer now closely aligned to 1 second boundaries";
+		qDebug() << "tick timer now closely aligned to 1 second boundaries";
 	}
 
 	viewport()->update();
 }
 
 
-void OtpListWidget::emitCodeDoubleClicked( QListWidgetItem * it ) {
+void OtpListWidget::emitCodeDoubleClicked(QListWidgetItem * it) {
 	Q_ASSERT(!!it);
 
 	OtpListWidgetItem * myItem = dynamic_cast<OtpListWidgetItem *>(it);
@@ -246,7 +244,7 @@ void OtpListWidget::emitCodeDoubleClicked( QListWidgetItem * it ) {
 }
 
 
-void OtpListWidget::emitCodeClicked( QListWidgetItem * it ) {
+void OtpListWidget::emitCodeClicked(QListWidgetItem * it) {
 	Q_ASSERT(!!it);
 
 	OtpListWidgetItem * myItem = dynamic_cast<OtpListWidgetItem *>(it);
@@ -260,32 +258,32 @@ void OtpListWidget::emitCodeClicked( QListWidgetItem * it ) {
 }
 
 
-void OtpListWidget::addCode( Otp * code ) {
+void OtpListWidget::addCode(Otp * code) {
 	addItem(new OtpListWidgetItem(code));
 }
 
 
-void OtpListWidget::addCode( const QByteArray & seed ) {
+void OtpListWidget::addCode(const QByteArray & seed) {
 	addItem(new OtpListWidgetItem(new Otp(Otp::CodeType::Totp, seed)));
 }
 
 
-void OtpListWidget::addCode( const QString & name, const QByteArray & seed ) {
+void OtpListWidget::addCode(const QString & name, const QByteArray & seed) {
 	addItem(new OtpListWidgetItem(new Otp(Otp::CodeType::Totp, name, seed)));
 }
 
 
-void OtpListWidget::addItem( Otp * code ) {
+void OtpListWidget::addItem(Otp * code) {
 	addItem(new OtpListWidgetItem(code));
 }
 
 
-void OtpListWidget::addItem( OtpListWidgetItem * item ) {
+void OtpListWidget::addItem(OtpListWidgetItem * item) {
 	item->setSizeHint(QSize(width(), 40));
 	QListWidget::addItem(item);
 	Otp * code = item->code();
-	connect(code, &Otp::changed, this, static_cast<void (OtpListWidget::*)(void)>(&OtpListWidget::onCodeDefinitionChanged));
-	connect(code, SIGNAL(newCodeGenerated(QString)), this, SLOT(onCodeChanged()));
+	connect(code, &Otp::changed, this, qOverload<>(&OtpListWidget::onCodeDefinitionChanged));
+	connect(code, qOverload<QString>(&Otp::newCodeGenerated), this, qOverload<>(&OtpListWidget::onCodeChanged));
 
 #if defined(QT_DEBUG)
 	connect(code, &Otp::newCodeGenerated, this, &OtpListWidget::debugLogNewCode);
@@ -294,7 +292,7 @@ void OtpListWidget::addItem( OtpListWidgetItem * item ) {
 }
 
 
-Otp * OtpListWidget::code( int i ) const {
+Otp * OtpListWidget::code(int i) const {
 	if(0 <= i && count() > i) {
 		OtpListWidgetItem * it = dynamic_cast<OtpListWidgetItem *>(item(i));
 
@@ -307,25 +305,25 @@ Otp * OtpListWidget::code( int i ) const {
 }
 
 
-void OtpListWidget::setCountdownColour( const QColor & c ) {
+void OtpListWidget::setCountdownColour(const QColor & c) {
 	m_countdownColour = c;
 	viewport()->update();
 }
 
 
-void OtpListWidget::setCountdownWarningColour( const QColor & c ) {
+void OtpListWidget::setCountdownWarningColour(const QColor & c) {
 	m_countdownWarningColour = c;
 	viewport()->update();
 }
 
 
-void OtpListWidget::setCountdownCriticalColour( const QColor & c ) {
+void OtpListWidget::setCountdownCriticalColour(const QColor & c) {
 	m_countdownCriticalColour = c;
 	viewport()->update();
 }
 
 
-bool OtpListWidget::event( QEvent * ev )	{
+bool OtpListWidget::event(QEvent * ev) {
 	if(QEvent::ToolTip == ev->type()) {
 		QPoint globalMousePos(QCursor::pos());
 		QPoint mousePos(mapFromGlobal(globalMousePos));
@@ -383,7 +381,7 @@ bool OtpListWidget::event( QEvent * ev )	{
 	return QListWidget::event(ev);
 }
 
-void OtpListWidget::timerEvent(QTimerEvent * ev ) {
+void OtpListWidget::timerEvent(QTimerEvent * ev) {
 	if(ev->timerId() == m_tickTimer->timerId()) {
 		updateCountdowns();
 		ev->accept();
@@ -394,13 +392,13 @@ void OtpListWidget::timerEvent(QTimerEvent * ev ) {
 }
 
 
-void OtpListWidget::enterEvent( QEvent * e ) {
+void OtpListWidget::enterEvent(QEvent * e) {
 	Q_UNUSED(e);
 	setMouseTracking(true);
 }
 
 
-void OtpListWidget::leaveEvent( QEvent * e ) {
+void OtpListWidget::leaveEvent(QEvent * e) {
 	Q_UNUSED(e);
 
 	if(-1 != m_hoverItemIndex) {
@@ -413,7 +411,7 @@ void OtpListWidget::leaveEvent( QEvent * e ) {
 }
 
 
-void OtpListWidget::mouseMoveEvent( QMouseEvent * ev ) {
+void OtpListWidget::mouseMoveEvent(QMouseEvent * ev) {
 	OtpListWidgetItem * it = (OtpListWidgetItem *) itemAt(ev->x(), ev->y());
 	int oldHoverIndex = m_hoverItemIndex;
 
@@ -457,7 +455,7 @@ void OtpListWidget::mouseMoveEvent( QMouseEvent * ev ) {
 }
 
 
-void OtpListWidget::keyReleaseEvent( QKeyEvent * ev ) {
+void OtpListWidget::keyReleaseEvent(QKeyEvent * ev) {
 	if(ev->matches(QKeySequence::Copy)) {
 		if(0 > m_hoverItemIndex) {
 			return;
@@ -474,7 +472,19 @@ void OtpListWidget::keyReleaseEvent( QKeyEvent * ev ) {
 }
 
 
-void OtpListWidget::mousePressEvent( QMouseEvent * ev ) {
+void OtpListWidget::showEvent(QShowEvent *) {
+#ifndef NDEBUG
+	static bool connected = false;
+
+	if(!connected) {
+		connect(&(qonvinceApp->settings()), &Settings::codeLabelDisplayStyleChanged, this, &OtpListWidget::onSettingsChanged);
+		connected = true;
+	}
+#endif
+}
+
+
+void OtpListWidget::mousePressEvent(QMouseEvent * ev) {
 	if(Qt::LeftButton == ev->button() && (m_refreshIconHitRect.contains(ev->pos()) || m_removeIconHitRect.contains(ev->pos()) || m_copyIconHitRect.contains(ev->pos()) || m_revealIconHitRect.contains(ev->pos()))) {
 		m_mousePressLeftStart = ev->pos();
 		ev->accept();
@@ -488,7 +498,7 @@ void OtpListWidget::mousePressEvent( QMouseEvent * ev ) {
 }
 
 
-void OtpListWidget::mouseReleaseEvent( QMouseEvent * ev ) {
+void OtpListWidget::mouseReleaseEvent(QMouseEvent * ev) {
 	/* check if one of the action icons has been clicked... */
 	if(Qt::LeftButton == ev->button()) {
 		QPoint mousePos(ev->pos());
@@ -554,10 +564,10 @@ void OtpListWidget::mouseReleaseEvent( QMouseEvent * ev ) {
 
 			const Settings & settings = qonvinceApp->settings();
 			m_revealedPasscodes.append(code);
-			QTimer::singleShot(1000 * settings.codeRevealTimeout(), Qt::VeryCoarseTimer, [this, code] ( void ) {
-					m_revealedPasscodes.removeAll(code);
-					viewport()->update();
-				});
+			QTimer::singleShot(1000 * settings.codeRevealTimeout(), Qt::VeryCoarseTimer, [this, code]() {
+				m_revealedPasscodes.removeAll(code);
+				viewport()->update();
+			});
 
 			viewport()->update();
 			return;
@@ -584,7 +594,7 @@ void OtpListWidget::mouseReleaseEvent( QMouseEvent * ev ) {
 }
 
 
-void OtpListWidget::mouseDoubleClickEvent( QMouseEvent * ev ) {
+void OtpListWidget::mouseDoubleClickEvent(QMouseEvent * ev) {
 	m_doubleClickWaitTimer->stop();
 	m_receivedDoubleClickEvent = true;
 
@@ -605,7 +615,7 @@ void OtpListWidget::mouseDoubleClickEvent( QMouseEvent * ev ) {
 }
 
 
-void OtpListWidget::mouseClickEvent( QMouseEvent * ev ) {
+void OtpListWidget::mouseClickEvent(QMouseEvent * ev) {
 	/* our "fake" mouseClickEvent method is only called if the user clicked
 	 * on an item (but not one of its action icons) and it didn't turn out
 	 * to be a double-click */
@@ -621,7 +631,7 @@ void OtpListWidget::mouseClickEvent( QMouseEvent * ev ) {
 }
 
 
-void OtpListWidget::contextMenuEvent( QContextMenuEvent * ev ) {
+void OtpListWidget::contextMenuEvent(QContextMenuEvent * ev) {
 	m_menuCodeItem = dynamic_cast<OtpListWidgetItem *>(itemAt(ev->pos()));
 
 	if(!m_menuCodeItem) {
@@ -634,7 +644,7 @@ void OtpListWidget::contextMenuEvent( QContextMenuEvent * ev ) {
 }
 
 
-void OtpListWidget::onEditActionTriggered( void ) {
+void OtpListWidget::onEditActionTriggered() {
 	if(!m_menuCodeItem) {
 		return;
 	}
@@ -643,7 +653,7 @@ void OtpListWidget::onEditActionTriggered( void ) {
 }
 
 
-void OtpListWidget::onCopyActionTriggered( void ) {
+void OtpListWidget::onCopyActionTriggered() {
 	if(!m_menuCodeItem) {
 		return;
 	}
@@ -652,7 +662,7 @@ void OtpListWidget::onCopyActionTriggered( void ) {
 }
 
 
-void OtpListWidget::onRemoveIconActionTriggered( void ) {
+void OtpListWidget::onRemoveIconActionTriggered() {
 	if(!m_menuCodeItem) {
 		return;
 	}
@@ -661,7 +671,7 @@ void OtpListWidget::onRemoveIconActionTriggered( void ) {
 }
 
 
-void OtpListWidget::onRefreshActionTriggered( void ) {
+void OtpListWidget::onRefreshActionTriggered() {
 	if(!m_menuCodeItem) {
 		return;
 	}
@@ -670,7 +680,7 @@ void OtpListWidget::onRefreshActionTriggered( void ) {
 }
 
 
-void OtpListWidget::onRemoveActionTriggered( void ) {
+void OtpListWidget::onRemoveActionTriggered() {
 	if(!m_menuCodeItem) {
 		return;
 	}
@@ -695,7 +705,7 @@ void OtpListWidget::onRemoveActionTriggered( void ) {
  * also, it only works when the vertical scroll mode is per-item
  * rather than per-pixel
  */
-void OtpListWidget::paintEvent( QPaintEvent * ev ) {
+void OtpListWidget::paintEvent(QPaintEvent * ev) {
 	ev->accept();
 
 	m_revealIconHitRect.setRect(0, 0, 0, 0);
@@ -945,7 +955,7 @@ void OtpListWidget::paintEvent( QPaintEvent * ev ) {
 
 
 #if defined(QT_DEBUG)
-void OtpListWidget::debugLogNewCode( const QString & code ) const {
+void OtpListWidget::debugLogNewCode(const QString & code) const {
 	Otp * c = dynamic_cast<Otp *>(sender());
 
 	if(!!c) {

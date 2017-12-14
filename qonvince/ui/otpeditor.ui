@@ -151,6 +151,9 @@
          <property name="checked">
           <bool>true</bool>
          </property>
+         <attribute name="buttonGroup">
+          <string notr="true">codeTypeGroup</string>
+         </attribute>
         </widget>
        </item>
        <item>
@@ -161,6 +164,9 @@
          <property name="text">
           <string>&amp;HOTP</string>
          </property>
+         <attribute name="buttonGroup">
+          <string notr="true">codeTypeGroup</string>
+         </attribute>
         </widget>
        </item>
        <item>
@@ -652,4 +658,7 @@
   <slot>onIconSelected(QIcon)</slot>
   <slot>onIconCleared()</slot>
  </slots>
+ <buttongroups>
+  <buttongroup name="codeTypeGroup"/>
+ </buttongroups>
 </ui>
