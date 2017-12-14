@@ -34,7 +34,7 @@
 #include <iostream>
 
 
-namespace Qonvince {
+namespace LibQonvince {
 
 
 	/**
