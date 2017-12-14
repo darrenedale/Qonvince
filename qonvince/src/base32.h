@@ -43,9 +43,6 @@ namespace LibQonvince {
 				  m_plain(plainData) {}
 
 		inline bool isValid() {
-			return m_isValid;
-		}
-
 		bool setPlain(const ByteArrayT & data) {
 			m_plain = data;
 			m_plainInSync = true;
@@ -103,16 +100,13 @@ namespace LibQonvince {
 	private:
 		static constexpr const std::array<char, 32> Dictionary = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', '2', '3', '4', '5', '6', '7'};
 		
-		/** Whether or not the encoder/decoder is valid. */
-		bool m_isValid;
-
 		/** Whether or not the plain data member is the plain representation of
 		 * the Base32-encoded data member. */
-		bool m_plainInSync;
+		mutable bool m_plainInSync;
 
 		/** Whether or not the Base32-encoded data member is the Base32
 		 * representation of the plain data member. */
-		bool m_encodedInSync;
+		mutable bool m_encodedInSync;
 
 		/** The plain (unencoded) data. */
 		ByteArrayT m_plain;
@@ -291,7 +285,6 @@ namespace LibQonvince {
 
 			m_encodedInSync = true;
 		}
-	};
 
 }  // namespace Qonvince
 

@@ -17,10 +17,25 @@
  * along with Qonvince. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "application.h"
+#include <iostream>
+#include "base32.h"
 
 
-int main( int argc, char *argv[] ) {
-	Qonvince::Application q(argc, argv);
-	return q.exec();
+using Qonvince::Base32;
+
+
+int main(int argc, char * argv[]) {
+	(void) argc;
+	(void) argv;
+
+	Base32::ByteArray data = reinterpret_cast<const Base32::ByteArray::value_type *>("what have you done for me lately?\n");
+	Base32 encoder(data);
+
+	std::cout << "Plain: \"" << data.data() << "\"\n";
+	// expected: "O5UGC5BANBQXMZJAPFXXKIDEN5XGKIDGN5ZCA3LFEBWGC5DFNR4T6CQ="
+	std::cout << "Base32: \"" << encoder.encoded().data() << "\"\n";
+
+	encoder.setEncoded(encoder.encoded());
+	std::cout << "Plain: \"" << encoder.plain().data() << "\"\n";
+	return 0;
 }

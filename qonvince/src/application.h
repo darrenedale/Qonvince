@@ -33,7 +33,7 @@
 #include <QSystemSemaphore>
 #include <QStandardPaths>
 
-#include <QtCrypto>
+#include <QtCrypto/QtCrypto>
 
 #include "algorithms.h"
 #include "mainwindow.h"
@@ -52,7 +52,7 @@ namespace Qonvince {
 	class Otp;
 
 	using PluginPtr = std::shared_ptr<OtpDisplayPlugin>;
-	using PluginMap = std::unordered_map<QString, PluginPtr, QtHash<QString>>;
+	using PluginMap = std::unordered_map<QString, PluginPtr, Qonvince::QtHash<QString>>;
 	using PluginArray = std::vector<PluginPtr>;
 
 	class Application

@@ -30,8 +30,10 @@
 #include "base32.h"
 
 #include <algorithm>
-#include <cstring>
+#include <cmath>
 #include <iostream>
+
+#include "algorithms.h"
 
 
 namespace LibQonvince {
@@ -63,7 +65,11 @@ namespace LibQonvince {
 	 * The class is relatively lightweight, only encoding or decoding when
 	 * necessary (e.g. when encoded() or plain() is called). The data is only
 	 * encoded or decoded once - once done, the encoded and decoded
-	 * representations of the data are both stored in the object.
+	 * representations of the data are both stored in the object. This aids
+	 * performance, and is why most members are mutable (i.e. so that you
+	 * can create a const object to encode some data and only incur the cost
+	 * of encoding and storing the encoded data when you actually want to
+	 * retrieve it).
 	 */
 
 
@@ -77,8 +83,7 @@ namespace LibQonvince {
 	 * \param data The plain data to encode.
 	 */
 	Base32::Base32(const ByteArray & data)
-	: m_isValid(false),
-	  m_plainInSync(true),
+	: m_plainInSync(true),
 	  m_encodedInSync(false),
 	  m_plain(data) {
 	}
@@ -123,13 +128,11 @@ namespace LibQonvince {
 			}
 
 			if(Dictionary.cend() == std::find(Dictionary.cbegin(), Dictionary.cend(), ch)) {
-				std::cerr << "invalid base32 character found\n";
-				m_isValid = false;
+				std::cerr << "invalid base32 character '" << c << "' found at index " << i << "\n";
 				return false;
 			}
 		}
 
-		m_isValid = true;
 		m_encoded = base32;
 		m_plainInSync = false;
 		m_encodedInSync = true;
@@ -138,9 +141,10 @@ namespace LibQonvince {
 
 
 	/** \brief Encode the plain data into the Base32 data member. */
-	void Base32::encode() {
+	void Base32::encode(void) const {
 		ByteArray ba = m_plain;
 		m_encoded.clear();
+		m_encoded.reserve(std::ceil((m_plain.length() * 8) / 5) + 1);
 
 		// pad to a multiple of 5 chars with null bytes
 		ba.insert(ba.end(), 5 - (ba.length() % 5), 0);
@@ -151,30 +155,33 @@ namespace LibQonvince {
 		unsigned int pos = 0;
 //		const unsigned char * data = ba.data();
 
-		while(pos < ba.length()) {
+		while(pos < plainLength) {
 			uint64_t bits = 0x00 | ((uint64_t(ba[pos])) << 32) |
 								 ((uint64_t(ba[pos + 1])) << 24) |
 								 ((uint64_t(ba[pos + 2])) << 16) |
 								 ((uint64_t(ba[pos + 3])) << 8) |
 								 ((uint64_t(ba[pos + 4])));
+								 ((uint64_t(ba[pos + 3])) << 8) | ((uint64_t(ba[pos + 4])));
 			std::array<Byte, 8> out;
 
+			/* use each 5-bit chunk of the 40 bits as an index into the Base32 dictionary
+			 * array to provide 8 characters of Base32 encoded output */
 			for(int i = 7; i >= 0; --i) {
 				out[static_cast<decltype(out)::size_type>(i)] = Dictionary[bits & 0x1f];
 				bits = bits >> 5;
 			}
 
-			std::copy(out.cbegin(), out.cend(), std::back_inserter(m_encoded));
-//			for(int i = 0; i < 8; ++i) {
-//				m_encoded.push_back(out[static_cast<decltype(out)::size_type>(i)]);
-//			}
-
+			/* append the 8 Base-32 encoded characters to the encoded data */
+			m_encoded.insert(m_encoded.end(), out.begin(), out.end());
 			pos += 5;
 		}
 
+		/* if the original plain length was not a multiple of 5 we have
+		 * written too many bytes to the encoded array, so we must truncate
+		 * it with '=' chars replacing the extraneous content */
 		ByteArray::size_type overrideLength = 0;
 
-		switch(m_plain.length() % 5) {
+		switch(plainLength % 5) {
 			case 1:
 				overrideLength = 6;
 				break;
@@ -192,22 +199,18 @@ namespace LibQonvince {
 				break;
 		}
 
-		if(0 < overrideLength) {
-			m_encoded.insert(m_encoded.end(), overrideLength, '=');
-//			for(ByteArray::size_type i = 0; i < overrideLength; ++i) {
-//				m_encoded.push_back('=');
-//			}
-		}
-
+		m_encoded.replace(m_encoded.size() - overrideLength, overrideLength, overrideLength, '=');
 		m_encodedInSync = true;
 	}
 
 
 	/** \brief Decode the Base32-encoded data into the plain data member. */
-	void Base32::decode() {
+	void Base32::decode(void) const {
 		static const auto dictBegin = Dictionary.cbegin();
 		static const auto dictEnd = Dictionary.cend();
 		ByteArray ba = m_encoded;
+		toUpper(ba);
+		auto encodedLength = ba.size();
 
 		std::transform(ba.begin(), ba.end(), ba.begin(), [](const ByteArray::value_type & ch) -> ByteArray::value_type {
 			return static_cast<ByteArray::value_type>(std::toupper(ch));
@@ -215,45 +218,48 @@ namespace LibQonvince {
 //		for(auto & ch: ba) {
 ////		for(auto it = ba.begin(); it != ba.end(); ++it) {
 ////			auto ch = *it;
-
-//			if('a' <= ch && 'z' >= ch) {
-//				ch -= 32;
-//			}
-//		}
-
-		/* tolerate badly terminated encoded strings by padding with = to an appropriate
-		 * length
-		 * TODO use an algorithm to do this rather than a loop */
-		ba.insert(ba.end(), ba.size() % 8, '=');
-//		for(int i = ba.size() % 8; i >= 0; --i) {
 //			ba.push_back('=');
 //		}
 
 		m_plain.clear();
 		ByteArray::size_type j;
+		const auto dictBegin = Dictionary.begin();
+		const auto dictEnd = Dictionary.end();
 
-		for(ByteArray::size_type i = 0; i < ba.length(); i += 8) {
+		for(auto it = ba.begin(); it != ba.end();) {
+			/* the least significant 40 bits of this value will represent the
+			 * decoded bytes for the chunk */
 			uint64_t out = 0x00;
 
+			/* read the next chunk of 8 characters from the encoded input string
+			 * and store the dictionary index of each as 5 bits in the least
+			 * significant 40 bits of the 64-bit value */
 			for(j = 0; j < 8; ++j) {
-				if('=' == ba[i + j]) {
+				auto c = *it;
+
+				/* '=' is padding at the end of the encoded data */
+				if('=' == c) {
+					/* force the input string iteration to end */
+					it = ba.end();
 					break;
 				}
 
-				auto pos = std::find(dictBegin, dictEnd, ba[i + j]);
+				/* find the encoded character in the Base32 dictionary ... */
+				auto pos = std::find(dictBegin, dictEnd, c);
 
 				if(dictEnd == pos) {
-					std::cerr << "invalid character in base32 data:" << ba[i + j] << "\n";
-					m_isValid = false;
+					std::cerr << "invalid character in base32 data: '" << c << "'\n";
 					m_plain.clear();
 					return;
 				}
 
+				/* ... and merge it into the 40-bit value */
 				out <<= 5;
 				out |= (std::distance(dictBegin, pos) & 0x1f);
+				++it;
 			}
 
-			/* in any chunk we must have processed either 2, 4, 5, 7 or 8 bytes */
+			/* in any chunk we must have processed either 2, 4, 5, 7 or 8 bytes ... */
 			unsigned int outByteCount;
 
 			switch(j) {
@@ -282,12 +288,13 @@ namespace LibQonvince {
 					break;
 
 				default:
-					std::cerr << "invalid base32 sequence" << ba.substr(i, 8).data() << "\n";
-					m_isValid = false;
+					/* ... any other quantity of bytes represents an invalid Base32 sequence */
+					std::cerr << "invalid base32 sequence\n";
 					m_plain.clear();
 					return;
 			}
 
+			/* parse the 40 bits read from the encoded string as 5 8-bit bytes ... */
 			std::array<Byte, 5> outBytes;
 			outBytes[4] = static_cast<Byte>(out & 0xff);
 			outBytes[3] = static_cast<Byte>((out >> 8) & 0xff);
@@ -295,14 +302,12 @@ namespace LibQonvince {
 			outBytes[1] = static_cast<Byte>((out >> 24) & 0xff);
 			outBytes[0] = static_cast<Byte>((out >> 32) & 0xff);
 
-			const auto begin = outBytes.cbegin();
-			std::copy(begin, begin + outByteCount, std::back_inserter(m_plain));
-//			for(ByteArray::size_type i = 0; i < outByteCount; ++i) {
+			/* ... and append them to the decoded string */
+			m_plain.insert(m_plain.end(), outBytes.begin(), outBytes.end());
 //				m_plain.push_back(outBytes[i]);
 //			}
 		}
 
-		m_isValid = true;
 		m_plainInSync = true;
 	}
 
