@@ -179,10 +179,10 @@ void Otp::setIcon( const QIcon & icon ) {
 
 QByteArray Otp::seed( const SeedType & seedType ) const {
 	if(SeedType::Base32 == seedType) {
-		return m_seed.encoded();
+		return {m_seed.encoded().data()};
 	}
 
-	return m_seed.plain();
+	return {m_seed.plain().data()};
 }
 
 const QString &Otp::code() {
@@ -191,10 +191,10 @@ const QString &Otp::code() {
 
 
 bool Otp::setSeed( const QByteArray & newSeed, const SeedType & seedType ) {
-	QByteArray oldSeed, oldB32;
+	Base32::ByteArray oldSeed, oldB32;
 
 	if(SeedType::Base32 == seedType) {
-		if(newSeed == m_seed.encoded()) {
+		if(newSeed.data() == m_seed.encoded()) {
 			/* no actual change */
 			return true;
 		}
@@ -202,29 +202,29 @@ bool Otp::setSeed( const QByteArray & newSeed, const SeedType & seedType ) {
 		oldSeed = m_seed.plain();
 		oldB32 = m_seed.encoded();
 
-		if(!m_seed.setEncoded(newSeed)) {
-			/* invalid base32 sequence */
+		if(!m_seed.setEncoded(newSeed.toStdString())) {
+			// invalid base32 sequence
 			m_seed.setPlain(oldSeed);
 			return false;
 		}
 	}
 	else {
-		if(newSeed == m_seed.plain()) {
-			/* no actual change */
+		if(newSeed == m_seed.plain().data()) {
+			// no actual change
 			return true;
 		}
 
-		oldSeed = m_seed.plain();
-		oldB32 = m_seed.encoded();
-		m_seed.setPlain(newSeed);
+		oldSeed = m_seed.plain().data();
+		oldB32 = m_seed.encoded().data();
+		m_seed.setPlain(newSeed.toStdString());
 	}
 
-	Q_EMIT seedChanged(oldSeed, m_seed.plain());
-	Q_EMIT seedChanged(m_seed.plain());
+	Q_EMIT seedChanged(oldSeed.data(), m_seed.plain().data());
+	Q_EMIT seedChanged(m_seed.plain().data());
 
 	/* emit base32 signals */
-	Q_EMIT seedChanged(oldB32, m_seed.encoded());
-	Q_EMIT seedChanged(m_seed.encoded());
+	Q_EMIT seedBase32Changed(oldB32.data(), m_seed.encoded().data());
+	Q_EMIT seedBase32Changed(m_seed.encoded().data());
 	Q_EMIT changed();
 	refreshCode();
 
@@ -443,7 +443,7 @@ void Otp::refreshCode( void ) {
 		return;
 	}
 
-	QByteArray mySeed(seed());
+	QByteArray mySeed = seed();
 
 	if(0 == mySeed.length()) {
 		qWarning() << "no seed";

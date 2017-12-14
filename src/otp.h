@@ -24,6 +24,7 @@
 
 #include <QDebug>
 #include <QString>
+#include <QByteArray>
 #include <QStringList>
 #include <QDateTime>
 #include <QIcon>
@@ -36,6 +37,7 @@ class QSettings;
 
 namespace Qonvince {
 	class OtpDisplayPlugin;
+	using Base32 = LibQonvince::Base32<QByteArray, char>;
 
 	class Otp
 	:	public QObject {
@@ -44,7 +46,7 @@ namespace Qonvince {
 
 		Q_PROPERTY(QString name READ name WRITE setName NOTIFY nameChanged)
 		Q_PROPERTY(QString issuer READ issuer WRITE setIssuer NOTIFY issuerChanged)
-		Q_PROPERTY(QByteArray seed READ seed WRITE setSeed NOTIFY seedChanged)
+		Q_PROPERTY(ByteArray seed READ seed WRITE setSeed NOTIFY seedChanged)
 		Q_PROPERTY(int interval READ interval WRITE setInterval NOTIFY intervalChanged)
 		Q_PROPERTY(QDateTime baselineTime READ baselineTime WRITE setBaselineTime NOTIFY baselineTimeChanged)
 		Q_PROPERTY(int counter READ counter WRITE setCounter NOTIFY counterChanged)
@@ -143,7 +145,7 @@ namespace Qonvince {
 			void issuerChanged( QString oldIssuer, QString newIssuer );
 			void nameChanged( QString oldName, QString newName );
 			void seedChanged( QByteArray oldSeed, QByteArray newSeed );
-			void seedChanged( QString oldSeedBase32, QString newSeedBase32 );
+			void seedBase32Changed( QString oldSeedBase32, QString newSeedBase32 );
 			void digitsChanged( int oldDigits, int newDigits );
 			void displayPluginChanged( QString oldPlugin, QString newPlugin );
 			void intervalChanged( int oldInterval, int newInterval );
@@ -158,7 +160,7 @@ namespace Qonvince {
 			void nameChanged( QString newName );
 			void iconChanged( QIcon newIcon );
 			void seedChanged( QByteArray newSeed );
-			void seedChanged( QString newSeedBase32 );
+			void seedBase32Changed( QString newSeedBase32 );
 			void digitsChanged( int newDigits );
 			void displayPluginChanged( QString newPlugin );
 			void revealOnDemandChanged( bool );

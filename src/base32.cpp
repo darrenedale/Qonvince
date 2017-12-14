@@ -24,9 +24,6 @@
  * \author Darren Edale
  * \date October 2017
  * \version
- *
- * \todo transition from QByteArray to std::basic_string<unsinged char>
- * needs to be tested
  */
 
 
@@ -209,6 +206,7 @@ namespace Qonvince {
 	/** \brief Decode the Base32-encoded data into the plain data member. */
 	void Base32::decode() {
 		static const auto dictBegin = Dictionary.cbegin();
+		static const auto dictEnd = Dictionary.cend();
 		ByteArray ba = m_encoded;
 
 		std::transform(ba.begin(), ba.end(), ba.begin(), [](const ByteArray::value_type & ch) -> ByteArray::value_type {
@@ -242,9 +240,9 @@ namespace Qonvince {
 					break;
 				}
 
-				auto pos = std::find(dictBegin, Dictionary.end(), ba[i + j]);
+				auto pos = std::find(dictBegin, dictEnd, ba[i + j]);
 
-				if(Dictionary.end() == pos) {
+				if(dictEnd == pos) {
 					std::cerr << "invalid character in base32 data:" << ba[i + j] << "\n";
 					m_isValid = false;
 					m_plain.clear();
