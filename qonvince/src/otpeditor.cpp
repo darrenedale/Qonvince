@@ -398,7 +398,7 @@ bool OtpEditor::createBarcode(const QString & fileName) {
 			return false;
 		}
 
-		qonvinceApp->showMessage(Application::applicationName(), tr("QR code created successfully."));
+		qonvinceApp->showNotification(Application::applicationName(), tr("QR code created successfully."));
 		return true;
 	}
 

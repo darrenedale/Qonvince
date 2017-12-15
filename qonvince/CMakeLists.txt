@@ -3,7 +3,8 @@ cmake_minimum_required(VERSION 3.1)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/")
 
-find_package(Qt5 REQUIRED COMPONENTS Core Widgets)
+# at least 5.7 for qOverload<>() (and probably more)
+find_package(Qt5 5.7 REQUIRED COMPONENTS Core Widgets)
 find_package(QCA REQUIRED)
 
 add_executable(qonvince

@@ -32,7 +32,7 @@
 
 namespace Qonvince {
 
-	IconSelectButton::IconSelectButton( QWidget * parent )
+	IconSelectButton::IconSelectButton(QWidget * parent)
 	: QWidget{parent},
 	  m_ui{std::make_unique<Ui::IconSelectButton>()},
 	  m_icon{},
@@ -42,7 +42,7 @@ namespace Qonvince {
 	}
 
 
-	IconSelectButton::IconSelectButton( const QIcon & ic, QWidget * parent )
+	IconSelectButton::IconSelectButton(const QIcon & ic, QWidget * parent)
 	: IconSelectButton{parent} {
 		m_icon = ic;
 		m_ui->chooseIcon->setIcon(m_icon);
@@ -50,19 +50,19 @@ namespace Qonvince {
 	}
 
 
-	IconSelectButton::IconSelectButton( const QString & path, QWidget * parent )
+	IconSelectButton::IconSelectButton(const QString & path, QWidget * parent)
 	: IconSelectButton{QIcon{path}, parent} {
 		m_iconPath = path;
 	}
 
 
-	QSize IconSelectButton::sizeHint( void ) const {
+	QSize IconSelectButton::sizeHint(void) const {
 		static const QSize padding{8, 8};
 		return m_ui->chooseIcon->iconSize() + padding;
 	}
 
 
-	void IconSelectButton::clear( void ) {
+	void IconSelectButton::clear(void) {
 		m_icon = {};
 		m_iconPath = QString{};
 		m_ui->chooseIcon->setIcon({});
@@ -71,7 +71,7 @@ namespace Qonvince {
 	}
 
 
-	void IconSelectButton::chooseIcon( void ) {
+	void IconSelectButton::chooseIcon(void) {
 		QString fileName = QFileDialog::getOpenFileName(this, tr("%1 - Choose Icon").arg(QApplication::applicationDisplayName()), (m_iconPath.isEmpty() ? QDir::homePath() : m_iconPath));
 
 		if(fileName.isEmpty()) {
@@ -79,13 +79,13 @@ namespace Qonvince {
 		}
 
 		if(!setIcon(fileName)) {
-			qonvinceApp->showMessage(tr("An error was encountered when loading the icon file \"%1\".").arg(fileName));
+			qonvinceApp->showNotification(tr("An error was encountered when loading the icon file \"%1\".").arg(fileName));
 			return;
 		}
 	}
 
 
-	void IconSelectButton::setIcon( const QIcon & ic ) {
+	void IconSelectButton::setIcon(const QIcon & ic) {
 		m_iconPath = QString{};
 		m_icon = ic;
 		m_ui->chooseIcon->setIcon(ic);
@@ -94,7 +94,7 @@ namespace Qonvince {
 	}
 
 
-	bool IconSelectButton::setIcon( const QString & fileName ) {
+	bool IconSelectButton::setIcon(const QString & fileName) {
 		QIcon ic(fileName);
 
 		if(ic.isNull()) {
@@ -111,17 +111,17 @@ namespace Qonvince {
 	}
 
 
-	void IconSelectButton::setIconSize( const QSize & size ) {
+	void IconSelectButton::setIconSize(const QSize & size) {
 		m_ui->chooseIcon->setIconSize(size);
 	}
 
 
-	void IconSelectButton::resizeEvent( QResizeEvent * ) {
+	void IconSelectButton::resizeEvent(QResizeEvent *) {
 		m_ui->clear->move(m_ui->chooseIcon->width() - m_ui->clear->width(), m_ui->clear->y());
 	}
 
 
-	IconSelectButton::~IconSelectButton( void ) = default;
+	IconSelectButton::~IconSelectButton(void) = default;
 
 
-} // namespace Qonvince
+}  // namespace Qonvince

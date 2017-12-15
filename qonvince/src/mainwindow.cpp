@@ -67,7 +67,7 @@ MainWindow::MainWindow(QWidget * parent)
 		setAcceptDrops(true);
 	}
 	else {
-		qonvinceApp->showMessage(tr("%1 message").arg(Application::applicationDisplayName()), tr("Drag and drop of QR code images is not available. You may need to install additional software to enable this."));
+		qonvinceApp->showNotification(tr("%1 message").arg(Application::applicationDisplayName()), tr("Drag and drop of QR code images is not available. You may need to install additional software to enable this."));
 	}
 }
 
@@ -216,7 +216,7 @@ void MainWindow::onCodeClicked(Otp * code) {
 					break;
 			}
 
-			qonvinceApp->showMessage(tr("The OTP code for <b>%1</b> was copied to the clipboard.").arg(label), 3000);
+			qonvinceApp->showNotification(tr("The OTP code for <b>%1</b> was copied to the clipboard.").arg(label), 3000);
 			hide();
 		}
 	}
