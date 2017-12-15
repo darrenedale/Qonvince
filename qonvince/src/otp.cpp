@@ -191,9 +191,6 @@ namespace Qonvince {
 
 
 	bool Otp::setSeed(const QByteArray & newSeed, const SeedType & seedType) {
-		/* TODO optimise conversions Base32::ByteArray <-> QByteArray.
-		 * after the decoupling of Base32 from Qt, this function has been
-		 * only naively ported. */
 		QByteArray oldSeed;
 		QByteArray oldB32;
 
@@ -284,7 +281,7 @@ namespace Qonvince {
 	}
 
 
-	Otp * Otp::fromSettings(const QSettings & settings, QString cryptKey) {
+	Otp * Otp::fromSettings(const QSettings & settings, const QCA::SecureArray & cryptKey) {
 		static QVector<QChar> s_validIconFileNameChars = {'a', 'b', 'c', 'd', 'e', 'f'};
 
 		CodeType t("HOTP" == settings.value("type", "TOTP").toString() ? CodeType::Hotp : CodeType::Totp);
@@ -294,8 +291,8 @@ namespace Qonvince {
 
 		QString pluginName = settings.value("pluginName").toString();
 
-		/* in old files, the number of digits will be stored, so if there's no
-	 * plugin name, look for that instead */
+		// in old files, the number of digits will be stored, so if there's no
+		// plugin name, look for that instead
 		if(pluginName.isEmpty()) {
 			bool ok;
 			int digits = settings.value("digits").toInt(&ok);
@@ -310,8 +307,8 @@ namespace Qonvince {
 		/* read icon path and load icon */
 		QString fileName = settings.value("icon").toString();
 
-		/* validate file name so that manually-edited config file can't cause
-	 * unexpected image (or other) file to be loaded */
+		// validate file name so that manually-edited config file can't cause
+		// unexpected image (or other) file to be loaded */
 		for(QChar c : fileName) {
 			if((c < '0' || c > '9') && (c < 'a' || c > 'z') && (c < 'A' || c > 'Z')) {
 				qWarning() << "icon filename" << fileName << "in config file for code" << ret->issuer() << ":" << ret->name() << "is not valid (char" << c << "found)";
@@ -343,9 +340,9 @@ namespace Qonvince {
 		bool haveSeed = false;
 
 		{
-			QCA::SecureArray value{QCA::hexToArray(settings.value("seed").toByteArray())};
-			QCA::SymmetricKey key{cryptKey.toUtf8()};
-			QCA::InitializationVector initVec{value.toByteArray().left(16)};
+			QCA::SecureArray value(QCA::hexToArray(settings.value("seed").toByteArray()));
+			QCA::SymmetricKey key(cryptKey);
+			QCA::InitializationVector initVec(value.toByteArray().left(16));
 			QCA::Cipher cipher("aes256", QCA::Cipher::CBC, QCA::Cipher::DefaultPadding, QCA::Decode, key, initVec);
 			QCA::SecureArray seed = cipher.process(value.toByteArray().mid(16));
 
@@ -354,16 +351,6 @@ namespace Qonvince {
 				haveSeed = true;
 			}
 		}
-
-		//		if(!haveSeed) {
-		//			Crypt c(cryptKey.toUtf8());
-		//			Crypt::ErrorCode err;
-		//			ret->setSeed(c.decrypt(settings.value("seed").toString(), &err).toUtf8(), SeedType::Base32);
-
-		//			if(Crypt::ErrOk == err) {
-		//				haveSeed = true;
-		//			}
-		//		}
 
 		if(!haveSeed) {
 			qCritical() << "decryption of seed failed";
@@ -383,7 +370,7 @@ namespace Qonvince {
 	}
 
 
-	void Otp::writeSettings(QSettings & settings, QString cryptKey) const {
+	void Otp::writeSettings(QSettings & settings, const QCA::SecureArray & cryptKey) const {
 		settings.setValue("name", name());
 		settings.setValue("issuer", issuer());
 
@@ -402,7 +389,7 @@ namespace Qonvince {
 		}
 
 		/* TODO make initialisation vector length a class constant (somewhere) */
-		QCA::SymmetricKey key{cryptKey.toUtf8()};
+		QCA::SymmetricKey key(cryptKey);
 		QCA::InitializationVector initVec(16);
 		QCA::Cipher cipher("aes256", QCA::Cipher::CBC, QCA::Cipher::DefaultPadding, QCA::Encode, key, initVec);
 		QCA::SecureArray encrypted = initVec.toByteArray() + cipher.process(seed(SeedType::Base32));

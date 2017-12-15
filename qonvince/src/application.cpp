@@ -25,22 +25,24 @@
 #include "application.h"
 
 #include <array>
+#include <iostream>
 
 #include <QDebug>
+#include <QString>
+#include <QStringBuilder>
+#include <QChar>
 #include <QThread>
 #include <QSystemTrayIcon>
 #include <QMenu>
 #include <QAction>
+#include <QClipboard>
 #include <QSettings>
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QCryptographicHash>
-#include <QClipboard>
 #include <QStandardPaths>
-#include <QStringBuilder>
-#include <QChar>
-
-#include <cstring>
+#include <QSharedMemory>
+#include <QSystemSemaphore>
 
 #include "mainwindow.h"
 #include "passworddialogue.h"
@@ -54,10 +56,92 @@
 #include "steamotpdisplayplugin.h"
 
 
-#define QONVINCE_APPLICATION_SINGLEINSTANCE_KEY ""
-
-
 namespace Qonvince {
+
+
+	// Based on RunGuard code from
+	// http://stackoverflow.com/questions/5006547/qt-best-practice-for-a-single-instance-app-protection
+	class SingleInstanceGuard final {
+	public:
+		explicit SingleInstanceGuard(const QString & key)
+		: m_key(key),
+		  m_memLockKey(QCryptographicHash::hash(key.toUtf8().append("_memLockKey"), QCryptographicHash::Sha1).toHex()),
+		  m_sharedmemKey(QCryptographicHash::hash(key.toUtf8().append("_sharedmemKey"), QCryptographicHash::Sha1).toHex()),
+		  m_sharedMem(m_sharedmemKey),
+		  m_memLock(m_memLockKey, 1) {
+			m_memLock.acquire();
+
+			{
+				QSharedMemory fix(m_sharedmemKey);  // Fix for *nix: http://habrahabr.ru/post/173281/
+				fix.attach();
+			}
+
+			m_memLock.release();
+		}
+
+		~SingleInstanceGuard() {
+			release();
+		}
+
+		SingleInstanceGuard(const SingleInstanceGuard &) = delete;
+		SingleInstanceGuard(SingleInstanceGuard &&) = delete;
+		void operator=(const SingleInstanceGuard &) = delete;
+		void operator=(SingleInstanceGuard &&) = delete;
+
+		bool isAnotherRunning() {
+			if(m_sharedMem.isAttached()) {
+				return false;
+			}
+
+			m_memLock.acquire();
+			const bool isRunning = m_sharedMem.attach();
+
+			if(isRunning) {
+				m_sharedMem.detach();
+			}
+
+			m_memLock.release();
+			return isRunning;
+		}
+
+		bool tryToRun() {
+			if(isAnotherRunning()) {  // Extra check
+				return false;
+			}
+
+			m_memLock.acquire();
+			const bool result = m_sharedMem.create(sizeof(quint64));
+			m_memLock.release();
+
+			if(!result) {
+				release();
+				return false;
+			}
+
+			return true;
+		}
+
+		void release() {
+			m_memLock.acquire();
+
+			if(m_sharedMem.isAttached()) {
+				m_sharedMem.detach();
+			}
+
+			m_memLock.release();
+		}
+
+	private:
+		const QString m_key;
+		const QString m_memLockKey;
+		const QString m_sharedmemKey;
+
+		QSharedMemory m_sharedMem;
+		QSystemSemaphore m_memLock;
+	};
+
+
+	static SingleInstanceGuard runChecker(QStringLiteral("blarglefangledungle"));
 
 
 	Application * Application::s_instance = nullptr;
@@ -67,7 +151,7 @@ namespace Qonvince {
 	: QApplication(argc, argv),
 	  // random-ish string identifying the shared memory that is in place
 	  // if application is already running
-	  m_runChecker(std::make_unique<SingleInstanceGuard>("blarglefangledungle")),
+	  //	  m_runChecker(std::make_unique<SingleInstanceGuard>("")),
 	  m_settings(),
 	  m_mainWindow(nullptr),
 	  m_settingsWidget(std::make_unique<SettingsWidget>(m_settings)),
@@ -234,24 +318,24 @@ namespace Qonvince {
 		Application * app(qonvinceApp);
 
 		if(app->m_settings.singleInstance()) {
-			if(!app->m_runChecker->tryToRun()) {
-				qDebug() << "Qonvince is already running.";
+			if(!runChecker.tryToRun()) {
+				std::cerr << "Qonvince is already running.\n";
 				return 0;
 			}
 		}
 
-		/* read command-line args */
-		bool forceStartMinimised(false);
+		bool forceStartMinimised = false;
+		auto args = arguments();
+		auto argsEnd = args.cend();
 
-		// TODO arguments() is slow - find another way
-		for(const QString & arg : arguments()) {
-			if(arg == "-m" || arg == "--minimised") {
-				forceStartMinimised = true;
-			}
+		if(argsEnd != std::find_if(args.cbegin(), argsEnd, [](const auto & arg) {
+				return "-m" == arg || "--minimised" == arg;
+			})) {
+			forceStartMinimised = true;
 		}
 
 		{
-			PasswordDialogue dlg(tr("Enter the passphrase used to encrypt your settings. This ensures that your OTP seeds cannot be stolen from your settings file."));
+			PasswordDialogue dlg(tr("Enter the passphrase used to encrypt your settings."));
 
 			while(true) {
 				if(QDialog::Accepted != dlg.exec()) {
@@ -259,16 +343,16 @@ namespace Qonvince {
 					return 0;
 				}
 
-				QString pw = dlg.password();
+				QCA::SecureArray pw = dlg.password().toUtf8();
 
 				if(pw.isEmpty()) {
-					qWarning() << "passphrase is empty" << pw;
+					qWarning() << "passphrase is empty";
 				}
-				else if(8 > pw.length()) {
-					qWarning() << "passphrase is too short" << pw;
+				else if(8 > pw.size()) {
+					qWarning() << "passphrase is too short";
 				}
 				else {
-					app->m_cryptPassphrase = pw;
+					qonvinceApp->m_cryptPassphrase = pw;
 
 					if(app->readCodeSettings()) {
 						// if reading succeeds, passphrase was correct, so
@@ -276,7 +360,7 @@ namespace Qonvince {
 						break;
 					}
 
-					app->m_cryptPassphrase = QString();
+					qonvinceApp->m_cryptPassphrase.clear();
 					qWarning() << "failed to read code settings - likely incorrect passphrase";
 				}
 
@@ -301,7 +385,7 @@ namespace Qonvince {
 	}
 
 
-	void Application::showMessage(const QString & title, const QString & message, int timeout) {
+	void Application::showNotification(const QString & title, const QString & message, int timeout) {
 		if(!QSystemTrayIcon::supportsMessages()) {
 			QMessageBox::information(m_mainWindow.get(), title, message, QMessageBox::StandardButtons(QMessageBox::Ok));
 		}
@@ -311,7 +395,7 @@ namespace Qonvince {
 	}
 
 
-	void Application::showMessage(const QString & message, int timeout) {
+	void Application::showNotification(const QString & message, int timeout) {
 		if(!QSystemTrayIcon::supportsMessages()) {
 			QMessageBox::information(m_mainWindow.get(), tr("%1 message").arg(applicationName()), message, QMessageBox::StandardButtons(QMessageBox::Ok));
 		}
@@ -336,7 +420,7 @@ namespace Qonvince {
 		OtpQrCodeReader r(fileName);
 
 		if(!r.decode()) {
-			showMessage(tr("The file <strong>%1</strong> could not be read as a QR code."));
+			showNotification(tr("The file <strong>%1</strong> could not be read as a QR code."));
 			return;
 		}
 
@@ -372,43 +456,12 @@ namespace Qonvince {
 		// seeds. in other words, bypassing this check does not grant access to seeds
 		if(settings.contains("crypt_check")) {
 			QCA::SecureArray value = QCA::hexToArray(settings.value("crypt_check").toString());
-			QCA::Cipher cipher("aes256", QCA::Cipher::CBC, QCA::Cipher::DefaultPadding, QCA::Decode, QCA::SymmetricKey{m_cryptPassphrase.toUtf8()}, QCA::InitializationVector{value.toByteArray().left(16)});
+			QCA::Cipher cipher("aes256", QCA::Cipher::CBC, QCA::Cipher::DefaultPadding, QCA::Decode, QCA::SymmetricKey(m_cryptPassphrase), QCA::InitializationVector(value.toByteArray().left(16)));
 			cipher.process(value.toByteArray().mid(16));
 
 			if(!cipher.ok()) {
 				qDebug() << "decryption failure - incorrect passphrase";
 			}
-
-			//					Crypt c(m_cryptPassphrase.toUtf8());
-			//					Crypt::ErrorCode err;
-			//					c.decrypt(settings.value("crypt_check").toString(), &err);
-
-			//					switch(err) {
-			//						case Crypt::ErrOk:
-			//							break;
-
-			//						case Crypt::ErrKeyTooShort: /*!< The key provided contained fewer than 8 bytes */
-			//							qDebug() << "decryption failure - key is too short";
-			//							return false;
-
-			//						case Crypt::ErrNoKeySet: /*!< No key was set. You can not encrypt or decrypt without a valid key. */
-			//							qDebug() << "decryption failure - no passphrase";
-			//							return false;
-
-			//						case Crypt::ErrUnknownVersion: /*!< The version of this data is unknown, or the data is otherwise not valid. */
-			//							qDebug() << "decryption failure - unrecognised algorithm version";
-			//							return false;
-
-			//						case Crypt::ErrUuidMismatch: /*!< The UUID in the encrypted data does not match the UUID of the machine decrypting it */
-			//							/* this should never happen - the UUID is not in use */
-			//							qDebug() << "decryption failure - UUID mismatch";
-			//							return false;
-
-			//						case Crypt::ErrIntegrityCheckFailed: /*!< The integrity check of the data failed. Perhaps the wrong key was used. */
-			//							qDebug() << "decryption integrity check failure - probably incorrect passphrase";
-			//							return false;
-			//					}
-			//				}
 		}
 
 		m_mainWindow->codeList()->clear();
@@ -441,7 +494,7 @@ namespace Qonvince {
 		// this "random" string in the settings will, when read, indicate whether the crypt key is correct
 		{
 			// use length of passphrase so that a truncated passphrase can never pass the check
-			int l = (2 * m_cryptPassphrase.toUtf8().length()) + (qrand() % 20);
+			int l = (2 * m_cryptPassphrase.size()) + (qrand() % 20);
 			QByteArray random(l, 0);
 
 			while(0 < l) {
@@ -449,7 +502,7 @@ namespace Qonvince {
 				random[l] = 'a' + (qrand() % 26);
 			}
 
-			QCA::SymmetricKey key{m_cryptPassphrase.toUtf8()};
+			QCA::SymmetricKey key(m_cryptPassphrase);
 			QCA::InitializationVector initVec(16);
 			QCA::Cipher cipher("aes256", QCA::Cipher::CBC, QCA::Cipher::DefaultPadding, QCA::Encode, key, initVec);
 			settings.setValue("crypt_check", QCA::arrayToHex(initVec.toByteArray() + cipher.process(random).toByteArray()));
@@ -544,76 +597,6 @@ namespace Qonvince {
 		m_settingsWidget->show();
 		m_settingsWidget->activateWindow();
 		m_settingsWidget->raise();
-	}
-
-
-	// SingleInstanceGuard is a mostly unmodified copy of the RunGuard code from
-	// http://stackoverflow.com/questions/5006547/qt-best-practice-for-a-single-instance-app-protection
-	Application::SingleInstanceGuard::SingleInstanceGuard(const QString & key)
-	: m_key(key),
-	  m_memLockKey(QCryptographicHash::hash(key.toUtf8().append("_memLockKey"), QCryptographicHash::Sha1).toHex()),
-	  m_sharedmemKey(QCryptographicHash::hash(key.toUtf8().append("_sharedmemKey"), QCryptographicHash::Sha1).toHex()),
-	  m_sharedMem(m_sharedmemKey),
-	  m_memLock(m_memLockKey, 1) {
-		m_memLock.acquire();
-
-		{
-			QSharedMemory fix(m_sharedmemKey);  // Fix for *nix: http://habrahabr.ru/post/173281/
-			fix.attach();
-		}
-
-		m_memLock.release();
-	}
-
-
-	Application::SingleInstanceGuard::~SingleInstanceGuard() {
-		release();
-	}
-
-
-	bool Application::SingleInstanceGuard::isAnotherRunning() {
-		if(m_sharedMem.isAttached()) {
-			return false;
-		}
-
-		m_memLock.acquire();
-		const bool isRunning = m_sharedMem.attach();
-
-		if(isRunning) {
-			m_sharedMem.detach();
-		}
-
-		m_memLock.release();
-		return isRunning;
-	}
-
-
-	bool Application::SingleInstanceGuard::tryToRun() {
-		if(isAnotherRunning()) {  // Extra check
-			return false;
-		}
-
-		m_memLock.acquire();
-		const bool result = m_sharedMem.create(sizeof(quint64));
-		m_memLock.release();
-
-		if(!result) {
-			release();
-			return false;
-		}
-
-		return true;
-	}
-
-
-	void Application::SingleInstanceGuard::release() {
-		m_memLock.acquire();
-
-		if(m_sharedMem.isAttached()) {
-			m_sharedMem.detach();
-		}
-
-		m_memLock.release();
 	}
 
 

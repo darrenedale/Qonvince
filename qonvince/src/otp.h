@@ -28,6 +28,7 @@
 #include <QStringList>
 #include <QDateTime>
 #include <QIcon>
+#include <QtCrypto/QtCrypto>
 
 #include "base32.h"
 
@@ -72,7 +73,7 @@ namespace Qonvince {
 		Otp(const CodeType & type, const QByteArray & seed, const SeedType & seedType = SeedType::Plain, QObject * parent = nullptr);
 		virtual ~Otp();
 
-		static Otp * fromSettings(const QSettings & settings, QString cryptKey);
+		static Otp * fromSettings(const QSettings & settings, const QCA::SecureArray & cryptKey);
 
 		inline const CodeType & type() const {
 			return m_type;
@@ -137,7 +138,7 @@ namespace Qonvince {
 
 		const QString & code();
 
-		void writeSettings(QSettings & settings, QString cryptKey) const;
+		void writeSettings(QSettings & settings, const QCA::SecureArray & cryptKey) const;
 
 	Q_SIGNALS:
 		void typeChanged(CodeType oldType, CodeType newType);

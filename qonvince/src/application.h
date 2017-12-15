@@ -29,8 +29,6 @@
 #include <QSystemTrayIcon>
 #include <QMenu>
 #include <QObject>
-#include <QSharedMemory>
-#include <QSystemSemaphore>
 #include <QStandardPaths>
 
 #include <QtCrypto/QtCrypto>
@@ -102,19 +100,11 @@ namespace Qonvince {
 		PluginPtr codeDisplayPluginByName(const QString & name) const;
 		PluginArray codeDisplayPlugins() const;
 
-		//			/* note Don't make this return a const reference for security reasons. returning
-		//			 * a reference could allow a malicious client to cast away the const-ness and therefore
-		//			 * alter the stored passphrase, rendering the settings unreadable to the actual
-		//			 * owner once they've been saved. */
-		//			inline QString cryptPassphrase() const {
-		//				return m_cryptPassphrase;
-		//			}
-
 		static int exec();
 
 	public Q_SLOTS:
-		void showMessage(const QString & title, const QString & message, int timeout = 10000);
-		void showMessage(const QString & message, int timeout = 10000);
+		void showNotification(const QString & title, const QString & message, int timeout = 10000);
+		void showNotification(const QString & message, int timeout = 10000);
 		void readQrCode();
 		void readQrCodeFrom(const QString & fileName);
 		bool readApplicationSettings();
@@ -131,36 +121,10 @@ namespace Qonvince {
 		void onCodeDestroyed(QObject * code);
 
 	private:
-		// Based on RunGuard code from
-		// http://stackoverflow.com/questions/5006547/qt-best-practice-for-a-single-instance-app-protection
-		class SingleInstanceGuard {
-		public:
-			explicit SingleInstanceGuard(const QString &);
-			SingleInstanceGuard(const SingleInstanceGuard &) = delete;
-			SingleInstanceGuard(SingleInstanceGuard &&) = delete;
-			~SingleInstanceGuard();
-
-			void operator=(const SingleInstanceGuard &) = delete;
-			void operator=(SingleInstanceGuard &&) = delete;
-
-			bool isAnotherRunning();
-			bool tryToRun();
-			void release();
-
-		private:
-			const QString m_key;
-			const QString m_memLockKey;
-			const QString m_sharedmemKey;
-
-			QSharedMemory m_sharedMem;
-			QSystemSemaphore m_memLock;
-		};
-
 		static bool ensureDirectory(const QStandardPaths::StandardLocation & location, const QString & path);
 
 		static Application * s_instance;
 
-		std::unique_ptr<SingleInstanceGuard> m_runChecker;
 		Settings m_settings;
 		std::unique_ptr<MainWindow> m_mainWindow;
 		std::unique_ptr<SettingsWidget> m_settingsWidget;
@@ -172,7 +136,7 @@ namespace Qonvince {
 		PluginMap m_codeDisplayPlugins;
 
 		QCA::Initializer m_qcaInit;
-		QString m_cryptPassphrase;
+		QCA::SecureArray m_cryptPassphrase;
 	};
 
 }  // namespace Qonvince
