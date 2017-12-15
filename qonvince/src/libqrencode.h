@@ -28,6 +28,7 @@
 class QString;
 
 namespace Qonvince {
+
 	/** \class LibQrEncode
 	  * \brief Abstraction of libqrencode.
 	  *
@@ -77,6 +78,7 @@ namespace Qonvince {
 	private:
 		LibQonvince::SharedLibrary m_lib;
 	};
+
 }  // namespace Qonvince
 
 #endif  // QONVINCE_LIBQRENCODE_H

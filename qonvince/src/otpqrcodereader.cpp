@@ -34,12 +34,11 @@
 using namespace Qonvince;
 
 
-OtpQrCodeReader::OtpQrCodeReader( const QString & fileName, QObject * parent )
-:	QrCodeReader(fileName, parent)
-{}
+OtpQrCodeReader::OtpQrCodeReader(const QString & fileName, QObject * parent)
+: QrCodeReader(fileName, parent) {}
 
 
-bool OtpQrCodeReader::decode( void ) {
+bool OtpQrCodeReader::decode(void) {
 	/* otpauth://{type}/{issuer}:{name}?secret={secret}[&issuer={issuer}][&counter={counter}][&digits={digits}][&algorithm={algorithm}][&period={period}] */
 	static QRegExp url("^otpauth://([^/]+)/(([^:]+):)?([^?]+)\\?(.*)$");
 
@@ -66,13 +65,13 @@ bool OtpQrCodeReader::decode( void ) {
 		int period = 30;
 		QStringList params(url.cap(5).split("&"));
 
-qDebug() << "params:" << params;
+		qDebug() << "params:" << params;
 
 		for(const QString & param : params) {
 			QStringList parts(param.split("="));
 
 			if(2 != parts.length()) {
-qDebug() << "found invalid parameter";
+				qDebug() << "found invalid parameter";
 				continue;
 			}
 
@@ -81,7 +80,7 @@ qDebug() << "found invalid parameter";
 			}
 			else if("issuer" == parts.at(0)) {
 				if(!issuer.isEmpty() && parts.at(1) != issuer) {
-qDebug() << "\"issuer\" parameter" << parts.at(0) << "does not agree with issuer part of URI" << issuer << ". ignoring parameter";
+					qDebug() << "\"issuer\" parameter" << parts.at(0) << "does not agree with issuer part of URI" << issuer << ". ignoring parameter";
 				}
 				else {
 					issuer = QString::fromUtf8(QByteArray::fromPercentEncoding(parts.at(1).toUtf8()));
@@ -94,7 +93,7 @@ qDebug() << "\"issuer\" parameter" << parts.at(0) << "does not agree with issuer
 					counter = myCounter;
 				}
 				else {
-qDebug() << "invalid \"counter\" parameter:" << parts.at(1);
+					qDebug() << "invalid \"counter\" parameter:" << parts.at(1);
 				}
 			}
 			else if("digits" == parts.at(0)) {
@@ -104,7 +103,7 @@ qDebug() << "invalid \"counter\" parameter:" << parts.at(1);
 					digits = myDigits;
 				}
 				else {
-qDebug() << "invalid \"digits\" parameter:" << parts.at(1);
+					qDebug() << "invalid \"digits\" parameter:" << parts.at(1);
 				}
 			}
 			else if("period" == parts.at(0)) {
@@ -114,11 +113,11 @@ qDebug() << "invalid \"digits\" parameter:" << parts.at(1);
 					period = myPeriod;
 				}
 				else {
-qDebug() << "invalid \"period\" parameter:" << parts.at(1);
+					qDebug() << "invalid \"period\" parameter:" << parts.at(1);
 				}
 			}
 			else if("algorithm" == parts.at(0)) {
-qDebug() << "\"algorithm\" parameter found but not yet supported. algorithm is" << parts.at(1) << "; only SHA1 supported";
+				qDebug() << "\"algorithm\" parameter found but not yet supported. algorithm is" << parts.at(1) << "; only SHA1 supported";
 			}
 		}
 
@@ -139,10 +138,10 @@ qDebug() << "\"algorithm\" parameter found but not yet supported. algorithm is" 
 }
 
 
-Otp * OtpQrCodeReader::code( void ) const {
+Otp * OtpQrCodeReader::code(void) const {
 	if(!m_seed.isEmpty()) {
-		Otp * ret = new Otp(type(), issuer(), name(), seed(), Otp::SeedType::Base32);
-		ret->setCounter(m_counter);
+		auto * ret = new Otp(type(), issuer(), name(), seed(), Otp::SeedType::Base32);
+		ret->setCounter(static_cast<quint64>(m_counter));
 		ret->setInterval(m_interval);
 		ret->setDisplayPlugin(std::make_shared<IntegerOtpDisplayPlugin>(m_digits));
 		return ret;

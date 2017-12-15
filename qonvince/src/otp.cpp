@@ -48,6 +48,7 @@ namespace Qonvince {
 
 
 	const QDateTime Otp::DefaultBaselineTime = QDateTime::fromMSecsSinceEpoch(0);
+	static constexpr const int InitializationVectorSize = 16;
 
 
 	Otp::Otp(const CodeType & type, QObject * parent)
@@ -66,17 +67,17 @@ namespace Qonvince {
 
 
 	Otp::Otp(const CodeType & type, const QString & issuer, const QString & name, const QByteArray & seed, const SeedType & seedType, QObject * parent)
-	: QObject{parent},
-	  m_type{type},
-	  m_issuer{issuer},
-	  m_name{name},
-	  m_revealOnDemand{false},
-	  m_counter{0},
-	  m_interval{DefaultInterval},
-	  m_baselineTime{0},
-	  m_refreshTimer{std::make_unique<QBasicTimer>()},
-	  m_resync{false},
-	  m_displayPlugin{nullptr} {
+	: QObject(parent),
+	  m_type(type),
+	  m_issuer(issuer),
+	  m_name(name),
+	  m_revealOnDemand(false),
+	  m_counter(0),
+	  m_interval(DefaultInterval),
+	  m_baselineTime(0),
+	  m_refreshTimer(std::make_unique<QBasicTimer>()),
+	  m_resync(false),
+	  m_displayPlugin(nullptr) {
 		blockSignals(true);
 		setSeed(seed, seedType);
 		refreshCode();
@@ -284,8 +285,7 @@ namespace Qonvince {
 	Otp * Otp::fromSettings(const QSettings & settings, const QCA::SecureArray & cryptKey) {
 		static QVector<QChar> s_validIconFileNameChars = {'a', 'b', 'c', 'd', 'e', 'f'};
 
-		CodeType t("HOTP" == settings.value("type", "TOTP").toString() ? CodeType::Hotp : CodeType::Totp);
-		Otp * ret = new Otp(t);
+		auto * ret = new Otp("HOTP" == settings.value("type", "TOTP").toString() ? CodeType::Hotp : CodeType::Totp);
 		ret->setName(settings.value("name").toString());
 		ret->setIssuer(settings.value("issuer").toString());
 
@@ -342,9 +342,9 @@ namespace Qonvince {
 		{
 			QCA::SecureArray value(QCA::hexToArray(settings.value("seed").toByteArray()));
 			QCA::SymmetricKey key(cryptKey);
-			QCA::InitializationVector initVec(value.toByteArray().left(16));
+			QCA::InitializationVector initVec(value.toByteArray().left(InitializationVectorSize));
 			QCA::Cipher cipher("aes256", QCA::Cipher::CBC, QCA::Cipher::DefaultPadding, QCA::Decode, key, initVec);
-			QCA::SecureArray seed = cipher.process(value.toByteArray().mid(16));
+			QCA::SecureArray seed = cipher.process(value.toByteArray().mid(InitializationVectorSize));
 
 			if(cipher.ok()) {
 				ret->setSeed(seed.toByteArray(), SeedType::Base32);
@@ -356,7 +356,7 @@ namespace Qonvince {
 			qCritical() << "decryption of seed failed";
 		}
 
-		if(CodeType::Hotp == t) {
+		if(CodeType::Hotp == ret->type()) {
 			ret->setCounter(static_cast<quint64>(settings.value("counter", 0).toInt()));
 		}
 		else {
@@ -388,9 +388,8 @@ namespace Qonvince {
 			settings.setValue("pluginName", "");
 		}
 
-		/* TODO make initialisation vector length a class constant (somewhere) */
 		QCA::SymmetricKey key(cryptKey);
-		QCA::InitializationVector initVec(16);
+		QCA::InitializationVector initVec(InitializationVectorSize);
 		QCA::Cipher cipher("aes256", QCA::Cipher::CBC, QCA::Cipher::DefaultPadding, QCA::Encode, key, initVec);
 		QCA::SecureArray encrypted = initVec.toByteArray() + cipher.process(seed(SeedType::Base32));
 		settings.setValue("seed", QCA::arrayToHex(encrypted.toByteArray()));

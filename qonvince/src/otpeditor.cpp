@@ -22,9 +22,6 @@
   * \date November 2016
   *
   * \brief Implementation of the OtpEditor class.
-  *
-  * \todo convert to widget-and-dialogue (two classes) from widget-with-
-  *   control-buttons for future flexibility
   */
 #include "otpeditor.h"
 #include "ui_otpeditor.h"
@@ -56,22 +53,15 @@ OtpEditor::OtpEditor(QWidget * parent)
 
 OtpEditor::OtpEditor(Otp * code, QWidget * parent)
 : QWidget(parent),
-  m_ui{std::make_unique<Ui::OtpEditor>()},
-  m_code(nullptr) {
+  m_ui(std::make_unique<Ui::OtpEditor>()),
+  m_otp(nullptr) {
 	m_ui->setupUi(this);
-#if QT_VERSION >= QT_VERSION_CHECK(5, 2, 0)
-	/* do this here rather than in .ui file so that source is compatible with
-	 * earlier QT versions that don't support this method */
-	m_ui->issuerEdit->setClearButtonEnabled(true);
-	m_ui->nameEdit->setClearButtonEnabled(true);
-	m_ui->seedEdit->setClearButtonEnabled(true);
-#endif
 
 	for(const auto & plugin : qonvinceApp->codeDisplayPlugins()) {
 		m_ui->displayPlugin->addItem(plugin->pluginName());
 	}
 
-	m_ui->advancedSettingsWidget->setVisible(m_ui->advancedSettingsToggle->isChecked());
+	m_ui->advancedSettingsWidget->setVisible(m_ui->advancedToggle->isChecked());
 	m_ui->createBarcodeButton->setVisible(false);
 
 	m_ui->codeTypeGroup->setId(m_ui->hotpButton, static_cast<int>(Otp::CodeType::Hotp));
@@ -123,21 +113,21 @@ OtpEditor::OtpEditor(Otp * code, QWidget * parent)
 		m_ui->createBarcodeButton->setVisible(false);
 	}
 
-	setCode(code);
+	setOtp(code);
 }
 
 
 OtpEditor::~OtpEditor() {
-#if defined(QT_DEBUG)
-	/* NOTE: m_code might be in the process of being destroyed (i.e. the destruction of m_code
-	 * can result in the destruction of the widget editing it) */
-	qDebug() << "deleting editor for code" << ((void *) m_code);
+#ifndef NDEBUG
+	// NOTE: m_otp might be in the process of being destroyed (i.e. the destruction of m_otp
+	// can result in the destruction of the widget editing it) */
+	std::cerr << "deleting editor for code @ 0x" << (static_cast<void *>(m_otp)) << " - ";
 
-	if(m_code) {
-		qDebug() << "deleting editor for" << m_code->issuer() << ":" << m_code->name();
+	if(m_otp) {
+		std::cerr << qPrintable(m_otp->issuer()) << ":" << qPrintable(m_otp->name()) << "\n";
 	}
 	else {
-		qDebug() << "deleting editor for" << tr("Untitled");
+		std::cerr << "{Untitled}\n";
 	}
 #endif
 }
@@ -169,29 +159,27 @@ void OtpEditor::setIssuer(const QString & issuer) {
 }
 
 
-void OtpEditor::setCode(Otp * code) {
-	if(code != m_code) {
-		if(m_code) {
-			m_code->disconnect(this);
+void OtpEditor::setOtp(Otp * code) {
+	if(code != m_otp) {
+		if(m_otp) {
+			m_otp->disconnect(this);
 			m_ui->intervalSpin->disconnect(this);
 			m_ui->nameEdit->disconnect(this);
 			m_ui->seedEdit->disconnect(this);
 			m_originalSeed = {};
 		}
 
-		m_code = code;
+		m_otp = code;
 
-		if(m_code) {
-			m_originalSeed = m_code->seed();
-			/* set initial state for widgets before connecting code so that
-			 * widget changes (to initial state) do not trigger code updates */
-			m_ui->seedEdit->setText(QString());
-			m_ui->issuerEdit->setText(m_code->issuer());
-			m_ui->nameEdit->setText(m_code->name());
-			m_ui->icon->setIcon(m_code->icon());
+		if(m_otp) {
+			m_originalSeed = m_otp->seed();
+			m_ui->seedEdit->setText({});
+			m_ui->issuerEdit->setText(m_otp->issuer());
+			m_ui->nameEdit->setText(m_otp->name());
+			m_ui->icon->setIcon(m_otp->icon());
 
 			{
-				auto plugin = m_code->displayPlugin().lock();
+				auto plugin = m_otp->displayPlugin().lock();
 
 				if(plugin) {
 					m_ui->displayPlugin->setCurrentText(plugin->pluginName());
@@ -201,38 +189,38 @@ void OtpEditor::setCode(Otp * code) {
 				}
 			}
 
-			m_ui->intervalSpin->setValue(m_code->interval());
+			m_ui->intervalSpin->setValue(m_otp->interval());
 			m_ui->baseTimeEdit->setDateTime(QDateTime::fromMSecsSinceEpoch(code->baselineSecSinceEpoch() * 1000));
-			m_ui->counterSpin->setValue(static_cast<int>(m_code->counter()));
-			m_ui->revealOnDemand->setChecked(m_code->revealOnDemand());
-			setType(m_code->type());
+			m_ui->counterSpin->setValue(static_cast<int>(m_otp->counter()));
+			m_ui->revealOnDemand->setChecked(m_otp->revealOnDemand());
+			setType(m_otp->type());
 
-			connect(m_code, &Otp::destroyed, this, &OtpEditor::close);
-			connect(m_code, qOverload<Otp::CodeType>(&Otp::typeChanged), this, &OtpEditor::setType);
-			connect(m_code, qOverload<QString>(&Otp::issuerChanged), this, &OtpEditor::setIssuer);
-			connect(m_code, qOverload<QString>(&Otp::issuerChanged), this, &OtpEditor::updateWindowTitle);
-			connect(m_code, qOverload<QString>(&Otp::nameChanged), this, &OtpEditor::setName);
-			connect(m_code, qOverload<QString>(&Otp::nameChanged), this, &OtpEditor::updateWindowTitle);
-			connect(m_code, qOverload<int>(&Otp::intervalChanged), m_ui->intervalSpin, &QSpinBox::setValue);
-			connect(m_code, qOverload<QString>(&Otp::displayPluginChanged), this, &OtpEditor::onDisplayPluginChanged);
-			connect(m_code, qOverload<quint64>(&Otp::counterChanged), this, &OtpEditor::setCounter);
-			connect(m_code, &Otp::revealOnDemandChanged, this, &OtpEditor::setRevealOnDemand);
-			connect(m_ui->intervalSpin, qOverload<int>(&QSpinBox::valueChanged), m_code, &Otp::setInterval);
-			connect(m_ui->nameEdit, &QLineEdit::textEdited, m_code, &Otp::setName);
-			connect(m_ui->issuerEdit, &QLineEdit::textEdited, m_code, &Otp::setIssuer);
+			connect(m_otp, &Otp::destroyed, this, &OtpEditor::close);
+			connect(m_otp, qOverload<Otp::CodeType>(&Otp::typeChanged), this, &OtpEditor::setType);
+			connect(m_otp, qOverload<QString>(&Otp::issuerChanged), this, &OtpEditor::setIssuer);
+			connect(m_otp, qOverload<QString>(&Otp::issuerChanged), this, &OtpEditor::updateWindowTitle);
+			connect(m_otp, qOverload<QString>(&Otp::nameChanged), this, &OtpEditor::setName);
+			connect(m_otp, qOverload<QString>(&Otp::nameChanged), this, &OtpEditor::updateWindowTitle);
+			connect(m_otp, qOverload<int>(&Otp::intervalChanged), m_ui->intervalSpin, &QSpinBox::setValue);
+			connect(m_otp, qOverload<QString>(&Otp::displayPluginChanged), this, &OtpEditor::onDisplayPluginChanged);
+			connect(m_otp, qOverload<quint64>(&Otp::counterChanged), this, &OtpEditor::setCounter);
+			connect(m_otp, &Otp::revealOnDemandChanged, this, &OtpEditor::setRevealOnDemand);
+			connect(m_ui->intervalSpin, qOverload<int>(&QSpinBox::valueChanged), m_otp, &Otp::setInterval);
+			connect(m_ui->nameEdit, &QLineEdit::textEdited, m_otp, &Otp::setName);
+			connect(m_ui->issuerEdit, &QLineEdit::textEdited, m_otp, &Otp::setIssuer);
 			connect(m_ui->seedEdit, &QLineEdit::editingFinished, this, &OtpEditor::onCodeSeedEditingFinished);
 			connect(m_ui->displayPlugin, qOverload<int>(&QComboBox::currentIndexChanged), this, &OtpEditor::onDisplayPluginChanged);
 			connect(m_ui->baseTimeEdit, &QDateTimeEdit::editingFinished, this, &OtpEditor::setCodeBaseTimeFromWidget);
-			connect(m_ui->revealOnDemand, &QCheckBox::toggled, m_code, &Otp::setRevealOnDemand);
-			connect(this, &OtpEditor::typeChanged, m_code, &Otp::setType);
-			connect(this, &OtpEditor::counterChanged, m_code, &Otp::setCounter);
+			connect(m_ui->revealOnDemand, &QCheckBox::toggled, m_otp, &Otp::setRevealOnDemand);
+			connect(this, &OtpEditor::typeChanged, m_otp, &Otp::setType);
+			connect(this, &OtpEditor::counterChanged, m_otp, &Otp::setCounter);
 		}
 		else {
-			m_ui->issuerEdit->setText(QString());
-			m_ui->nameEdit->setText(QString());
-			m_ui->seedEdit->setText(QString());
+			m_ui->issuerEdit->setText({});
+			m_ui->nameEdit->setText({});
+			m_ui->seedEdit->setText({});
 			m_ui->icon->setIcon(QIcon());
-			m_ui->displayPlugin->setCurrentText("");
+			m_ui->displayPlugin->setCurrentText(QStringLiteral(""));
 			m_ui->baseTimeEdit->setDateTime(QDateTime::fromMSecsSinceEpoch(0));
 			m_ui->intervalSpin->setValue(0);
 			m_ui->counterSpin->setValue(0);
@@ -246,9 +234,9 @@ void OtpEditor::setCode(Otp * code) {
 
 
 void OtpEditor::updateWindowTitle() {
-	if(m_code) {
-		QString name(m_code->name());
-		QString issuer(m_code->issuer());
+	if(m_otp) {
+		QString name(m_otp->name());
+		QString issuer(m_otp->issuer());
 		QString title;
 
 		switch(qonvinceApp->settings().codeLabelDisplayStyle()) {
@@ -260,7 +248,6 @@ void OtpEditor::updateWindowTitle() {
 				title = issuer;
 				break;
 
-			default:
 			case Settings::IssuerAndName:
 				if(!name.isEmpty()) {
 					if(!issuer.isEmpty()) {
@@ -298,12 +285,6 @@ void OtpEditor::readBarcode() {
 }
 
 
-void OtpEditor::closeEvent(QCloseEvent * ev) {
-	ev->accept();
-	Q_EMIT closing();
-}
-
-
 void OtpEditor::dragEnterEvent(QDragEnterEvent * ev) {
 	if(((Qt::CopyAction | Qt::MoveAction) & ev->proposedAction()) && ev->mimeData()->hasUrls()) {
 		for(const QUrl & u : ev->mimeData()->urls()) {
@@ -332,8 +313,8 @@ void OtpEditor::readBarcode(const QString & fileName) {
 	OtpQrCodeReader reader(fileName, this);
 
 	if(reader.decode()) {
-		m_code->setName(reader.name());
-		m_code->setSeed(reader.seed(), Otp::SeedType::Base32);
+		m_otp->setName(reader.name());
+		m_otp->setSeed(reader.seed(), Otp::SeedType::Base32);
 	}
 	else {
 		QMessageBox::critical(this, tr("%1: error").arg(QApplication::applicationName()), tr("The image could not be decoded. Is it really a QR code image?"));
@@ -370,9 +351,9 @@ bool OtpEditor::createBarcode(const QString & fileName) {
 	QString seed(m_ui->seedEdit->text());
 
 	if(!seed.isEmpty()) {
-		QString uri = QString("otpauth://%1/%2:%3?secret=%4").arg(Otp::CodeType::Hotp == m_code->type() ? "hotp" : "totp").arg(QString::fromUtf8(m_ui->issuerEdit->text().toUtf8().toPercentEncoding())).arg(QString::fromUtf8(m_ui->nameEdit->text().toUtf8().toPercentEncoding())).arg(seed);
+		QString uri = QString("otpauth://%1/%2:%3?secret=%4").arg(Otp::CodeType::Hotp == m_otp->type() ? "hotp" : "totp").arg(QString::fromUtf8(m_ui->issuerEdit->text().toUtf8().toPercentEncoding())).arg(QString::fromUtf8(m_ui->nameEdit->text().toUtf8().toPercentEncoding())).arg(seed);
 
-		if(Otp::CodeType::Hotp == m_code->type()) {
+		if(Otp::CodeType::Hotp == m_otp->type()) {
 			if(0 != m_ui->counterSpin->value()) {
 				uri += "&counter=" + QString::number(m_ui->counterSpin->value());
 			}
@@ -448,16 +429,16 @@ void OtpEditor::updateHeading() {
 
 void OtpEditor::onCodeSeedEditingFinished() {
 	if(m_ui->seedEdit->text().isEmpty()) {
-		m_code->setSeed(m_originalSeed);
+		m_otp->setSeed(m_originalSeed);
 	}
 	else {
-		m_code->setSeed(m_ui->seedEdit->text().toUtf8(), Otp::SeedType::Base32);
+		m_otp->setSeed(m_ui->seedEdit->text().toUtf8(), Otp::SeedType::Base32);
 	}
 }
 
 
 void OtpEditor::setCodeBaseTimeFromWidget() {
-	m_code->setBaselineTime(m_ui->baseTimeEdit->dateTime());
+	m_otp->setBaselineTime(m_ui->baseTimeEdit->dateTime());
 }
 
 
@@ -484,7 +465,7 @@ void OtpEditor::seedWidgetTextEdited() {
 
 
 void OtpEditor::onDisplayPluginChanged() {
-	if(!m_code) {
+	if(!m_otp) {
 		qWarning() << "no code for which to set plugin";
 		return;
 	}
@@ -496,18 +477,18 @@ void OtpEditor::onDisplayPluginChanged() {
 		return;
 	}
 
-	m_code->setDisplayPlugin(plugin);
+	m_otp->setDisplayPlugin(plugin);
 }
 
 
 void OtpEditor::onIconSelected(const QIcon & ic) {
-	m_code->setIcon(ic);
+	m_otp->setIcon(ic);
 	Q_EMIT iconChanged(ic);
 }
 
 
 void OtpEditor::onIconCleared() {
-	m_code->setIcon({});
+	m_otp->setIcon({});
 	Q_EMIT iconChanged({});
 }
 
@@ -533,8 +514,8 @@ void OtpEditor::setType(const Otp::CodeType & codeType) {
 		}
 	}
 
-	if(m_code && codeType != m_code->type()) {
-		m_code->setType(codeType);
+	if(m_otp && codeType != m_otp->type()) {
+		m_otp->setType(codeType);
 	}
 }
 
@@ -545,7 +526,7 @@ void OtpEditor::setRevealOnDemand(bool onlyOnDemand) {
 		m_ui->revealOnDemand->setChecked(onlyOnDemand);
 	}
 
-	if(m_code && m_code->revealOnDemand() != onlyOnDemand) {
-		m_code->setRevealOnDemand(onlyOnDemand);
+	if(m_otp && m_otp->revealOnDemand() != onlyOnDemand) {
+		m_otp->setRevealOnDemand(onlyOnDemand);
 	}
 }

@@ -41,213 +41,166 @@
 #include "otplistwidgetitem.h"
 #include "otp.h"
 #include "otpqrcodereader.h"
-#include "otpeditor.h"
+#include "otpeditordialogue.h"
 
 
-using namespace Qonvince;
+namespace Qonvince {
 
 
-MainWindow::MainWindow(QWidget * parent)
-: QMainWindow(parent),
-  m_ui{std::make_unique<Ui::MainWindow>()},
-  m_imageDropEnabled(OtpQrCodeReader::isAvailable()) {
-	m_ui->setupUi(this);
+	MainWindow::MainWindow(QWidget * parent)
+	: QMainWindow(parent),
+	  m_ui{std::make_unique<Ui::MainWindow>()},
+	  m_imageDropEnabled(OtpQrCodeReader::isAvailable()) {
+		m_ui->setupUi(this);
 
-	m_ui->codes->setCountdownWarningColour(QColor(160, 160, 92));
-	m_ui->codes->setCountdownCriticalColour(QColor(220, 78, 92));
+		m_ui->codes->setCountdownWarningColour(QColor(160, 160, 92));
+		m_ui->codes->setCountdownCriticalColour(QColor(220, 78, 92));
 
-	m_ui->addCode->setIcon(QIcon::fromTheme("list-add", QIcon(":/icons/mainwindow/add")));
-	m_ui->settings->setIcon(QIcon::fromTheme("configure-shortcuts", QIcon(":/icons/mainwindow/settings")));
+		m_ui->addCode->setIcon(QIcon::fromTheme("list-add", QIcon(":/icons/mainwindow/add")));
+		m_ui->settings->setIcon(QIcon::fromTheme("configure-shortcuts", QIcon(":/icons/mainwindow/settings")));
 
-	connect(m_ui->codes, &OtpListWidget::codeClicked, this, &MainWindow::onCodeClicked);
-	connect(m_ui->codes, &OtpListWidget::codeDoubleClicked, this, &MainWindow::onCodeDoubleClicked);
-	connect(m_ui->codes, &OtpListWidget::editCodeRequested, this, &MainWindow::onEditCodeRequested);
+		connect(m_ui->codes, &OtpListWidget::codeClicked, this, &MainWindow::onCodeClicked);
+		connect(m_ui->codes, &OtpListWidget::codeDoubleClicked, this, &MainWindow::onCodeDoubleClicked);
+		connect(m_ui->codes, &OtpListWidget::editCodeRequested, this, &MainWindow::onEditCodeRequested);
 
-	if(m_imageDropEnabled) {
-		setAcceptDrops(true);
-	}
-	else {
-		qonvinceApp->showNotification(tr("%1 message").arg(Application::applicationDisplayName()), tr("Drag and drop of QR code images is not available. You may need to install additional software to enable this."));
-	}
-}
-
-
-MainWindow::~MainWindow() {
-}
-
-
-QString MainWindow::hoveredCode() const {
-	return m_ui->codes->hoveredCode();
-}
-
-
-Otp * MainWindow::hoveredCodeSpecification() const {
-	return m_ui->codes->hoveredCodeSpecification();
-}
-
-
-OtpListWidget * MainWindow::codeList() const {
-	return m_ui->codes;
-}
-
-
-void MainWindow::closeEvent(QCloseEvent * ev) {
-	ev->accept();
-	Q_EMIT closing();
-}
-
-
-void MainWindow::dragEnterEvent(QDragEnterEvent * ev) {
-	if(!m_imageDropEnabled) {
-		return;
-	}
-
-	if(((Qt::CopyAction | Qt::MoveAction) & ev->proposedAction()) && ev->mimeData()->hasUrls()) {
-		for(const QUrl & u : ev->mimeData()->urls()) {
-			if("file" == u.scheme()) {
-				ev->acceptProposedAction();
-				return;
-			}
+		if(m_imageDropEnabled) {
+			setAcceptDrops(true);
 		}
-	}
-}
-
-
-void MainWindow::dropEvent(QDropEvent * ev) {
-	if(!m_imageDropEnabled) {
-		return;
-	}
-
-	//	QStringList invalidFiles;
-
-	for(const QUrl & u : ev->mimeData()->urls()) {
-		if("file" == u.scheme()) {
-			qDebug() << "decoding image" << u.path();
-			qonvinceApp->readQrCodeFrom(u.path());
-			//			OtpQrCodeReader r(u.path());
-			//
-			//			if(r.decode()) {
-			//				ui->authCodeList->addCode(r.code());
-			//			}
-			//			else {
-			//				invalidFiles << u.path();
-			//			}
-		}
-	}
-
-	//	if(invalidFiles.count()) {
-	//		QMessageBox::critical(this, tr("%1 error").arg(Application::applicationName()), tr("The following files did not contain valid OTP authenticator specifications:\n\n%1").arg(invalidFiles.join("\n")));
-	//	}
-}
-
-
-void MainWindow::refreshTooltip() {
-	QString tt(tr("<html><body><p>Double-click an entry to edit its details.</p>"));
-
-	if(qonvinceApp->settings().copyCodeOnClick()) {
-		tt += "<p>Click an entry to copy its current code to the clipboard.</p>";
-	}
-
-	if(m_imageDropEnabled) {
-		tt += "<p>Drop a QR code image on this window to decode it.</p>";
-	}
-
-	tt += "</body></html>";
-	setToolTip(tt);
-	m_ui->codes->setToolTip(tt);
-}
-
-
-void MainWindow::onAddCodeClicked() {
-	Otp * code = new Otp(Otp::CodeType::Totp);
-	m_ui->codes->addCode(code);
-	onEditCodeRequested(code);
-	/* TODO call onEditCodeRequested? */
-	//	OtpCodeEditor * w = new OtpCodeEditor(code);
-	//	connect(this, &MainWindow::closing, w, &QWidget::close);
-	//	connect(w, &OtpCodeEditor::closing, w, &QObject::deleteLater);
-	//	w->show();
-}
-
-
-void MainWindow::onSettingsClicked() {
-	qonvinceApp->showSettingsWidget();
-}
-
-
-void MainWindow::onEditCodeRequested(Otp * code) {
-	Q_ASSERT(code);
-	OtpEditor * w = new OtpEditor(code);
-	connect(this, &MainWindow::closing, w, &QWidget::close);
-	connect(w, &OtpEditor::closing, w, &QObject::deleteLater);
-	w->show();
-}
-
-
-void MainWindow::onCodeClicked(Otp * code) {
-	Q_ASSERT(code);
-	const Settings & settings = qonvinceApp->settings();
-
-	if(settings.copyCodeOnClick()) {
-		QApplication::clipboard()->setText(code->code());
-
-		/* set a timer for the code on the clipboard to expire */
-		if(settings.clearClipboardAfterInterval() && 0 < settings.clipboardClearInterval()) {
-			QTimer::singleShot(1000 * settings.clipboardClearInterval(), qonvinceApp, &Application::clearClipboard);
+		else {
+			qonvinceApp->showNotification(tr("%1 message").arg(Application::applicationDisplayName()), tr("Drag and drop of QR code images is not available. You may need to install additional software to enable this."));
 		}
 
-		if(settings.hideOnCodeCopyClick()) {
-			/* show a notification so that it doesn't look like the application
-			 * just closed */
-			QString label;
-
-			switch(settings.codeLabelDisplayStyle()) {
-				default:
-				case Settings::IssuerAndName:
-					label = code->issuer() % ": " % code->name();
-					break;
-
-				case Settings::IssuerOnly:
-					label = code->issuer();
-					break;
-
-				case Settings::NameOnly:
-					label = code->name();
-					break;
-			}
-
-			qonvinceApp->showNotification(tr("The OTP code for <b>%1</b> was copied to the clipboard.").arg(label), 3000);
-			hide();
-		}
-	}
-}
-
-
-void MainWindow::readSettings(const QSettings & settings) {
-	QPoint pos(settings.value("position").toPoint());
-	QSize size(settings.value("size").toSize());
-
-	if(!pos.isNull()) {
-		move(pos);
-	}
-
-	if(!size.isNull()) {
-		resize(size);
-	}
-}
-
-void MainWindow::showEvent(QShowEvent *) {
-	static bool connected = false;
-
-	if(!connected) {
 		connect(&(qonvinceApp->settings()), &Settings::copyCodeOnClickChanged, this, &MainWindow::refreshTooltip);
 	}
 
-	refreshTooltip();
-}
+
+	MainWindow::~MainWindow() = default;
 
 
-void MainWindow::writeSettings(QSettings & settings) const {
-	settings.setValue("position", pos());
-	settings.setValue("size", size());
-}
+	OtpListWidget * MainWindow::codeList() const {
+		return m_ui->codes;
+	}
+
+
+	void MainWindow::closeEvent(QCloseEvent * ev) {
+		ev->accept();
+		Q_EMIT closing();
+	}
+
+
+	void MainWindow::dragEnterEvent(QDragEnterEvent * ev) {
+		if(!m_imageDropEnabled) {
+			return;
+		}
+
+		if(((Qt::CopyAction | Qt::MoveAction) & ev->proposedAction()) && ev->mimeData()->hasUrls()) {
+			for(const auto & url : ev->mimeData()->urls()) {
+				if(url.isLocalFile()) {
+					ev->acceptProposedAction();
+					return;
+				}
+			}
+		}
+	}
+
+
+	void MainWindow::dropEvent(QDropEvent * ev) {
+		if(!m_imageDropEnabled) {
+			return;
+		}
+
+		// TODO consider reading remote URLs?
+		for(const auto & url : ev->mimeData()->urls()) {
+			if(url.isLocalFile()) {
+				qonvinceApp->readQrCodeFrom(url.toLocalFile());
+			}
+		}
+	}
+
+
+	void MainWindow::refreshTooltip() {
+		// looks a bit odd, but should make translation simpler - no HTML required
+		QString tt = QStringLiteral("<html><body><p>%1</p>%2%3</body></html>").arg(tr("Double-click an entry to edit its details."), (qonvinceApp->settings().copyCodeOnClick() ? QStringLiteral("<p>%1</p>").arg(tr("Click an entry to copy its current code to the clipboard.")) : ""), (m_imageDropEnabled ? QStringLiteral("<p>%1</p>").arg(tr("Drop a QR code image on this window to decode it.")) : ""));
+
+		setToolTip(tt);
+		m_ui->codes->setToolTip(tt);
+	}
+
+
+	void MainWindow::onAddCodeClicked() {
+		auto otp = new Otp(Otp::CodeType::Totp);
+		onEditCodeRequested(otp);
+		m_ui->codes->addCode(otp);
+	}
+
+
+	void MainWindow::onSettingsClicked() {
+		qonvinceApp->showSettingsWidget();
+	}
+
+
+	void MainWindow::onEditCodeRequested(Otp * code) {
+		Q_ASSERT_X(code, __PRETTY_FUNCTION__, "null code");
+		auto * editor = new OtpEditorDialogue(code, this);
+		editor->setAttribute(Qt::WA_DeleteOnClose, true);
+		editor->show();
+	}
+
+
+	void MainWindow::onCodeClicked(Otp * code) {
+		Q_ASSERT_X(code, __PRETTY_FUNCTION__, "null code");
+		const Settings & settings = qonvinceApp->settings();
+
+		if(settings.copyCodeOnClick()) {
+			QApplication::clipboard()->setText(code->code());
+
+			if(settings.clearClipboardAfterInterval() && 0 < settings.clipboardClearInterval()) {
+				QTimer::singleShot(1000 * settings.clipboardClearInterval(), qonvinceApp, &Application::clearClipboard);
+			}
+
+			if(settings.hideOnCodeCopyClick()) {
+				// notify so it doesn't look like the application closed
+				QString label;
+
+				switch(settings.codeLabelDisplayStyle()) {
+					case Settings::IssuerAndName:
+						label = code->issuer() % ": " % code->name();
+						break;
+
+					case Settings::IssuerOnly:
+						label = code->issuer();
+						break;
+
+					case Settings::NameOnly:
+						label = code->name();
+						break;
+				}
+
+				qonvinceApp->showNotification(tr("The OTP code for <b>%1</b> was copied to the clipboard.").arg(label), 3000);
+				hide();
+			}
+		}
+	}
+
+
+	void MainWindow::readSettings(const QSettings & settings) {
+		QPoint pos(settings.value("position").toPoint());
+		QSize size(settings.value("size").toSize());
+
+		if(!pos.isNull()) {
+			move(pos);
+		}
+
+		if(!size.isNull()) {
+			resize(size);
+		}
+	}
+
+
+	void MainWindow::writeSettings(QSettings & settings) const {
+		settings.setValue("position", pos());
+		settings.setValue("size", size());
+	}
+
+
+}  // namespace Qonvince

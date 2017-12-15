@@ -151,7 +151,6 @@ namespace Qonvince {
 	: QApplication(argc, argv),
 	  // random-ish string identifying the shared memory that is in place
 	  // if application is already running
-	  //	  m_runChecker(std::make_unique<SingleInstanceGuard>("")),
 	  m_settings(),
 	  m_mainWindow(nullptr),
 	  m_settingsWidget(std::make_unique<SettingsWidget>(m_settings)),
@@ -179,7 +178,6 @@ namespace Qonvince {
 		m_codeDisplayPlugins.insert({plugin->pluginName(), plugin});
 
 		m_mainWindow = std::make_unique<MainWindow>();
-		//	m_trayIcon = new QSystemTrayIcon(QIcon::fromTheme("qonvince", QIcon(":/icons/systray")), this);
 		m_trayIcon.setToolTip(tr("%1: One-Time passcode generator.").arg(applicationDisplayName()));
 
 		m_trayIconMenu.addAction(tr("Show main window"), m_mainWindow.get(), &MainWindow::show);
@@ -191,8 +189,7 @@ namespace Qonvince {
 		}
 
 		m_trayIconMenu.addSeparator();
-		m_trayIconMenu.addAction(tr("About %1").arg(applicationDisplayName()), this, &Application::aboutQonvince);
-		//		m_trayIconMenu.addAction(tr("About Qt"), this, &Application::aboutQt);
+		m_trayIconMenu.addAction(tr("About %1").arg(applicationDisplayName()), this, &Application::showAboutDialogue);
 		m_trayIconMenu.addAction(QIcon::fromTheme("application-exit", QIcon(":/icons/app/quit")), tr("Quit Qonvince"), this, &Application::quit);
 
 		m_trayIcon.setContextMenu(&m_trayIconMenu);
@@ -200,12 +197,9 @@ namespace Qonvince {
 		readApplicationSettings();
 		onSettingsChanged();
 
-		//	m_settingsWidget = std::make_unique<SettingsWidget>(m_settings);
-
 		connect(&m_trayIcon, &QSystemTrayIcon::activated, this, &Application::onTrayIconActivated);
 		connect(&m_settings, &Settings::changed, this, &Application::onSettingsChanged);
 		connect(this, &Application::aboutToQuit, this, &Application::writeSettings);
-		connect(m_mainWindow->codeList(), &OtpListWidget::codeAdded, this, &Application::onCodeAdded);
 	}
 
 
@@ -461,6 +455,7 @@ namespace Qonvince {
 
 			if(!cipher.ok()) {
 				qDebug() << "decryption failure - incorrect passphrase";
+				return false;
 			}
 		}
 
@@ -471,11 +466,11 @@ namespace Qonvince {
 
 		for(int i = 0; i < n; ++i) {
 			settings.beginGroup(QString("code-%1").arg(i));
-			Otp * code = Otp::fromSettings(settings, m_cryptPassphrase);
+			auto * otp = Otp::fromSettings(settings, m_cryptPassphrase);
 
-			if(code) {
-				m_mainWindow->codeList()->addCode(code);
-				connect(code, &Otp::changed, this, &Application::writeSettings);
+			if(otp) {
+				connect(otp, &Otp::changed, this, &Application::writeSettings);
+				m_mainWindow->codeList()->addCode(otp);
 			}
 			else {
 				qWarning() << "failed to read code" << i;
@@ -523,7 +518,7 @@ namespace Qonvince {
 		settings.setValue("code_count", n);
 
 		for(int i = 0; i < n; ++i) {
-			Otp * code = list->code(i);
+			Otp * code = list->otp(i);
 
 			if(!code) {
 				qWarning() << "code #" << i << "is null!";
@@ -565,26 +560,14 @@ namespace Qonvince {
 	}
 
 
-	void Application::onCodeDestroyed(QObject * obj) {
-		Otp * code = qobject_cast<Otp *>(obj);
-
-		if(code) {
-			code->disconnect(this);
-		}
-	}
-
-
-	void Application::onCodeAdded(Otp * code) {
-		connect(code, &QObject::destroyed, this, &Application::onCodeDestroyed);
-	}
-
-
-	void Application::aboutQonvince() {
+	void Application::showAboutDialogue() {
 		if(!m_aboutDialogue) {
 			m_aboutDialogue = std::make_unique<AboutDialogue>();
 		}
 
 		m_aboutDialogue->show();
+		m_aboutDialogue->raise();
+		m_aboutDialogue->activateWindow();
 	}
 
 

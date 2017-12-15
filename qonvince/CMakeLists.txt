@@ -24,11 +24,13 @@ add_executable(qonvince
 	src/otp.cpp
 	src/otpdisplayplugin.cpp
 	src/otpeditor.cpp
+	src/otpeditordialogue.cpp
 	src/otplistwidget.cpp
 	src/otplistwidgetitem.cpp
 	src/steamotpdisplayplugin.cpp
 	src/integerotpdisplayplugin.cpp
 	src/iconselectbutton.cpp
+	resources/icons.qrc
 	)
 
 set_target_properties(qonvince PROPERTIES

@@ -26,56 +26,56 @@
 namespace Qonvince {
 
 	class OtpQrCodeReader : public QrCodeReader {
-		public:
-			OtpQrCodeReader( const QString & fileName, QObject * parent = nullptr );
+	public:
+		OtpQrCodeReader(const QString & fileName, QObject * parent = nullptr);
 
-			inline const Otp::CodeType & type( void ) const {
-				return m_type;
-			}
+		inline const Otp::CodeType & type(void) const {
+			return m_type;
+		}
 
-			inline const QString & name( void ) const {
-				return m_name;
-			}
+		inline const QString & name(void) const {
+			return m_name;
+		}
 
-			inline const QString & issuer( void ) const {
-				return m_issuer;
-			}
+		inline const QString & issuer(void) const {
+			return m_issuer;
+		}
 
-			inline const QByteArray & seed( void ) const {
-				return m_seed;
-			}
+		inline const QByteArray & seed(void) const {
+			return m_seed;
+		}
 
-			inline int interval( void ) const {
-				return m_interval;
-			}
+		inline int interval(void) const {
+			return m_interval;
+		}
 
-			inline time_t baselineTime( void ) const {
-				return m_baselineTime;
-			}
+		inline time_t baselineTime(void) const {
+			return m_baselineTime;
+		}
 
-			inline int digits( void ) const {
-				return m_digits;
-			}
+		inline int digits(void) const {
+			return m_digits;
+		}
 
-			inline int counter( void ) const {
-				return m_counter;
-			}
+		inline int counter(void) const {
+			return m_counter;
+		}
 
-			bool decode( void );
+		bool decode(void);
 
-			/* caller is responsible for created code */
-			Otp * code( void ) const;
+		/* caller is responsible for created code */
+		Otp * code(void) const;
 
-		private:
-			Otp::CodeType m_type;
-			QString m_name;
-			QString m_issuer;
-			QByteArray m_seed;
-			int m_interval;
-			int m_counter;
-			int m_digits;
-			time_t m_baselineTime;
+	private:
+		Otp::CodeType m_type;
+		QString m_name;
+		QString m_issuer;
+		QByteArray m_seed;
+		int m_interval;
+		int m_counter;
+		int m_digits;
+		time_t m_baselineTime;
 	};
-}
+}  // namespace Qonvince
 
-#endif // QONVINCE_OTPQRCODEREADER_H
+#endif  // QONVINCE_OTPQRCODEREADER_H

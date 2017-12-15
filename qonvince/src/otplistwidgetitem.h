@@ -20,6 +20,8 @@
 #ifndef QONVINCE_OTPLISTWIDGETITEM_H
 #define QONVINCE_OTPLISTWIDGETITEM_H
 
+#include <memory>
+
 #include <QObject>
 #include <QListWidgetItem>
 
@@ -30,21 +32,23 @@ namespace Qonvince {
 	class Otp;
 
 	class OtpListWidgetItem
-	:	public QListWidgetItem {
-		public:
-			explicit OtpListWidgetItem( OtpListWidget * parent = nullptr );
-			OtpListWidgetItem( Otp * code, OtpListWidget * parent = nullptr );
-			virtual ~OtpListWidgetItem( void );
+	: public QListWidgetItem {
+	public:
+		explicit OtpListWidgetItem(OtpListWidget * = nullptr);
 
-			inline Otp * code( void ) const {
-				return m_code;
-			}
+		// NOTE: otp is owned
+		OtpListWidgetItem(std::unique_ptr<Otp> &&, OtpListWidget * = nullptr);
+		virtual ~OtpListWidgetItem();
 
-			virtual QString text( void ) const;
+		inline Otp * otp() const {
+			return m_otp.get();
+		}
 
-		private:
-			Otp * m_code;
+		virtual QString text() const;
+
+	private:
+		std::unique_ptr<Otp> m_otp;
 	};
-}
+}  // namespace Qonvince
 
-#endif // QONVINCE_OTPLISTWIDGETITEM_H
+#endif  // QONVINCE_OTPLISTWIDGETITEM_H

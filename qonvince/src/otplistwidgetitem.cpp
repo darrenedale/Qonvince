@@ -33,27 +33,24 @@
 using namespace Qonvince;
 
 
-OtpListWidgetItem::OtpListWidgetItem( OtpListWidget * parent )
-:	OtpListWidgetItem(nullptr, parent) {
+OtpListWidgetItem::OtpListWidgetItem(OtpListWidget * parent)
+: OtpListWidgetItem(nullptr, parent) {
 }
 
 
-OtpListWidgetItem::OtpListWidgetItem( Otp * code, OtpListWidget * parent )
-:	QListWidgetItem(parent, QONVINCE_OTPLISTWIDGETITEM_TYPE),
-	m_code(code) {
+OtpListWidgetItem::OtpListWidgetItem(std::unique_ptr<Otp> && otp, OtpListWidget * parent)
+: QListWidgetItem(parent, QONVINCE_OTPLISTWIDGETITEM_TYPE),
+  m_otp(std::move(otp)) {
 }
 
 
-OtpListWidgetItem::~OtpListWidgetItem( void ) {
-	delete m_code;
-	m_code = nullptr;
-}
+OtpListWidgetItem::~OtpListWidgetItem() = default;
 
 
-QString OtpListWidgetItem::text( void ) const {
-	if(!m_code) {
-		return QString();
+QString OtpListWidgetItem::text(void) const {
+	if(!m_otp) {
+		return {};
 	}
 
-	return m_code->name();
+	return m_otp->name();
 }

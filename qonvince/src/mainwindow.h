@@ -49,18 +49,6 @@ namespace Qonvince {
 		explicit MainWindow(QWidget * parent = nullptr);
 		~MainWindow();
 
-		QString hoveredCode() const;
-
-		inline QString selectedCode() const {
-			return hoveredCode();
-		}
-
-		Otp * hoveredCodeSpecification() const;
-
-		inline Otp * selectedCodeSpecification() const {
-			return hoveredCodeSpecification();
-		}
-
 		OtpListWidget * codeList() const;
 
 		void writeSettings(QSettings & settings) const;
@@ -70,7 +58,6 @@ namespace Qonvince {
 		void closing();
 
 	protected:
-		virtual void showEvent(QShowEvent *) override;
 		virtual void closeEvent(QCloseEvent * ev) override;
 		virtual void dragEnterEvent(QDragEnterEvent * ev) override;
 		virtual void dropEvent(QDropEvent * ev) override;
@@ -91,6 +78,7 @@ namespace Qonvince {
 		std::unique_ptr<Ui::MainWindow> m_ui;
 		bool m_imageDropEnabled;
 	};
+
 }  // namespace Qonvince
 
 #endif  // QONVINCE_MAINWINDOW_H

@@ -20,9 +20,14 @@
 #ifndef QUICKAUTH_OTPLISTWIDGET_H
 #define QUICKAUTH_OTPLISTWIDGET_H
 
+#include <vector>
+
 #include <QListWidget>
+#include <QMenu>
 #include <QColor>
 #include <QHash>
+#include <QBasicTimer>
+#include <QTimer>
 
 #include "otp.h"
 
@@ -31,7 +36,6 @@ class QPaintEvent;
 class QMouseEvent;
 class QKeyEvent;
 class QContextMenuEvent;
-class QTimer;
 
 namespace Qonvince {
 
@@ -55,7 +59,7 @@ namespace Qonvince {
 			Otp * code = hoveredCodeSpecification();
 
 			if(!code) {
-				return QString();
+				return {};
 			}
 
 			return code->code();
@@ -73,7 +77,6 @@ namespace Qonvince {
 			return hoveredCode();
 		}
 
-		void addItem(Otp * code);
 		void addItem(OtpListWidgetItem * item);
 
 		inline int itemHeight() const {
@@ -92,25 +95,24 @@ namespace Qonvince {
 			return m_countdownCriticalColour;
 		}
 
-		Otp * code(int i) const;
+		Otp * otp(int i) const;
 
 	public Q_SLOTS:
-		void setCountdownColour(const QColor & c);
-		void setCountdownWarningColour(const QColor & c);
-		void setCountdownCriticalColour(const QColor & c);
+		void setCountdownColour(const QColor &);
+		void setCountdownWarningColour(const QColor &);
+		void setCountdownCriticalColour(const QColor &);
 		void addCode(const QByteArray & seed);
 		void addCode(const QString & name, const QByteArray & seed);
+
+		// NOTE otp is owned (by OtpListWidgetItem created in this method)
 		void addCode(Otp * code);
 
-		/* only for dev purposes, to log when settings changes update the widget */
-		void onSettingsChanged();
-
 	Q_SIGNALS:
-		void codeAdded(Otp * code);
-		void codeRemoved(Otp * code);
-		void codeClicked(Otp * code);
-		void codeDoubleClicked(Otp * code);
-		void editCodeRequested(Otp * code);
+		//		void codeAdded(Otp *);
+		//		void codeRemoved(Otp *);
+		void codeClicked(Otp *);
+		void codeDoubleClicked(Otp *);
+		void editCodeRequested(Otp *);
 
 	protected:
 		virtual bool event(QEvent *) override;
@@ -125,25 +127,16 @@ namespace Qonvince {
 		virtual void contextMenuEvent(QContextMenuEvent *) override;
 		virtual void keyReleaseEvent(QKeyEvent *) override;
 
-#ifndef NDEBUG
-		virtual void showEvent(QShowEvent *) override;
-#endif
-
 		/* this is not a Qt event method, it's one we've synthesised by
-			 * filtering out cases where the click is part of a double-click */
-		virtual void mouseClickEvent(QMouseEvent * ev);
+		 * filtering out cases where the click is part of a double-click */
+		virtual void mouseClickEvent(QMouseEvent *);
 
-		OtpListWidgetItem * itemFromOtp(const Otp * code) const;
+		OtpListWidgetItem * findOtp(const Otp *) const;
 		void synchroniseTickTimer();
 
 	private Q_SLOTS:
-		void onCodeDefinitionChanged();
-		void onCodeDefinitionChanged(Otp * code);
-		void onCodeChanged();
-		void onCodeChanged(Otp * code);
+		void onOtpChanged();
 		void updateCountdowns();
-		void emitCodeDoubleClicked(QListWidgetItem * it);
-		void emitCodeClicked(QListWidgetItem * it);
 
 		void onEditActionTriggered();
 		void onRefreshActionTriggered();
@@ -152,42 +145,47 @@ namespace Qonvince {
 		void onRemoveIconActionTriggered();
 
 #if defined(QT_DEBUG)
-		void debugLogNewCode(const QString & code) const;
+		void debugLogNewCode(const QString &) const;
 #endif
 
 	private:
-		void callMouseClickEvent();
-
+		// index of item under mouse pointer
 		int m_hoverItemIndex;
 
 		QColor m_countdownColour;
 		QColor m_countdownWarningColour;
 		QColor m_countdownCriticalColour;
 
-		bool m_tickResync;
+		bool m_tickTimerIsResynchronising;
 		bool m_imageDropEnabled;
-		QBasicTimer * m_tickTimer;
+
+		// triggers widget redraw on TOTP timer ticks (i.e. 1s boundaries)
+		int m_tickTimerId;
 
 		/* inserts a delay between receiving a mouseReleaseEvent() that looks like a click
-			 * on a code and actually acting on a click so that we can determine whether it's
-			 * actually a double-click. the timer is started by the mouseReleaseEvent() and
-			 * stopped either by the mouseDoubleClickEvent() or the mouseClickEvent(). any
-			 * mouseReleaseEvent()s that occur while the timer is running are ignored. The flag
-			 * is set if a double-click occurred so that if, as on X, the mouseReleseEvent() for
-			 * the second click of a double-click occurs after the doubleClickEvent(), the
-			 * mouseClickEvent() is not called as well as the mouseDoubleClickEvent().
-			 */
-		QTimer * m_doubleClickWaitTimer;
+		 * on a code and actually acting on a click so that we can determine whether it's
+		 * actually a double-click. the timer is started by the mouseReleaseEvent() and
+		 * stopped either by the mouseDoubleClickEvent() or the mouseClickEvent(). any
+		 * mouseReleaseEvent()s that occur while the timer is running are ignored. The flag
+		 * is set if a double-click occurred so that if, as on X, the mouseReleseEvent() for
+		 * the second click of a double-click occurs after the doubleClickEvent(), the
+		 * mouseClickEvent() is not called as well as the mouseDoubleClickEvent().
+		 */
+		QTimer m_doubleClickWaitTimer;
 		bool m_receivedDoubleClickEvent;
 
+		// hit-test geometry for item under mouse pointer
 		QRect m_removeIconHitRect, m_refreshIconHitRect, m_copyIconHitRect, m_revealIconHitRect;
 		QPoint m_mousePressLeftStart;
 
-		QMenu * m_itemMenu;
+		// item context menu
+		QMenu m_itemMenu;
+
+		// item whose context-menu is visible
 		OtpListWidgetItem * m_menuCodeItem;
 
-		/* list of hidden passcodes that are currently, temporarily revealed */
-		QList<Otp *> m_revealedPasscodes;
+		// list of hidden passcodes that are currently revealed temporarily
+		std::vector<Otp *> m_revealedPasscodes;
 	};
 
 }  // namespace Qonvince

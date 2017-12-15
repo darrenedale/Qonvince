@@ -110,15 +110,13 @@ namespace Qonvince {
 		bool readApplicationSettings();
 		bool readCodeSettings();
 		void writeSettings() const;
-		void aboutQonvince();
+		void showAboutDialogue();
 		void clearClipboard();
 		void showSettingsWidget();
 
 	private Q_SLOTS:
 		void onTrayIconActivated(QSystemTrayIcon::ActivationReason reason);
 		void onSettingsChanged();
-		void onCodeAdded(Otp * code);
-		void onCodeDestroyed(QObject * code);
 
 	private:
 		static bool ensureDirectory(const QStandardPaths::StandardLocation & location, const QString & path);

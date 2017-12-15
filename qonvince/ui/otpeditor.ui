@@ -89,6 +89,9 @@
        <property name="placeholderText">
         <string>Name...</string>
        </property>
+       <property name="clearButtonEnabled">
+        <bool>true</bool>
+       </property>
       </widget>
      </item>
      <item row="0" column="0">
@@ -105,6 +108,9 @@
        </property>
        <property name="placeholderText">
         <string>Issuer...</string>
+       </property>
+       <property name="clearButtonEnabled">
+        <bool>true</bool>
        </property>
       </widget>
      </item>
@@ -135,6 +141,9 @@
        </property>
        <property name="placeholderText">
         <string>Base32 encoded seed...</string>
+       </property>
+       <property name="clearButtonEnabled">
+        <bool>true</bool>
        </property>
       </widget>
      </item>
@@ -197,12 +206,49 @@
     </layout>
    </item>
    <item>
-    <widget class="QCheckBox" name="advancedSettingsToggle">
+    <layout class="QHBoxLayout" name="controlLayout">
+     <item>
+      <spacer name="controlSpacer">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QPushButton" name="createBarcodeButton">
+       <property name="toolTip">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Create a barcode of the settings for this service. You will be able to use the barcode to set up the OTP for this service at a later date should it be removed from Qonvince for any reason.&lt;/p&gt;&lt;p&gt;Generated barcodes should be compatible with other OTP client apps that are able to read OTP service settings from barcodes.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;You should ensure you store the generated barcode securely - if it is stolen, the thief may be able to gain access to your account.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
+       <property name="text">
+        <string>Create Barcode</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="readBarcodeButton">
+       <property name="toolTip">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Read the settings for this service's OTP from a barcode image.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
+       <property name="text">
+        <string>Read Barcode</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <widget class="QCheckBox" name="advancedToggle">
      <property name="toolTip">
       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Show advanced settings that affect how the OTP is calculated.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;Altering these settings will change the generated codes and may cause the codes to become de-synchronised with the service for which they are intended to be used. Change these settings only if you know what you are doing.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
      </property>
      <property name="text">
-      <string>Show advanced settings</string>
+      <string>Show advanced</string>
      </property>
     </widget>
    </item>
@@ -375,53 +421,6 @@
      </property>
     </spacer>
    </item>
-   <item>
-    <layout class="QHBoxLayout" name="controlLayout">
-     <item>
-      <spacer name="controlSpacer">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>40</width>
-         <height>20</height>
-        </size>
-       </property>
-      </spacer>
-     </item>
-     <item>
-      <widget class="QPushButton" name="createBarcodeButton">
-       <property name="toolTip">
-        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Create a barcode of the settings for this service. You will be able to use the barcode to set up the OTP for this service at a later date should it be removed from Qonvince for any reason.&lt;/p&gt;&lt;p&gt;Generated barcodes should be compatible with other OTP client apps that are able to read OTP service settings from barcodes.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;You should ensure you store the generated barcode securely - if it is stolen, the thief may be able to gain access to your account.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-       </property>
-       <property name="text">
-        <string>Create Barcode</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="readBarcodeButton">
-       <property name="toolTip">
-        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Read the settings for this service's OTP from a barcode image.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-       </property>
-       <property name="text">
-        <string>Read Barcode</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="doneButton">
-       <property name="toolTip">
-        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Close this editor.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-       </property>
-       <property name="text">
-        <string>Done</string>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </item>
   </layout>
  </widget>
  <customwidgets>
@@ -445,34 +444,17 @@
   <tabstop>issuerEdit</tabstop>
   <tabstop>nameEdit</tabstop>
   <tabstop>seedEdit</tabstop>
-  <tabstop>advancedSettingsToggle</tabstop>
+  <tabstop>advancedToggle</tabstop>
   <tabstop>intervalSpin</tabstop>
   <tabstop>baseTimeEdit</tabstop>
   <tabstop>counterSpin</tabstop>
   <tabstop>resetCounterButton</tabstop>
   <tabstop>createBarcodeButton</tabstop>
   <tabstop>readBarcodeButton</tabstop>
-  <tabstop>doneButton</tabstop>
   <tabstop>icon</tabstop>
  </tabstops>
  <resources/>
  <connections>
-  <connection>
-   <sender>doneButton</sender>
-   <signal>clicked()</signal>
-   <receiver>Qonvince::OtpEditor</receiver>
-   <slot>deleteLater()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>375</x>
-     <y>450</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>383</x>
-     <y>174</y>
-    </hint>
-   </hints>
-  </connection>
   <connection>
    <sender>readBarcodeButton</sender>
    <signal>clicked()</signal>
@@ -556,22 +538,6 @@
   <connection>
    <sender>totpButton</sender>
    <signal>toggled(bool)</signal>
-   <receiver>Qonvince::OtpEditor</receiver>
-   <slot>emitTypeChanged()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>109</x>
-     <y>80</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>199</x>
-     <y>149</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>totpButton</sender>
-   <signal>toggled(bool)</signal>
    <receiver>intervalSpin</receiver>
    <slot>setEnabled(bool)</slot>
    <hints>
@@ -586,7 +552,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>advancedSettingsToggle</sender>
+   <sender>advancedToggle</sender>
    <signal>toggled(bool)</signal>
    <receiver>advancedSettingsWidget</receiver>
    <slot>setVisible(bool)</slot>
@@ -651,7 +617,6 @@
   <slot>createBarcode()</slot>
   <slot>setCounter(int)</slot>
   <slot>setDigits(int)</slot>
-  <slot>emitTypeChanged()</slot>
   <slot>resetCounter()</slot>
   <slot>toggleAdvancedSettings(bool)</slot>
   <slot>chooseIcon()</slot>

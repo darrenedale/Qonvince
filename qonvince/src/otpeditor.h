@@ -42,8 +42,8 @@ namespace Qonvince {
 		Q_OBJECT
 
 	public:
-		explicit OtpEditor(QWidget * parent = nullptr);
-		explicit OtpEditor(Otp * code, QWidget * parent = nullptr);
+		explicit OtpEditor(QWidget * = nullptr);
+		explicit OtpEditor(Otp *, QWidget * = nullptr);
 		virtual ~OtpEditor();
 
 		QString name() const;
@@ -51,14 +51,26 @@ namespace Qonvince {
 		Otp::CodeType type() const;
 		bool revealOnDemand() const;
 
+		inline Otp * otp() const {
+			return m_otp;
+		}
+
 	public Q_SLOTS:
+		void setOtp(Otp *);
+
 		void setName(const QString &);
 		void setIssuer(const QString &);
 		void setType(const Otp::CodeType &);
 		void setRevealOnDemand(bool);
 
+		void chooseIcon();
+
+		void readBarcode();
+		void readBarcode(const QString &);
+		bool createBarcode();
+		bool createBarcode(const QString &);
+
 	protected:
-		virtual void closeEvent(QCloseEvent *);
 		virtual void dragEnterEvent(QDragEnterEvent *);
 		virtual void dropEvent(QDropEvent *);
 
@@ -78,29 +90,22 @@ namespace Qonvince {
 		void baseTimeChangedInSeconds(qint64);
 		void closing();
 
-	public Q_SLOTS:
-		void setCode(Otp * code);
-		void updateWindowTitle();
-		void chooseIcon();
-		void readBarcode();
-		void readBarcode(const QString & fileName);
-		void updateHeading();
-		bool createBarcode();
-		bool createBarcode(const QString & fileName);
-
 	private Q_SLOTS:
+		void updateWindowTitle();
+		void updateHeading();
+
 		void onCodeSeedEditingFinished();
 		void setCodeBaseTimeFromWidget();
 		void setCounter(quint64);
 		void resetCounter();
 		void seedWidgetTextEdited();
 		void onDisplayPluginChanged();
-		void onIconSelected(const QIcon & icon);
+		void onIconSelected(const QIcon &);
 		void onIconCleared();
 
 	private:
 		std::unique_ptr<Ui::OtpEditor> m_ui;
-		Otp * m_code;
+		Otp * m_otp;
 		QByteArray m_originalSeed;
 	};
 }  // namespace Qonvince
