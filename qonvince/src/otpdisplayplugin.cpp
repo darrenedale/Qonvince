@@ -2,12 +2,14 @@
 
 #include "sharedlibrary.h"
 
-using namespace Qonvince;
+
+namespace Qonvince {
 
 
-OtpDisplayPlugin::OtpDisplayPlugin( void ) {
-}
+	OtpDisplayPlugin::OtpDisplayPlugin() = default;
 
 
-OtpDisplayPlugin::~OtpDisplayPlugin( void ) {
-}
+	OtpDisplayPlugin::~OtpDisplayPlugin() = default;
+
+
+}  // namespace Qonvince

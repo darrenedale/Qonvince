@@ -4,17 +4,19 @@
 #include <QString>
 
 namespace Qonvince {
+
 	class OtpDisplayPlugin {
-		public:
-			OtpDisplayPlugin( void );
-			virtual ~OtpDisplayPlugin( void );
+	public:
+		OtpDisplayPlugin();
+		virtual ~OtpDisplayPlugin();
 
-			virtual QString pluginName( void ) const = 0;
-			virtual QString pluginDescription( void ) const = 0;
-			virtual QString pluginAuthor( void ) const = 0;
+		virtual QString pluginName() const = 0;
+		virtual QString pluginDescription() const = 0;
+		virtual QString pluginAuthor() const = 0;
 
-			virtual QString displayString( const QByteArray & hmac ) const = 0;
+		virtual QString displayString(const QByteArray & hmac) const = 0;
 	};
-}
 
-#endif // QONVINCE_OTPDISPLAYPLUGIN_H
+}  // namespace Qonvince
+
+#endif  // QONVINCE_OTPDISPLAYPLUGIN_H

@@ -26,31 +26,34 @@
 
 #include "otplistwidgetitem.h"
 
-#include "otplistwidgetitem.h"
 #include "otplistwidget.h"
 #include "otp.h"
 
-using namespace Qonvince;
+
+namespace Qonvince {
 
 
-OtpListWidgetItem::OtpListWidgetItem(OtpListWidget * parent)
-: OtpListWidgetItem(nullptr, parent) {
-}
-
-
-OtpListWidgetItem::OtpListWidgetItem(std::unique_ptr<Otp> && otp, OtpListWidget * parent)
-: QListWidgetItem(parent, QONVINCE_OTPLISTWIDGETITEM_TYPE),
-  m_otp(std::move(otp)) {
-}
-
-
-OtpListWidgetItem::~OtpListWidgetItem() = default;
-
-
-QString OtpListWidgetItem::text(void) const {
-	if(!m_otp) {
-		return {};
+	OtpListWidgetItem::OtpListWidgetItem(OtpListWidget * parent)
+	: OtpListWidgetItem(nullptr, parent) {
 	}
 
-	return m_otp->name();
-}
+
+	OtpListWidgetItem::OtpListWidgetItem(std::unique_ptr<Otp> && otp, OtpListWidget * parent)
+	: QListWidgetItem(parent, QONVINCE_OTPLISTWIDGETITEM_TYPE),
+	  m_otp(std::move(otp)) {
+	}
+
+
+	OtpListWidgetItem::~OtpListWidgetItem() = default;
+
+
+	QString OtpListWidgetItem::text(void) const {
+		if(!m_otp) {
+			return {};
+		}
+
+		return m_otp->name();
+	}
+
+
+}  // namespace Qonvince

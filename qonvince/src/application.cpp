@@ -250,7 +250,7 @@ namespace Qonvince {
 	}
 
 
-	PluginPtr Application::codeDisplayPluginByName(const QString & name) const {
+	PluginPtr Application::otpDisplayPluginByName(const QString & name) const {
 		const auto it = m_codeDisplayPlugins.find(name);
 
 		if(it != m_codeDisplayPlugins.cend()) {
@@ -261,7 +261,7 @@ namespace Qonvince {
 	}
 
 
-	PluginArray Application::codeDisplayPlugins() const {
+	PluginArray Application::otpDisplayPlugins() const {
 		PluginArray ret;
 		ret.reserve(m_codeDisplayPlugins.size());
 
@@ -411,14 +411,14 @@ namespace Qonvince {
 
 
 	void Application::readQrCodeFrom(const QString & fileName) {
-		OtpQrCodeReader r(fileName);
+		OtpQrCodeReader reader(fileName);
 
-		if(!r.decode()) {
+		if(!reader.decode()) {
 			showNotification(tr("The file <strong>%1</strong> could not be read as a QR code."));
 			return;
 		}
 
-		m_mainWindow->codeList()->addCode(r.code());
+		m_mainWindow->otpList()->addOtp(reader.otp());
 	}
 
 
@@ -429,7 +429,7 @@ namespace Qonvince {
 		m_mainWindow->readSettings(settings);
 		settings.endGroup();
 
-		m_mainWindow->codeList()->clear();
+		m_mainWindow->otpList()->clear();
 		settings.beginGroup("application");
 		m_settings.read(settings);
 
@@ -459,7 +459,7 @@ namespace Qonvince {
 			}
 		}
 
-		m_mainWindow->codeList()->clear();
+		m_mainWindow->otpList()->clear();
 
 		settings.beginGroup("codes");
 		int n = settings.value("code_count", 0).toInt();
@@ -470,7 +470,7 @@ namespace Qonvince {
 
 			if(otp) {
 				connect(otp, &Otp::changed, this, &Application::writeSettings);
-				m_mainWindow->codeList()->addCode(otp);
+				m_mainWindow->otpList()->addOtp(otp);
 			}
 			else {
 				qWarning() << "failed to read code" << i;
@@ -503,7 +503,7 @@ namespace Qonvince {
 			settings.setValue("crypt_check", QCA::arrayToHex(initVec.toByteArray() + cipher.process(random).toByteArray()));
 		}
 
-		OtpListWidget * list = m_mainWindow->codeList();
+		auto * list = m_mainWindow->otpList();
 		int n = list->count();
 
 		settings.beginGroup("application");
@@ -521,7 +521,7 @@ namespace Qonvince {
 			Otp * code = list->otp(i);
 
 			if(!code) {
-				qWarning() << "code #" << i << "is null!";
+				qWarning() << "OTP #" << i << "is null!";
 				continue;
 			}
 

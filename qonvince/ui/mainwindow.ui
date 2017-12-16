@@ -17,13 +17,13 @@
    <string>Qonvince</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="../icons.qrc">
+   <iconset resource="../resources/icons.qrc">
     <normaloff>:/icons/applicationIcon</normaloff>:/icons/applicationIcon</iconset>
   </property>
   <widget class="QWidget" name="centralWidget">
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
-     <widget class="Qonvince::OtpListWidget" name="codes">
+     <widget class="Qonvince::OtpListWidget" name="otpList">
       <property name="minimumSize">
        <size>
         <width>350</width>
@@ -91,7 +91,7 @@
      <x>0</x>
      <y>0</y>
      <width>400</width>
-     <height>30</height>
+     <height>20</height>
     </rect>
    </property>
   </widget>
@@ -105,11 +105,11 @@
   </customwidget>
  </customwidgets>
  <tabstops>
-  <tabstop>codes</tabstop>
+  <tabstop>otpList</tabstop>
   <tabstop>addCode</tabstop>
  </tabstops>
  <resources>
-  <include location="../icons.qrc"/>
+  <include location="../resources/icons.qrc"/>
  </resources>
  <connections>
   <connection>

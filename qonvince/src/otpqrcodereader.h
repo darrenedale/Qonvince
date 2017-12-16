@@ -64,7 +64,7 @@ namespace Qonvince {
 		bool decode(void);
 
 		/* caller is responsible for created code */
-		Otp * code(void) const;
+		Otp * otp(void) const;
 
 	private:
 		Otp::CodeType m_type;
@@ -76,6 +76,7 @@ namespace Qonvince {
 		int m_digits;
 		time_t m_baselineTime;
 	};
+
 }  // namespace Qonvince
 
 #endif  // QONVINCE_OTPQRCODEREADER_H

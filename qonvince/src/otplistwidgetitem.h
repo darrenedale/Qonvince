@@ -22,12 +22,13 @@
 
 #include <memory>
 
-#include <QObject>
+#include <QString>
 #include <QListWidgetItem>
 
 #define QONVINCE_OTPLISTWIDGETITEM_TYPE QListWidgetItem::UserType
 
 namespace Qonvince {
+
 	class OtpListWidget;
 	class Otp;
 
@@ -35,8 +36,6 @@ namespace Qonvince {
 	: public QListWidgetItem {
 	public:
 		explicit OtpListWidgetItem(OtpListWidget * = nullptr);
-
-		// NOTE: otp is owned
 		OtpListWidgetItem(std::unique_ptr<Otp> &&, OtpListWidget * = nullptr);
 		virtual ~OtpListWidgetItem();
 
@@ -49,6 +48,7 @@ namespace Qonvince {
 	private:
 		std::unique_ptr<Otp> m_otp;
 	};
+
 }  // namespace Qonvince
 
 #endif  // QONVINCE_OTPLISTWIDGETITEM_H

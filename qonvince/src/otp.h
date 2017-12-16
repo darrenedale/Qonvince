@@ -37,20 +37,13 @@ class QTimerEvent;
 class QSettings;
 
 namespace Qonvince {
+
 	class OtpDisplayPlugin;
 	using Base32 = LibQonvince::Base32<QByteArray, char>;
 
 	class Otp
 	: public QObject {
 		Q_OBJECT
-
-		//		Q_PROPERTY(QString name READ name WRITE setName NOTIFY nameChanged)
-		//		Q_PROPERTY(QString issuer READ issuer WRITE setIssuer NOTIFY issuerChanged)
-		//		Q_PROPERTY(QByteArray seed READ seed WRITE setSeed NOTIFY seedChanged)
-		//		Q_PROPERTY(int interval READ interval WRITE setInterval NOTIFY intervalChanged)
-		//		Q_PROPERTY(QDateTime baselineTime READ baselineTime WRITE setBaselineTime NOTIFY baselineTimeChanged)
-		//		Q_PROPERTY(int counter READ counter WRITE setCounter NOTIFY counterChanged)
-		//		Q_PROPERTY(bool revealOnDemand READ revealOnDemand WRITE setRevealOnDemand NOTIFY revealOnDemandChanged)
 
 	public:
 		static constexpr const int DefaultInterval = 30;
@@ -175,12 +168,12 @@ namespace Qonvince {
 		virtual void timerEvent(QTimerEvent *);
 
 	public Q_SLOTS:
-		void setType(Otp::CodeType type);
-		void setName(const QString & name);
-		void setIssuer(const QString & issuer);
-		void setIcon(const QIcon & icon);
-		bool setSeed(const QByteArray & seed, const SeedType & seedType = SeedType::Plain);
-		void setInterval(const int & duration);
+		void setType(Otp::CodeType);
+		void setName(const QString &);
+		void setIssuer(const QString &);
+		void setIcon(const QIcon &);
+		bool setSeed(const QByteArray &, const SeedType & = SeedType::Plain);
+		void setInterval(const int &);
 
 		inline std::weak_ptr<OtpDisplayPlugin> displayPlugin() const {
 			return m_displayPlugin;
@@ -214,7 +207,7 @@ namespace Qonvince {
 			setBaselineTime(time.toUTC().toMSecsSinceEpoch() / 1000);
 		}
 
-		void setBaselineTime(const qint64 & secSinceEpoch);
+		void setBaselineTime(const qint64 &);
 		void resynchroniseRefreshTimer();
 		void refreshCode();
 
@@ -223,9 +216,7 @@ namespace Qonvince {
 
 	protected:
 		static QString totp(const QByteArray & seed, const std::shared_ptr<OtpDisplayPlugin> & plugin, time_t base = 0, int interval = 30);
-
 		static QString hotp(const QByteArray & seed, const std::shared_ptr<OtpDisplayPlugin> & plugin, quint64 counter);
-
 		static QByteArray hmac(const QByteArray & key, const QByteArray & message);
 
 	private:
@@ -234,7 +225,8 @@ namespace Qonvince {
 		QString m_name;
 		QIcon m_icon;
 
-		/* the name (JUST the name, not the path) of the temporary file for the icon so that it persists between invokations of Qonvince */
+		// the name (JUST the name, not the path) of the temporary file for the
+		// icon so that it persists between invokations of Qonvince
 		QString m_iconFileName;
 
 		mutable Base32 m_seed;
@@ -249,6 +241,7 @@ namespace Qonvince {
 
 		std::shared_ptr<OtpDisplayPlugin> m_displayPlugin;
 	};
+
 }  // namespace Qonvince
 
 #endif  // QONVINCE_OTP_H

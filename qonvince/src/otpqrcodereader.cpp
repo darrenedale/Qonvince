@@ -28,124 +28,135 @@
 
 #include <QDebug>
 #include <QRegExp>
+#include <QRegularExpression>
 
 #include "integerotpdisplayplugin.h"
 
-using namespace Qonvince;
+
+namespace Qonvince {
 
 
-OtpQrCodeReader::OtpQrCodeReader(const QString & fileName, QObject * parent)
-: QrCodeReader(fileName, parent) {}
-
-
-bool OtpQrCodeReader::decode(void) {
-	/* otpauth://{type}/{issuer}:{name}?secret={secret}[&issuer={issuer}][&counter={counter}][&digits={digits}][&algorithm={algorithm}][&period={period}] */
-	static QRegExp url("^otpauth://([^/]+)/(([^:]+):)?([^?]+)\\?(.*)$");
-
-	if(!QrCodeReader::decode()) {
-		return false;
+	OtpQrCodeReader::OtpQrCodeReader(const QString & fileName, QObject * parent)
+	: QrCodeReader(fileName, parent) {
 	}
 
-	QString code(QString::fromUtf8(decodedData()));
 
-	if(!url.exactMatch(code)) {
-		qDebug() << "code" << code << "does not match required pattern" << url.pattern();
-		return false;
-	}
-	else if("totp" != url.cap(1).toLower() && "hotp" != url.cap(1).toLower()) {
-		return false;
-	}
-	else {
-		Otp::CodeType type(url.cap(1).toLower() == "hotp" ? Otp::CodeType::Hotp : Otp::CodeType::Totp);
-		QString issuer(QString::fromUtf8(QByteArray::fromPercentEncoding(url.cap(3).toUtf8())));
-		QString name(QString::fromUtf8(QByteArray::fromPercentEncoding(url.cap(4).toUtf8())));
-		QString seed;
-		int digits = 6;
-		int counter = 0;
-		int period = 30;
-		QStringList params(url.cap(5).split("&"));
+	bool OtpQrCodeReader::decode() {
+		/* otpauth://{type}/{issuer}:{name}?secret={secret}[&issuer={issuer}][&counter={counter}][&digits={digits}][&algorithm={algorithm}][&period={period}] */
+		static QRegularExpression urlRegex("^otpauth://([^/]+)/(([^:]+):)?([^?]+)\\?(.*)$");
 
-		qDebug() << "params:" << params;
-
-		for(const QString & param : params) {
-			QStringList parts(param.split("="));
-
-			if(2 != parts.length()) {
-				qDebug() << "found invalid parameter";
-				continue;
-			}
-
-			if("secret" == parts.at(0)) {
-				seed = parts.at(1);
-			}
-			else if("issuer" == parts.at(0)) {
-				if(!issuer.isEmpty() && parts.at(1) != issuer) {
-					qDebug() << "\"issuer\" parameter" << parts.at(0) << "does not agree with issuer part of URI" << issuer << ". ignoring parameter";
-				}
-				else {
-					issuer = QString::fromUtf8(QByteArray::fromPercentEncoding(parts.at(1).toUtf8()));
-				}
-			}
-			else if("counter" == parts.at(0)) {
-				int myCounter = parts.at(1).toInt();
-
-				if(myCounter >= 0) {
-					counter = myCounter;
-				}
-				else {
-					qDebug() << "invalid \"counter\" parameter:" << parts.at(1);
-				}
-			}
-			else if("digits" == parts.at(0)) {
-				int myDigits = parts.at(1).toInt();
-
-				if(myDigits >= 6 && myDigits <= 8) {
-					digits = myDigits;
-				}
-				else {
-					qDebug() << "invalid \"digits\" parameter:" << parts.at(1);
-				}
-			}
-			else if("period" == parts.at(0)) {
-				int myPeriod = parts.at(1).toInt();
-
-				if(myPeriod > 0) {
-					period = myPeriod;
-				}
-				else {
-					qDebug() << "invalid \"period\" parameter:" << parts.at(1);
-				}
-			}
-			else if("algorithm" == parts.at(0)) {
-				qDebug() << "\"algorithm\" parameter found but not yet supported. algorithm is" << parts.at(1) << "; only SHA1 supported";
-			}
+		if(!QrCodeReader::decode()) {
+			return false;
 		}
 
-		if(seed.isEmpty()) {
+		QString code = QString::fromUtf8(decodedData());
+		auto urlMatch = urlRegex.match(code);
+
+		if(urlMatch.hasMatch()) {
+			qDebug() << "code" << code << "does not match required pattern" << urlRegex.pattern();
 			return false;
 		}
 		else {
-			m_type = type;
-			m_issuer = issuer;
-			m_name = name;
-			m_seed = seed.toUtf8();
-			m_counter = counter;
-			m_interval = period;
-			m_digits = digits;
-			return true;
+			auto typeString = urlMatch.captured(1).toLower();
+
+			if("totp" != typeString && "hotp" != typeString) {
+				return false;
+			}
+			else {
+				Otp::CodeType type = (typeString == "hotp" ? Otp::CodeType::Hotp : Otp::CodeType::Totp);
+				QString issuer(QString::fromUtf8(QByteArray::fromPercentEncoding(urlMatch.captured(3).toUtf8())));
+				QString name(QString::fromUtf8(QByteArray::fromPercentEncoding(urlMatch.captured(4).toUtf8())));
+				QString seed;
+				int digits = 6;
+				int counter = 0;
+				int period = 30;
+				QStringList params(urlMatch.captured(5).split("&"));
+
+				qDebug() << "params:" << params;
+
+				for(const QString & param : params) {
+					QStringList parts(param.split("="));
+
+					if(2 != parts.length()) {
+						qDebug() << "found invalid parameter";
+						continue;
+					}
+
+					if("secret" == parts.at(0)) {
+						seed = parts.at(1);
+					}
+					else if("issuer" == parts.at(0)) {
+						if(!issuer.isEmpty() && parts.at(1) != issuer) {
+							qDebug() << "\"issuer\" parameter" << parts.at(0) << "does not agree with issuer part of URI" << issuer << ". ignoring parameter";
+						}
+						else {
+							issuer = QString::fromUtf8(QByteArray::fromPercentEncoding(parts.at(1).toUtf8()));
+						}
+					}
+					else if("counter" == parts.at(0)) {
+						int myCounter = parts.at(1).toInt();
+
+						if(myCounter >= 0) {
+							counter = myCounter;
+						}
+						else {
+							qDebug() << "invalid \"counter\" parameter:" << parts.at(1);
+						}
+					}
+					else if("digits" == parts.at(0)) {
+						int myDigits = parts.at(1).toInt();
+
+						if(myDigits >= 6 && myDigits <= 8) {
+							digits = myDigits;
+						}
+						else {
+							qDebug() << "invalid \"digits\" parameter:" << parts.at(1);
+						}
+					}
+					else if("period" == parts.at(0)) {
+						int myPeriod = parts.at(1).toInt();
+
+						if(myPeriod > 0) {
+							period = myPeriod;
+						}
+						else {
+							qDebug() << "invalid \"period\" parameter:" << parts.at(1);
+						}
+					}
+					else if("algorithm" == parts.at(0)) {
+						qDebug() << "\"algorithm\" parameter found but not yet supported. algorithm is" << parts.at(1) << "; only SHA1 supported";
+					}
+				}
+
+				if(seed.isEmpty()) {
+					return false;
+				}
+				else {
+					m_type = type;
+					m_issuer = issuer;
+					m_name = name;
+					m_seed = seed.toUtf8();
+					m_counter = counter;
+					m_interval = period;
+					m_digits = digits;
+					return true;
+				}
+			}
 		}
 	}
-}
 
 
-Otp * OtpQrCodeReader::code(void) const {
-	if(!m_seed.isEmpty()) {
-		auto * ret = new Otp(type(), issuer(), name(), seed(), Otp::SeedType::Base32);
-		ret->setCounter(static_cast<quint64>(m_counter));
-		ret->setInterval(m_interval);
-		ret->setDisplayPlugin(std::make_shared<IntegerOtpDisplayPlugin>(m_digits));
-		return ret;
+	Otp * OtpQrCodeReader::otp() const {
+		if(!m_seed.isEmpty()) {
+			auto * ret = new Otp(type(), issuer(), name(), seed(), Otp::SeedType::Base32);
+			ret->setCounter(static_cast<quint64>(m_counter));
+			ret->setInterval(m_interval);
+			ret->setDisplayPlugin(std::make_shared<IntegerOtpDisplayPlugin>(m_digits));
+			return ret;
+		}
+
+		return nullptr;
 	}
 
-	return nullptr;
-}
+
+}  // namespace Qonvince

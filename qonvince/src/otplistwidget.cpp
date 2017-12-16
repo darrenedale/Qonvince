@@ -143,7 +143,7 @@ OtpListWidgetItem * OtpListWidget::findOtp(const Otp * otp) const {
 }
 
 
-Otp * OtpListWidget::hoveredCodeSpecification() const {
+Otp * OtpListWidget::hoveredOtp() const {
 	if(0 > m_hoverItemIndex) {
 		return nullptr;
 	}
@@ -190,17 +190,17 @@ void OtpListWidget::updateCountdowns() {
 }
 
 
-void OtpListWidget::addCode(Otp * otp) {
+void OtpListWidget::addOtp(Otp * otp) {
 	addItem(new OtpListWidgetItem(std::unique_ptr<Otp>(otp)));
 }
 
 
-void OtpListWidget::addCode(const QByteArray & seed) {
+void OtpListWidget::addOtp(const QByteArray & seed) {
 	addItem(new OtpListWidgetItem(std::make_unique<Otp>(Otp::CodeType::Totp, seed)));
 }
 
 
-void OtpListWidget::addCode(const QString & name, const QByteArray & seed) {
+void OtpListWidget::addOtp(const QString & name, const QByteArray & seed) {
 	addItem(new OtpListWidgetItem(std::make_unique<Otp>(Otp::CodeType::Totp, name, seed)));
 }
 
@@ -255,7 +255,7 @@ bool OtpListWidget::event(QEvent * ev) {
 		QPoint globalMousePos(QCursor::pos());
 		QPoint mousePos(mapFromGlobal(globalMousePos));
 		QString txt;
-		Otp * item = hoveredCodeSpecification();
+		Otp * item = hoveredOtp();
 
 		if(!!item) {
 			QString label;

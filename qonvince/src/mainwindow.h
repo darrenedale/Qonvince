@@ -46,33 +46,33 @@ namespace Qonvince {
 		Q_OBJECT
 
 	public:
-		explicit MainWindow(QWidget * parent = nullptr);
+		explicit MainWindow(QWidget * = nullptr);
 		~MainWindow();
 
-		OtpListWidget * codeList() const;
+		OtpListWidget * otpList() const;
 
-		void writeSettings(QSettings & settings) const;
-		void readSettings(const QSettings & settings);
+		void writeSettings(QSettings &) const;
+		void readSettings(const QSettings &);
 
 	Q_SIGNALS:
 		void closing();
 
 	protected:
-		virtual void closeEvent(QCloseEvent * ev) override;
-		virtual void dragEnterEvent(QDragEnterEvent * ev) override;
-		virtual void dropEvent(QDropEvent * ev) override;
+		virtual void closeEvent(QCloseEvent *) override;
+		virtual void dragEnterEvent(QDragEnterEvent *) override;
+		virtual void dropEvent(QDropEvent *) override;
 
 	private Q_SLOTS:
 		void refreshTooltip();
-		void onAddCodeClicked();
+		void onAddOtpClicked();
 		void onSettingsClicked();
 
-		inline void onCodeDoubleClicked(Otp * code) {
-			onEditCodeRequested(code);
+		inline void onOtpDoubleClicked(Otp * otp) {
+			onEditOtpRequested(otp);
 		}
 
-		void onEditCodeRequested(Otp * code);
-		void onCodeClicked(Otp * code);
+		void onEditOtpRequested(Otp *);
+		void onOtpClicked(Otp *);
 
 	private:
 		std::unique_ptr<Ui::MainWindow> m_ui;

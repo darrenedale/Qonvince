@@ -53,15 +53,15 @@ namespace Qonvince {
 	  m_imageDropEnabled(OtpQrCodeReader::isAvailable()) {
 		m_ui->setupUi(this);
 
-		m_ui->codes->setCountdownWarningColour(QColor(160, 160, 92));
-		m_ui->codes->setCountdownCriticalColour(QColor(220, 78, 92));
+		m_ui->otpList->setCountdownWarningColour(QColor(160, 160, 92));
+		m_ui->otpList->setCountdownCriticalColour(QColor(220, 78, 92));
 
 		m_ui->addCode->setIcon(QIcon::fromTheme("list-add", QIcon(":/icons/mainwindow/add")));
 		m_ui->settings->setIcon(QIcon::fromTheme("configure-shortcuts", QIcon(":/icons/mainwindow/settings")));
 
-		connect(m_ui->codes, &OtpListWidget::codeClicked, this, &MainWindow::onCodeClicked);
-		connect(m_ui->codes, &OtpListWidget::codeDoubleClicked, this, &MainWindow::onCodeDoubleClicked);
-		connect(m_ui->codes, &OtpListWidget::editCodeRequested, this, &MainWindow::onEditCodeRequested);
+		connect(m_ui->otpList, &OtpListWidget::codeClicked, this, &MainWindow::onOtpClicked);
+		connect(m_ui->otpList, &OtpListWidget::codeDoubleClicked, this, &MainWindow::onOtpDoubleClicked);
+		connect(m_ui->otpList, &OtpListWidget::editCodeRequested, this, &MainWindow::onEditOtpRequested);
 
 		if(m_imageDropEnabled) {
 			setAcceptDrops(true);
@@ -77,8 +77,8 @@ namespace Qonvince {
 	MainWindow::~MainWindow() = default;
 
 
-	OtpListWidget * MainWindow::codeList() const {
-		return m_ui->codes;
+	OtpListWidget * MainWindow::otpList() const {
+		return m_ui->otpList;
 	}
 
 
@@ -123,14 +123,14 @@ namespace Qonvince {
 		QString tt = QStringLiteral("<html><body><p>%1</p>%2%3</body></html>").arg(tr("Double-click an entry to edit its details."), (qonvinceApp->settings().copyCodeOnClick() ? QStringLiteral("<p>%1</p>").arg(tr("Click an entry to copy its current code to the clipboard.")) : ""), (m_imageDropEnabled ? QStringLiteral("<p>%1</p>").arg(tr("Drop a QR code image on this window to decode it.")) : ""));
 
 		setToolTip(tt);
-		m_ui->codes->setToolTip(tt);
+		m_ui->otpList->setToolTip(tt);
 	}
 
 
-	void MainWindow::onAddCodeClicked() {
+	void MainWindow::onAddOtpClicked() {
 		auto otp = new Otp(Otp::CodeType::Totp);
-		onEditCodeRequested(otp);
-		m_ui->codes->addCode(otp);
+		onEditOtpRequested(otp);
+		m_ui->otpList->addOtp(otp);
 	}
 
 
@@ -139,20 +139,20 @@ namespace Qonvince {
 	}
 
 
-	void MainWindow::onEditCodeRequested(Otp * code) {
-		Q_ASSERT_X(code, __PRETTY_FUNCTION__, "null code");
-		auto * editor = new OtpEditorDialogue(code, this);
+	void MainWindow::onEditOtpRequested(Otp * otp) {
+		Q_ASSERT_X(otp, __PRETTY_FUNCTION__, "null OTP object");
+		auto * editor = new OtpEditorDialogue(otp, this);
 		editor->setAttribute(Qt::WA_DeleteOnClose, true);
 		editor->show();
 	}
 
 
-	void MainWindow::onCodeClicked(Otp * code) {
-		Q_ASSERT_X(code, __PRETTY_FUNCTION__, "null code");
+	void MainWindow::onOtpClicked(Otp * otp) {
+		Q_ASSERT_X(otp, __PRETTY_FUNCTION__, "null OTP object");
 		const Settings & settings = qonvinceApp->settings();
 
 		if(settings.copyCodeOnClick()) {
-			QApplication::clipboard()->setText(code->code());
+			QApplication::clipboard()->setText(otp->code());
 
 			if(settings.clearClipboardAfterInterval() && 0 < settings.clipboardClearInterval()) {
 				QTimer::singleShot(1000 * settings.clipboardClearInterval(), qonvinceApp, &Application::clearClipboard);
@@ -164,15 +164,15 @@ namespace Qonvince {
 
 				switch(settings.codeLabelDisplayStyle()) {
 					case Settings::IssuerAndName:
-						label = code->issuer() % ": " % code->name();
+						label = otp->issuer() % ": " % otp->name();
 						break;
 
 					case Settings::IssuerOnly:
-						label = code->issuer();
+						label = otp->issuer();
 						break;
 
 					case Settings::NameOnly:
-						label = code->name();
+						label = otp->name();
 						break;
 				}
 

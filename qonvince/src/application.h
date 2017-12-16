@@ -97,8 +97,8 @@ namespace Qonvince {
 			return m_settings;
 		}
 
-		PluginPtr codeDisplayPluginByName(const QString & name) const;
-		PluginArray codeDisplayPlugins() const;
+		PluginPtr otpDisplayPluginByName(const QString & name) const;
+		PluginArray otpDisplayPlugins() const;
 
 		static int exec();
 

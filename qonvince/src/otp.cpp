@@ -197,7 +197,7 @@ namespace Qonvince {
 
 		if(SeedType::Base32 == seedType) {
 			if(newSeed == m_seed.encoded()) {
-				/* no actual change */
+				// no actual change
 				return true;
 			}
 
@@ -205,14 +205,14 @@ namespace Qonvince {
 			oldB32 = m_seed.encoded();
 
 			if(!m_seed.setEncoded(newSeed)) {
-				/* invalid base32 sequence */
+				// invalid base32 sequence
 				m_seed.setPlain(oldSeed);
 				return false;
 			}
 		}
 		else {
 			if(newSeed == m_seed.plain()) {
-				/* no actual change */
+				// no actual change
 				return true;
 			}
 
@@ -224,7 +224,7 @@ namespace Qonvince {
 		Q_EMIT seedChanged(oldSeed, m_seed.plain());
 		Q_EMIT seedChanged(m_seed.plain());
 
-		/* emit base32 signals */
+		// emit base32 signals
 		Q_EMIT seedChanged(oldB32, m_seed.encoded());
 		Q_EMIT seedChanged(m_seed.encoded());
 		Q_EMIT changed();
@@ -283,7 +283,7 @@ namespace Qonvince {
 
 
 	Otp * Otp::fromSettings(const QSettings & settings, const QCA::SecureArray & cryptKey) {
-		static QVector<QChar> s_validIconFileNameChars = {'a', 'b', 'c', 'd', 'e', 'f'};
+		//		static constexpr std::array<QChar, 6> s_validIconFileNameChars = {{'a', 'b', 'c', 'd', 'e', 'f'}};
 
 		auto * ret = new Otp("HOTP" == settings.value("type", "TOTP").toString() ? CodeType::Hotp : CodeType::Totp);
 		ret->setName(settings.value("name").toString());
@@ -302,14 +302,13 @@ namespace Qonvince {
 			}
 		}
 
-		ret->setDisplayPlugin(qonvinceApp->codeDisplayPluginByName(pluginName));
+		ret->setDisplayPlugin(qonvinceApp->otpDisplayPluginByName(pluginName));
 
-		/* read icon path and load icon */
 		QString fileName = settings.value("icon").toString();
 
 		// validate file name so that manually-edited config file can't cause
 		// unexpected image (or other) file to be loaded */
-		for(QChar c : fileName) {
+		for(const auto & c : fileName) {
 			if((c < '0' || c > '9') && (c < 'a' || c > 'z') && (c < 'A' || c > 'Z')) {
 				qWarning() << "icon filename" << fileName << "in config file for code" << ret->issuer() << ":" << ret->name() << "is not valid (char" << c << "found)";
 				fileName.clear();
@@ -319,7 +318,7 @@ namespace Qonvince {
 
 		if(!fileName.isEmpty()) {
 			/* save icon and write filename to settings */
-			QString path = QStandardPaths::locate(QStandardPaths::AppLocalDataLocation, "codes/icons/" + fileName);
+			auto path = QStandardPaths::locate(QStandardPaths::AppLocalDataLocation, "codes/icons/" + fileName);
 
 			if(path.isEmpty()) {
 				qWarning() << "icon file" << fileName << "for code" << ret->issuer() << ":" << ret->name() << "not found";
@@ -365,7 +364,6 @@ namespace Qonvince {
 		}
 
 		ret->setRevealOnDemand(settings.value("revealOnDemand", false).toBool());
-
 		return ret;
 	}
 
@@ -388,14 +386,16 @@ namespace Qonvince {
 			settings.setValue("pluginName", "");
 		}
 
-		QCA::SymmetricKey key(cryptKey);
-		QCA::InitializationVector initVec(InitializationVectorSize);
-		QCA::Cipher cipher("aes256", QCA::Cipher::CBC, QCA::Cipher::DefaultPadding, QCA::Encode, key, initVec);
-		QCA::SecureArray encrypted = initVec.toByteArray() + cipher.process(seed(SeedType::Base32));
-		settings.setValue("seed", QCA::arrayToHex(encrypted.toByteArray()));
+		{
+			QCA::SymmetricKey key(cryptKey);
+			QCA::InitializationVector initVec(InitializationVectorSize);
+			QCA::Cipher cipher("aes256", QCA::Cipher::CBC, QCA::Cipher::DefaultPadding, QCA::Encode, key, initVec);
+			QCA::SecureArray encrypted = initVec.toByteArray() + cipher.process(seed(SeedType::Base32));
+			settings.setValue("seed", QCA::arrayToHex(encrypted.toByteArray()));
 
-		if(!cipher.ok()) {
-			qCritical() << "encryption of seed failed";
+			if(!cipher.ok()) {
+				qCritical() << "encryption of seed failed";
+			}
 		}
 
 		if(CodeType::Hotp == type()) {
@@ -431,7 +431,7 @@ namespace Qonvince {
 
 		if(0 == mySeed.length()) {
 			qWarning() << "no seed";
-			m_currentCode = QString();
+			m_currentCode.clear();
 			return;
 		}
 
@@ -442,13 +442,13 @@ namespace Qonvince {
 			Q_EMIT newCodeGenerated(m_currentCode);
 		}
 		else {
-			int d(interval());
+			int duration = interval();
 
-			if(0 == d) {
-				d = 30;
+			if(0 == duration) {
+				duration = 30;
 			}
 
-			code = totp(mySeed, m_displayPlugin, baselineSecSinceEpoch(), d);
+			code = totp(mySeed, m_displayPlugin, baselineSecSinceEpoch(), duration);
 
 			if(!code.isEmpty()) {
 				if(m_currentCode != code) {
@@ -458,7 +458,7 @@ namespace Qonvince {
 			}
 			else {
 				qCritical() << "failed to generate new OTP";
-				m_currentCode = QString();
+				m_currentCode.clear();
 			}
 		}
 	}
@@ -498,7 +498,7 @@ namespace Qonvince {
 
 
 	QString Otp::hotp(const QByteArray & seed, const std::shared_ptr<OtpDisplayPlugin> & plugin, quint64 counter) {
-		Q_ASSERT(plugin);
+		Q_ASSERT_X(plugin, __PRETTY_FUNCTION__, "null plugin");
 
 		char myCounter[8];
 		quint64 c = counter;
@@ -515,21 +515,24 @@ namespace Qonvince {
 
 	QByteArray Otp::hmac(const QByteArray & key, const QByteArray & message) {
 		// algorithm from wikipedia
-		static int blockSize = 64;
-		QByteArray myKey(key);
+		static constexpr const int blockSize = 64;
+		QByteArray myKey = key;
+		auto keySize = myKey.size();
 
-		if(myKey.length() > blockSize) {
+		if(keySize > blockSize) {
 			myKey = QCryptographicHash::hash(myKey, QCryptographicHash::Sha1);
+			keySize = myKey.size();
 		}
 
-		if(myKey.length() < blockSize) {
-			myKey.append(QByteArray(blockSize - myKey.length(), 0x00));
+		if(keySize < blockSize) {
+			std::fill_n(std::back_inserter(myKey), blockSize - keySize, 0x00);
+			//			myKey.push_back(QByteArray(blockSize - keySize, 0x00));
 		}
 
 		QByteArray o_key_pad(blockSize, 0x5c);
 		QByteArray i_key_pad(blockSize, 0x36);
 
-		for(int i = 0; i < blockSize; ++i) {
+		for(auto i = 0; i < blockSize; ++i) {
 			o_key_pad[i] = o_key_pad[i] ^ myKey[i];
 			i_key_pad[i] = i_key_pad[i] ^ myKey[i];
 		}

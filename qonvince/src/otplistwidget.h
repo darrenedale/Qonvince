@@ -46,40 +46,40 @@ namespace Qonvince {
 		Q_OBJECT
 
 	public:
-		explicit OtpListWidget(QWidget * parent = nullptr);
+		explicit OtpListWidget(QWidget * = nullptr);
 		virtual ~OtpListWidget();
 
-		inline int hoveredCodeIndex() const {
+		inline int hoveredOtpIndex() const {
 			return m_hoverItemIndex;
 		}
 
-		Otp * hoveredCodeSpecification() const;
+		Otp * hoveredOtp() const;
 
-		inline QString hoveredCode() const {
-			Otp * code = hoveredCodeSpecification();
+		inline QString hoveredOtpCode() const {
+			auto * otp = hoveredOtp();
 
-			if(!code) {
+			if(!otp) {
 				return {};
 			}
 
-			return code->code();
+			return otp->code();
 		}
 
-		inline int selectedCodeIndex() const {
-			return hoveredCodeIndex();
+		inline int selectedOtpIndex() const {
+			return hoveredOtpIndex();
 		}
 
-		inline Otp * selectedCodeSpecification() const {
-			return hoveredCodeSpecification();
+		inline Otp * selectedOtp() const {
+			return hoveredOtp();
 		}
 
-		inline QString selectedCode() const {
-			return hoveredCode();
+		inline QString selectedOtpCode() const {
+			return hoveredOtpCode();
 		}
 
-		void addItem(OtpListWidgetItem * item);
+		void addItem(OtpListWidgetItem *);
 
-		inline int itemHeight() const {
+		constexpr inline int itemHeight() const {
 			return 40;
 		}
 
@@ -101,11 +101,11 @@ namespace Qonvince {
 		void setCountdownColour(const QColor &);
 		void setCountdownWarningColour(const QColor &);
 		void setCountdownCriticalColour(const QColor &);
-		void addCode(const QByteArray & seed);
-		void addCode(const QString & name, const QByteArray & seed);
+		void addOtp(const QByteArray & seed);
+		void addOtp(const QString & name, const QByteArray & seed);
 
 		// NOTE otp is owned (by OtpListWidgetItem created in this method)
-		void addCode(Otp * code);
+		void addOtp(Otp *);
 
 	Q_SIGNALS:
 		//		void codeAdded(Otp *);
@@ -162,15 +162,14 @@ namespace Qonvince {
 		// triggers widget redraw on TOTP timer ticks (i.e. 1s boundaries)
 		int m_tickTimerId;
 
-		/* inserts a delay between receiving a mouseReleaseEvent() that looks like a click
-		 * on a code and actually acting on a click so that we can determine whether it's
-		 * actually a double-click. the timer is started by the mouseReleaseEvent() and
-		 * stopped either by the mouseDoubleClickEvent() or the mouseClickEvent(). any
-		 * mouseReleaseEvent()s that occur while the timer is running are ignored. The flag
-		 * is set if a double-click occurred so that if, as on X, the mouseReleseEvent() for
-		 * the second click of a double-click occurs after the doubleClickEvent(), the
-		 * mouseClickEvent() is not called as well as the mouseDoubleClickEvent().
-		 */
+		// inserts a delay between receiving a mouseReleaseEvent() that looks like a click
+		// on a code and actually acting on a click so that we can determine whether it's
+		// actually a double-click. the timer is started by the mouseReleaseEvent() and
+		// stopped either by the mouseDoubleClickEvent() or the mouseClickEvent(). any
+		// mouseReleaseEvent()s that occur while the timer is running are ignored. The flag
+		// is set if a double-click occurred so that if, as on X, the mouseReleseEvent() for
+		// the second click of a double-click occurs after the doubleClickEvent(), the
+		// mouseClickEvent() is not called as well as the mouseDoubleClickEvent().
 		QTimer m_doubleClickWaitTimer;
 		bool m_receivedDoubleClickEvent;
 
