@@ -25,46 +25,47 @@
 
 namespace Qonvince {
 
-	class OtpQrCodeReader : public QrCodeReader {
+	class OtpQrCodeReader
+	: public QrCodeReader {
 	public:
 		OtpQrCodeReader(const QString & fileName, QObject * parent = nullptr);
 
-		inline const Otp::CodeType & type(void) const {
+		inline const Otp::CodeType & type() const {
 			return m_type;
 		}
 
-		inline const QString & name(void) const {
+		inline const QString & name() const {
 			return m_name;
 		}
 
-		inline const QString & issuer(void) const {
+		inline const QString & issuer() const {
 			return m_issuer;
 		}
 
-		inline const QByteArray & seed(void) const {
+		inline const QByteArray & seed() const {
 			return m_seed;
 		}
 
-		inline int interval(void) const {
+		inline int interval() const {
 			return m_interval;
 		}
 
-		inline time_t baselineTime(void) const {
+		inline time_t baselineTime() const {
 			return m_baselineTime;
 		}
 
-		inline int digits(void) const {
+		inline int digits() const {
 			return m_digits;
 		}
 
-		inline int counter(void) const {
+		inline int counter() const {
 			return m_counter;
 		}
 
-		bool decode(void);
+		bool decode();
 
-		/* caller is responsible for created code */
-		Otp * otp(void) const;
+		// caller is responsible for created code
+		Otp * otp() const;
 
 	private:
 		Otp::CodeType m_type;

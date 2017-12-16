@@ -34,20 +34,20 @@ namespace Qonvince {
 		public:
 			QrCodeReader( const QString & fileName = QString(), QObject * parent = nullptr );
 
-			static void staticInitialise( void );
+			static void staticInitialise();
 
-			static inline bool isAvailable( void ) {
+			static inline bool isAvailable() {
 				staticInitialise();
 				return s_isAvailable;
 			}
 
-			bool decode( void );
+			bool decode();
 
-			bool isDecoded( void ) const {
+			bool isDecoded() const {
 				return m_isDecoded;
 			}
 
-			inline const QString & fileName( void ) const {
+			inline const QString & fileName() const {
 				return m_fileName;
 			}
 
@@ -57,7 +57,7 @@ namespace Qonvince {
 				m_isDecoded = false;
 			}
 
-			inline const QByteArray & decodedData( void ) const {
+			inline const QByteArray & decodedData() const {
 				return m_decodedData;
 			}
 
@@ -68,12 +68,12 @@ namespace Qonvince {
 //					explicit QZbarImage( const QString & fileName );
 //					QZbarImage( const QImage & img );
 
-//					bool isValid( void ) const {
+//					bool isValid() const {
 //						return !m_qImg.isNull() && m_isValid;
 //					}
 
 //				private:
-//					void initialise( void );
+//					void initialise();
 
 //					QImage m_qImg;
 //					bool m_isValid;

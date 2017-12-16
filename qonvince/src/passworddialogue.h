@@ -6,6 +6,8 @@
 #include <QDialog>
 #include <QString>
 
+class QWidget;
+
 namespace Qonvince {
 
 	namespace Ui {
@@ -17,33 +19,34 @@ namespace Qonvince {
 			Q_OBJECT
 
 		public:
-			explicit PasswordDialogue( QWidget * parent = nullptr );
-			explicit PasswordDialogue( const QString & msg, QWidget * parent = nullptr );
-			~PasswordDialogue( void );
+			explicit PasswordDialogue(QWidget * = nullptr);
+			explicit PasswordDialogue(const QString &, QWidget * = nullptr);
+			~PasswordDialogue();
 
-			QString message( void ) const;
-			void setMessage( const QString & msg );
+			QString message() const;
+			void setMessage(const QString &);
 
-			QString password( void ) const;
-			void setPassword( const QString & password );
+			QString password() const;
+			void setPassword(const QString &);
 
 		public Q_SLOTS:
-			inline void showMessage( void ) {
+			inline void showMessage() {
 				setMessageVisible(true);
 			}
 
-			inline void hideMessage( void ) {
+			inline void hideMessage() {
 				setMessageVisible(false);
 			}
 
-			void setMessageVisible( bool vis );
+			void setMessageVisible(bool);
 
 		Q_SIGNALS:
-			void passwordChanged( QString );
+			void passwordChanged(QString);
 
 		private:
 			std::unique_ptr<Ui::PasswordDialogue> m_ui;
 	};
+
 } // namespace Qonvince
 
 #endif // QONVINCE_PASSWORDDIALOGUE_H

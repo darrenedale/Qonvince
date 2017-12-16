@@ -17,21 +17,20 @@ namespace Qonvince {
 			Q_OBJECT
 
 		public:
-			explicit PasswordWidget( QWidget * parent = nullptr );
-			~PasswordWidget( void );
+			explicit PasswordWidget(QWidget * parent = nullptr);
+			~PasswordWidget();
 
-			QString password( void ) const;
+			QString password() const;
 
 		Q_SIGNALS:
-			void passwordChanged( QString );
+			void passwordChanged(const QString &);
 
 		public Q_SLOTS:
-			void setPassword( const QString & pw );
+			void setPassword(const QString & pw);
 
 		private:
 			std::unique_ptr<Ui::PasswordWidget> m_ui;
 	};
-
 
 } // namespace Qonvince
 

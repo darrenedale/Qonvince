@@ -30,7 +30,7 @@
 #include <QColor>
 
 
-using namespace Qonvince;
+namespace Qonvince {
 
 
 LibQrEncode QrCodeCreator::s_libQrEncode;
@@ -42,29 +42,23 @@ const QColor QrCodeCreator::DefaultBackground = QColor(0xff, 0xff, 0xff);
 
 QrCodeCreator::QrCodeCreator( const QString & data )
 :	m_data(data) {
-qDebug() << "data to encode:" << m_data;
-qDebug() << "encoding is available:" << (isAvailable() ? "yes" : "no");
 }
 
 
-QrCodeCreator::~QrCodeCreator( void ) {
+QrCodeCreator::~QrCodeCreator() {
 	s_libQrEncode.close();
 }
 
 
 QImage QrCodeCreator::image( const QSize & size ) {
 	QImage img(size, QImage::Format_RGB32);
-
-	{
-		QPainter painter(&img);
-		paint(painter, size);
-	}
-
+	QPainter painter(&img);
+	paint(painter, size);
 	return img;
 }
 
 
-void QrCodeCreator::paint( QPainter & painter, const QSize & size, const QColor & fg, const QColor & bg ) {
+void QrCodeCreator::paint(QPainter & painter, const QSize & size, const QColor & fg, const QColor & bg) {
 	LibQrEncode::QrCode qr = s_libQrEncode.encodeString(m_data);
 
 	if(qr.isValid){
@@ -93,4 +87,7 @@ void QrCodeCreator::paint( QPainter & painter, const QSize & size, const QColor 
 		painter.setBrush(QColor(0xff, 0x00, 0x00));
 		painter.drawRect(0, 0, size.width(), size.height());
 	}
+}
+
+
 }

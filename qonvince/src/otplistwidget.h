@@ -144,7 +144,7 @@ namespace Qonvince {
 		void onCopyActionTriggered();
 		void onRemoveIconActionTriggered();
 
-#if defined(QT_DEBUG)
+#ifndef NDEBUG
 		void debugLogNewCode(const QString &) const;
 #endif
 

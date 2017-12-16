@@ -37,33 +37,33 @@ namespace Qonvince {
 			Q_OBJECT
 
 		public:
-			explicit SettingsWidget( Settings & settings, QWidget * parent = nullptr );
-			~SettingsWidget( void );
+			explicit SettingsWidget(Settings &, QWidget * = nullptr);
+			~SettingsWidget();
 
-			bool singleInstance( void ) const;
-			bool quitOnMainWindowClose( void ) const;
-			bool startMinimised( void ) const;
-			bool copyCodeOnClick( void ) const;
-			bool hideOnCodeCopyClick( void ) const;
-			bool clearClipboardAfterInterval( void ) const;
-			int clipboardClearInterval( void ) const;
-			Settings::CodeLabelDisplayStyle codeLabelDisplayStyle( void ) const;
-			int codeRevealTimeout( void ) const;
+			bool singleInstance() const;
+			bool quitOnMainWindowClose() const;
+			bool startMinimised() const;
+			bool copyCodeOnClick() const;
+			bool hideOnCodeCopyClick() const;
+			bool clearClipboardAfterInterval() const;
+			int clipboardClearInterval() const;
+			Settings::CodeLabelDisplayStyle codeLabelDisplayStyle() const;
+			int codeRevealTimeout() const;
 
 		public Q_SLOTS:
-			void setSingleInstance( bool close );
-			void setQuitOnMainWindowClose( bool close );
-			void setStartMinimised( bool minimised );
-			void setCopyCodeOnClick( bool copy );
-			void setHideOnCodeCopyClick( bool hide );
-			void setClearClipboardAfterInterval( bool clear );
-			void setClipboardClearInterval( int interval );
-			void setCodeLabelDisplayStyle( Settings::CodeLabelDisplayStyle style );
-			void setCodeRevealTimeout( int timeout );
+			void setSingleInstance(bool close);
+			void setQuitOnMainWindowClose(bool close);
+			void setStartMinimised(bool minimised);
+			void setCopyCodeOnClick(bool copy);
+			void setHideOnCodeCopyClick(bool hide);
+			void setClearClipboardAfterInterval(bool clear);
+			void setClipboardClearInterval(int interval);
+			void setCodeLabelDisplayStyle(Settings::CodeLabelDisplayStyle style);
+			void setCodeRevealTimeout(int timeout);
 
 		private Q_SLOTS:
-			void resyncWithSettings( void );
-			void onDisplayStyleWidgetChanged( void );
+			void resyncWithSettings();
+			void onDisplayStyleWidgetChanged();
 
 		private:
 

@@ -62,14 +62,17 @@
 
  */
 
-using namespace Qonvince;
+
+namespace Qonvince {
 
 
-bool QrCodeReader::s_isAvailable(false);
+bool QrCodeReader::s_isAvailable = false;
+
 
 #if defined(__linux__)
 QString QrCodeReader::s_zbarImgPath;
 #endif
+
 
 QrCodeReader::QrCodeReader( const QString & fileName, QObject * parent )
 :	QObject(parent),
@@ -79,21 +82,17 @@ QrCodeReader::QrCodeReader( const QString & fileName, QObject * parent )
 }
 
 
-void QrCodeReader::staticInitialise( void ) {
-	static bool	s_done(false);
+void QrCodeReader::staticInitialise() {
+	static bool	s_done = false;
 
 	if(!s_done) {
 #if defined(__linux__)
 		QProcess p;
-#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
 		p.setProgram("/usr/bin/which");
 		p.setArguments({"zbarimg"});
 		p.start();
-#else
-		p.start("/usr/bin/which", {"zbarimg"});
-#endif
 		p.waitForFinished();
-		QByteArray out(p.readAllStandardOutput());
+		QByteArray out = p.readAllStandardOutput();
 		s_zbarImgPath = QString::fromUtf8(out.trimmed());
 		s_isAvailable = !out.isEmpty();
 #endif
@@ -102,7 +101,7 @@ void QrCodeReader::staticInitialise( void ) {
 }
 
 
-bool QrCodeReader::decode( void ) {
+bool QrCodeReader::decode() {
 	if(!isAvailable()) {
 		return false;
 	}
@@ -173,7 +172,7 @@ bool QrCodeReader::decode( void ) {
 //}
 
 
-//void QrCodeReader::QZbarImage::initialise( void ) {
+//void QrCodeReader::QZbarImage::initialise() {
 //	QImage::Format fmt = m_qImg.format();
 
 //qDebug() << m_qImg;
@@ -201,3 +200,6 @@ bool QrCodeReader::decode( void ) {
 
 //	m_isValid = true;
 //}
+
+
+}

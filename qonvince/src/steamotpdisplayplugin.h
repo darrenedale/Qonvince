@@ -12,17 +12,13 @@ namespace Qonvince {
 	class SteamOtpDisplayPlugin
 	: public OtpDisplayPlugin {
 		public:
-			SteamOtpDisplayPlugin( void );
-			virtual ~SteamOtpDisplayPlugin( void );
+			SteamOtpDisplayPlugin();
+			virtual ~SteamOtpDisplayPlugin();
 
-			virtual QString pluginName( void ) const override;
-			virtual QString pluginDescription( void ) const override;
-			virtual QString pluginAuthor( void ) const override;
-			virtual QString displayString( const QByteArray & hmac ) const override;
-
-		private:
-			static QByteArray Alphabet;
-			static int CodeDigits;
+			virtual QString pluginName() const override;
+			virtual QString pluginDescription() const override;
+			virtual QString pluginAuthor() const override;
+			virtual QString displayString(const QByteArray & hmac) const override;
 	};
 
 } // namespace Qonvince

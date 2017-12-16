@@ -43,11 +43,11 @@ namespace Qonvince {
 	}
 
 
-	OtpEditorDialogue::OtpEditorDialogue(Otp * code, QWidget * parent)
+	OtpEditorDialogue::OtpEditorDialogue(Otp * otp, QWidget * parent)
 	: QDialog(parent),
 	  m_ui(std::make_unique<Ui::OtpEditorDialogue>()) {
 		m_ui->setupUi(this);
-		m_ui->otpEditor->setOtp(code);
+		m_ui->otpEditor->setOtp(otp);
 		connect(m_ui->controls, &QDialogButtonBox::accepted, this, &QDialog::close);
 		connect(m_ui->controls, &QDialogButtonBox::rejected, this, &QDialog::close);
 	}

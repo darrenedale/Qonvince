@@ -28,10 +28,10 @@
 #include "ui_passwordwidget.h"
 
 
-using namespace Qonvince;
+namespace Qonvince {
 
 
-PasswordWidget::PasswordWidget( QWidget * parent )
+PasswordWidget::PasswordWidget(QWidget * parent)
 :	QWidget(parent),
 	m_ui{std::make_unique<Ui::PasswordWidget>()} {
 	m_ui->setupUi(this);
@@ -40,15 +40,17 @@ PasswordWidget::PasswordWidget( QWidget * parent )
 }
 
 
-PasswordWidget::~PasswordWidget( void ) {
-}
+PasswordWidget::~PasswordWidget() = default;
 
 
-QString PasswordWidget::password( void ) const {
+QString PasswordWidget::password() const {
 	return m_ui->password->text();
 }
 
 
-void PasswordWidget::setPassword( const QString & pw ) {
+void PasswordWidget::setPassword(const QString & pw) {
 	m_ui->password->setText(pw);
+}
+
+
 }
