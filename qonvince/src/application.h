@@ -130,7 +130,6 @@ namespace Qonvince {
 
 		PluginMap m_codeDisplayPlugins;
 
-		QCA::Initializer m_qcaInit;
 		QCA::SecureArray m_cryptPassphrase;
 	};
 

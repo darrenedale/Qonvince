@@ -57,6 +57,7 @@ namespace Qonvince {
 	  m_otp(nullptr) {
 		m_ui->setupUi(this);
 
+		// TODO make this a plugin chooser custom widget
 		for(const auto & plugin : qonvinceApp->otpDisplayPlugins()) {
 			m_ui->displayPlugin->addItem(plugin->pluginName());
 		}

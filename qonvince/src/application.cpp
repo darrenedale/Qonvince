@@ -61,89 +61,92 @@
 namespace Qonvince {
 
 
-	// Based on RunGuard code from
-	// http://stackoverflow.com/questions/5006547/qt-best-practice-for-a-single-instance-app-protection
-	class SingleInstanceGuard final {
-	public:
-		explicit SingleInstanceGuard(const QString & key)
-		: m_key(key),
-		  m_memLockKey(QCryptographicHash::hash(key.toUtf8().append("_memLockKey"), QCryptographicHash::Sha1).toHex()),
-		  m_sharedmemKey(QCryptographicHash::hash(key.toUtf8().append("_sharedmemKey"), QCryptographicHash::Sha1).toHex()),
-		  m_sharedMem(m_sharedmemKey),
-		  m_memLock(m_memLockKey, 1) {
-			m_memLock.acquire();
+	namespace Detail {
+		// Based on RunGuard code from
+		// http://stackoverflow.com/questions/5006547/qt-best-practice-for-a-single-instance-app-protection
+		class SingleInstanceGuard final {
+		public:
+			explicit SingleInstanceGuard(const QString & key)
+			: m_key(key),
+			  m_memLockKey(QCryptographicHash::hash(key.toUtf8().append("_memLockKey"), QCryptographicHash::Sha1).toHex()),
+			  m_sharedmemKey(QCryptographicHash::hash(key.toUtf8().append("_sharedmemKey"), QCryptographicHash::Sha1).toHex()),
+			  m_sharedMem(m_sharedmemKey),
+			  m_memLock(m_memLockKey, 1) {
+				m_memLock.acquire();
 
-			{
-				QSharedMemory fix(m_sharedmemKey);  // Fix for *nix: http://habrahabr.ru/post/173281/
-				fix.attach();
+				{
+					QSharedMemory fix(m_sharedmemKey);  // Fix for *nix: http://habrahabr.ru/post/173281/
+					fix.attach();
+				}
+
+				m_memLock.release();
 			}
 
-			m_memLock.release();
-		}
-
-		~SingleInstanceGuard() {
-			release();
-		}
-
-		SingleInstanceGuard(const SingleInstanceGuard &) = delete;
-		SingleInstanceGuard(SingleInstanceGuard &&) = delete;
-		void operator=(const SingleInstanceGuard &) = delete;
-		void operator=(SingleInstanceGuard &&) = delete;
-
-		bool isAnotherRunning() {
-			if(m_sharedMem.isAttached()) {
-				return false;
-			}
-
-			m_memLock.acquire();
-			const bool isRunning = m_sharedMem.attach();
-
-			if(isRunning) {
-				m_sharedMem.detach();
-			}
-
-			m_memLock.release();
-			return isRunning;
-		}
-
-		bool tryToRun() {
-			if(isAnotherRunning()) {  // Extra check
-				return false;
-			}
-
-			m_memLock.acquire();
-			const bool result = m_sharedMem.create(sizeof(quint64));
-			m_memLock.release();
-
-			if(!result) {
+			~SingleInstanceGuard() {
 				release();
-				return false;
 			}
 
-			return true;
-		}
+			SingleInstanceGuard(const SingleInstanceGuard &) = delete;
+			SingleInstanceGuard(SingleInstanceGuard &&) = delete;
+			void operator=(const SingleInstanceGuard &) = delete;
+			void operator=(SingleInstanceGuard &&) = delete;
 
-		void release() {
-			m_memLock.acquire();
+			bool isAnotherRunning() {
+				if(m_sharedMem.isAttached()) {
+					return false;
+				}
 
-			if(m_sharedMem.isAttached()) {
-				m_sharedMem.detach();
+				m_memLock.acquire();
+				const bool isRunning = m_sharedMem.attach();
+
+				if(isRunning) {
+					m_sharedMem.detach();
+				}
+
+				m_memLock.release();
+				return isRunning;
 			}
 
-			m_memLock.release();
-		}
+			bool tryToRun() {
+				if(isAnotherRunning()) {  // Extra check
+					return false;
+				}
 
-	private:
-		const QString m_key;
-		const QString m_memLockKey;
-		const QString m_sharedmemKey;
+				m_memLock.acquire();
+				const bool result = m_sharedMem.create(sizeof(quint64));
+				m_memLock.release();
 
-		QSharedMemory m_sharedMem;
-		QSystemSemaphore m_memLock;
-	};
+				if(!result) {
+					release();
+					return false;
+				}
+
+				return true;
+			}
+
+			void release() {
+				m_memLock.acquire();
+
+				if(m_sharedMem.isAttached()) {
+					m_sharedMem.detach();
+				}
+
+				m_memLock.release();
+			}
+
+		private:
+			const QString m_key;
+			const QString m_memLockKey;
+			const QString m_sharedmemKey;
+
+			QSharedMemory m_sharedMem;
+			QSystemSemaphore m_memLock;
+		};
 
 
-	static SingleInstanceGuard runChecker(QStringLiteral("blarglefangledungle"));
+		static SingleInstanceGuard runChecker(QStringLiteral("blarglefangledungle"));
+		static QCA::Initializer qcaInitializer;
+	}
 
 
 	Application::Application(int & argc, char ** argv)
@@ -153,8 +156,7 @@ namespace Qonvince {
 	  m_settings(),
 //	  m_mainWindow(nullptr),
 	  m_trayIcon(QIcon::fromTheme("qonvince", QIcon(":/icons/systray"))),
-	  m_trayIconMenu(tr("Qonvince")),
-	  m_qcaInit() {
+	  m_trayIconMenu(tr("Qonvince")) {
 		setOrganizationName("Équit");
 		setOrganizationDomain("equituk.net");
 		setApplicationName("Qonvince");
@@ -257,11 +259,10 @@ namespace Qonvince {
 
 	PluginArray Application::otpDisplayPlugins() const {
 		PluginArray ret;
-		ret.reserve(m_codeDisplayPlugins.size());
 
-		for(const auto & item : m_codeDisplayPlugins) {
-			ret.push_back(item.second);
-		}
+		std::transform(m_codeDisplayPlugins.cbegin(), m_codeDisplayPlugins.cend(), std::back_inserter(ret), [](const auto & item) {
+			return item.second;
+		});
 
 		return ret;
 	}
@@ -306,7 +307,7 @@ namespace Qonvince {
 		Application * app(qonvinceApp);
 
 		if(app->m_settings.singleInstance()) {
-			if(!runChecker.tryToRun()) {
+			if(!Detail::runChecker.tryToRun()) {
 				std::cerr << "Qonvince is already running.\n";
 				return 0;
 			}
@@ -543,13 +544,14 @@ namespace Qonvince {
 
 
 	void Application::onSettingsChanged() {
-		disconnect(m_quitOnMainWindowClosedConnection);
-
 		if(m_settings.quitOnMainWindowClosed()) {
-			m_quitOnMainWindowClosedConnection = connect(&m_mainWindow, &MainWindow::closing, this, &QApplication::quit);
+			if(!m_quitOnMainWindowClosedConnection) {
+				m_quitOnMainWindowClosedConnection = connect(&m_mainWindow, &MainWindow::closing, this, &QApplication::quit, Qt::UniqueConnection);
+			}
 		}
-		else {
+		else if(m_quitOnMainWindowClosedConnection) {
 			disconnect(m_quitOnMainWindowClosedConnection);
+			m_quitOnMainWindowClosedConnection = {};
 		}
 	}
 
