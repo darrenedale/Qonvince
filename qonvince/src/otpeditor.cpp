@@ -92,7 +92,7 @@ namespace Qonvince {
 			Q_EMIT seedChanged(m_ui->seedEdit->text());
 		});
 
-		connect(&(qonvinceApp->settings()), &Settings::codeLabelDisplayStyleChanged, [this]() {
+		connect(&(qonvinceApp->settings()), qOverload<Settings::CodeLabelDisplayStyle>(&Settings::codeLabelDisplayStyleChanged), [this]() {
 			updateHeading();
 			updateWindowTitle();
 		});

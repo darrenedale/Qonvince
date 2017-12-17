@@ -282,10 +282,10 @@ namespace Qonvince {
 	}
 
 
-	Otp * Otp::fromSettings(const QSettings & settings, const QCA::SecureArray & cryptKey) {
+	std::unique_ptr<Otp> Otp::fromSettings(const QSettings & settings, const QCA::SecureArray & cryptKey) {
 		//		static constexpr std::array<QChar, 6> s_validIconFileNameChars = {{'a', 'b', 'c', 'd', 'e', 'f'}};
 
-		auto * ret = new Otp("HOTP" == settings.value("type", "TOTP").toString() ? CodeType::Hotp : CodeType::Totp);
+		auto ret = std::make_unique<Otp>("HOTP" == settings.value("type", "TOTP").toString() ? CodeType::Hotp : CodeType::Totp);
 		ret->setName(settings.value("name").toString());
 		ret->setIssuer(settings.value("issuer").toString());
 

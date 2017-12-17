@@ -100,7 +100,7 @@ OtpListWidget::OtpListWidget(QWidget * parent)
 		mouseClickEvent(&ev);
 	});
 
-	connect(&(qonvinceApp->settings()), &Settings::codeLabelDisplayStyleChanged, this, qOverload<>(&OtpListWidget::update));
+	connect(&(qonvinceApp->settings()), qOverload<Settings::CodeLabelDisplayStyle>(&Settings::codeLabelDisplayStyleChanged), this, qOverload<>(&OtpListWidget::update));
 
 	synchroniseTickTimer();
 }
@@ -190,19 +190,19 @@ void OtpListWidget::updateCountdowns() {
 }
 
 
-void OtpListWidget::addOtp(Otp * otp) {
-	addItem(new OtpListWidgetItem(std::unique_ptr<Otp>(otp)));
+void OtpListWidget::addOtp(std::unique_ptr<Otp> && otp) {
+	addItem(new OtpListWidgetItem(std::move(otp)));
 }
 
 
-void OtpListWidget::addOtp(const QByteArray & seed) {
-	addItem(new OtpListWidgetItem(std::make_unique<Otp>(Otp::CodeType::Totp, seed)));
-}
+//void OtpListWidget::addOtp(const QByteArray & seed) {
+//	addItem(new OtpListWidgetItem(std::make_unique<Otp>(Otp::CodeType::Totp, seed)));
+//}
 
 
-void OtpListWidget::addOtp(const QString & name, const QByteArray & seed) {
-	addItem(new OtpListWidgetItem(std::make_unique<Otp>(Otp::CodeType::Totp, name, seed)));
-}
+//void OtpListWidget::addOtp(const QString & name, const QByteArray & seed) {
+//	addItem(new OtpListWidgetItem(std::make_unique<Otp>(Otp::CodeType::Totp, name, seed)));
+//}
 
 
 void OtpListWidget::addItem(OtpListWidgetItem * item) {
@@ -871,12 +871,12 @@ void OtpListWidget::paintEvent(QPaintEvent * ev) {
 }
 
 
-#if defined(QT_DEBUG)
+#ifndef NDEBUG
 void OtpListWidget::debugLogNewCode(const QString & code) const {
 	Otp * c = dynamic_cast<Otp *>(sender());
 
 	if(!!c) {
-		qDebug() << "Otp object" << c->name() << "generated new code" << code;
+		std::cout << "Otp object" << qPrintable(c->name()) << "generated new code" << qPrintable(code) << "\n" << std::flush;
 	}
 }
 #endif

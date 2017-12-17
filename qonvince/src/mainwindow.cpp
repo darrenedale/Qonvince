@@ -70,7 +70,7 @@ namespace Qonvince {
 			qonvinceApp->showNotification(tr("%1 message").arg(Application::applicationDisplayName()), tr("Drag and drop of QR code images is not available. You may need to install additional software to enable this."));
 		}
 
-		connect(&(qonvinceApp->settings()), &Settings::copyCodeOnClickChanged, this, &MainWindow::refreshTooltip);
+		connect(&(qonvinceApp->settings()), qOverload<bool>(&Settings::copyCodeOnClickChanged), this, &MainWindow::refreshTooltip);
 	}
 
 
@@ -128,9 +128,9 @@ namespace Qonvince {
 
 
 	void MainWindow::onAddOtpClicked() {
-		auto otp = new Otp(Otp::CodeType::Totp);
-		onEditOtpRequested(otp);
-		m_ui->otpList->addOtp(otp);
+		auto otp = std::make_unique<Otp>(Otp::CodeType::Totp);
+		onEditOtpRequested(otp.get());
+		m_ui->otpList->addOtp(std::move(otp));
 	}
 
 

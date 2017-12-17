@@ -96,16 +96,14 @@ namespace Qonvince {
 		}
 
 		Otp * otp(int i) const;
+		void addOtp(std::unique_ptr<Otp> &&);
 
 	public Q_SLOTS:
 		void setCountdownColour(const QColor &);
 		void setCountdownWarningColour(const QColor &);
 		void setCountdownCriticalColour(const QColor &);
-		void addOtp(const QByteArray & seed);
-		void addOtp(const QString & name, const QByteArray & seed);
-
-		// NOTE otp is owned (by OtpListWidgetItem created in this method)
-		void addOtp(Otp *);
+//		void addOtp(const QByteArray & seed);
+//		void addOtp(const QString & name, const QByteArray & seed);
 
 	Q_SIGNALS:
 		//		void codeAdded(Otp *);

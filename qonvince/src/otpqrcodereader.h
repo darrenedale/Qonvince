@@ -64,8 +64,7 @@ namespace Qonvince {
 
 		bool decode();
 
-		// caller is responsible for created code
-		Otp * otp() const;
+		std::unique_ptr<Otp> createOtp() const;
 
 	private:
 		Otp::CodeType m_type;

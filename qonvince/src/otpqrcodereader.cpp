@@ -144,16 +144,16 @@ namespace Qonvince {
 	}
 
 
-	Otp * OtpQrCodeReader::otp() const {
+	std::unique_ptr<Otp> OtpQrCodeReader::createOtp() const {
 		if(!m_seed.isEmpty()) {
-			auto * ret = new Otp(type(), issuer(), name(), seed(), Otp::SeedType::Base32);
+			auto ret = std::make_unique<Otp>(type(), issuer(), name(), seed(), Otp::SeedType::Base32);
 			ret->setCounter(static_cast<quint64>(m_counter));
 			ret->setInterval(m_interval);
 			ret->setDisplayPlugin(std::make_shared<IntegerOtpDisplayPlugin>(m_digits));
 			return ret;
 		}
 
-		return nullptr;
+		return {};
 	}
 
 

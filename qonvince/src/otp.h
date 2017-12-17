@@ -66,7 +66,7 @@ namespace Qonvince {
 		Otp(const CodeType & type, const QByteArray & seed, const SeedType & seedType = SeedType::Plain, QObject * parent = nullptr);
 		virtual ~Otp();
 
-		static Otp * fromSettings(const QSettings & settings, const QCA::SecureArray & cryptKey);
+		static std::unique_ptr<Otp> fromSettings(const QSettings & settings, const QCA::SecureArray & cryptKey);
 
 		inline const CodeType & type() const {
 			return m_type;

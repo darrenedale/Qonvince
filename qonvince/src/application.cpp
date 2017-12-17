@@ -418,7 +418,7 @@ namespace Qonvince {
 			return;
 		}
 
-		m_mainWindow->otpList()->addOtp(reader.otp());
+		m_mainWindow->otpList()->addOtp(std::unique_ptr<Otp>(reader.createOtp()));
 	}
 
 
@@ -466,11 +466,11 @@ namespace Qonvince {
 
 		for(int i = 0; i < n; ++i) {
 			settings.beginGroup(QString("code-%1").arg(i));
-			auto * otp = Otp::fromSettings(settings, m_cryptPassphrase);
+			std::unique_ptr<Otp> otp = Otp::fromSettings(settings, m_cryptPassphrase);
 
 			if(otp) {
-				connect(otp, &Otp::changed, this, &Application::writeSettings);
-				m_mainWindow->otpList()->addOtp(otp);
+				connect(otp.get(), &Otp::changed, this, &Application::writeSettings);
+				m_mainWindow->otpList()->addOtp(std::move(otp));
 			}
 			else {
 				qWarning() << "failed to read code" << i;
