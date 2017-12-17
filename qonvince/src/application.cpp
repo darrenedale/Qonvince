@@ -21,6 +21,8 @@
   * \brief Implementation of the Application class.
   *
   * \todo load plugins
+  * \todo consider whether Application should manage a list of OTPs and
+  * this list should be used as a model for list widget
   */
 #include "application.h"
 
@@ -144,23 +146,15 @@ namespace Qonvince {
 	static SingleInstanceGuard runChecker(QStringLiteral("blarglefangledungle"));
 
 
-	Application * Application::s_instance = nullptr;
-
-
 	Application::Application(int & argc, char ** argv)
 	: QApplication(argc, argv),
 	  // random-ish string identifying the shared memory that is in place
 	  // if application is already running
 	  m_settings(),
-	  m_mainWindow(nullptr),
-	  m_settingsWidget(std::make_unique<SettingsWidget>(m_settings)),
-	  m_aboutDialogue(nullptr),
+//	  m_mainWindow(nullptr),
 	  m_trayIcon(QIcon::fromTheme("qonvince", QIcon(":/icons/systray"))),
 	  m_trayIconMenu(tr("Qonvince")),
 	  m_qcaInit() {
-		Q_ASSERT_X(nullptr == s_instance, __PRETTY_FUNCTION__, "can't instantiate more than one Qonvince::Application object");
-		s_instance = this;
-
 		setOrganizationName("Équit");
 		setOrganizationDomain("equituk.net");
 		setApplicationName("Qonvince");
@@ -177,10 +171,10 @@ namespace Qonvince {
 		plugin = std::make_shared<SteamOtpDisplayPlugin>();
 		m_codeDisplayPlugins.insert({plugin->pluginName(), plugin});
 
-		m_mainWindow = std::make_unique<MainWindow>();
+//		m_mainWindow = std::make_unique<MainWindow>();
 		m_trayIcon.setToolTip(tr("%1: One-Time passcode generator.").arg(applicationDisplayName()));
 
-		m_trayIconMenu.addAction(tr("Show main window"), m_mainWindow.get(), &MainWindow::show);
+		m_trayIconMenu.addAction(tr("Show main window"), &m_mainWindow, &MainWindow::show);
 		m_trayIconMenu.addAction(QIcon::fromTheme("system-settings", QIcon(":/icons/app/settings")), tr("Settings..."), this, &Application::showSettingsWidget);
 
 		if(OtpQrCodeReader::isAvailable()) {
@@ -368,7 +362,7 @@ namespace Qonvince {
 		app->m_trayIcon.show();
 
 		if(!forceStartMinimised && !app->m_settings.startMinimised()) {
-			app->m_mainWindow->show();
+			app->m_mainWindow.show();
 		}
 		//	else if(QX11Info::isPlatformX11()){
 		//		/* haven't mapped a main window, so manually inform the system that
@@ -381,7 +375,7 @@ namespace Qonvince {
 
 	void Application::showNotification(const QString & title, const QString & message, int timeout) {
 		if(!QSystemTrayIcon::supportsMessages()) {
-			QMessageBox::information(m_mainWindow.get(), title, message, QMessageBox::StandardButtons(QMessageBox::Ok));
+			QMessageBox::information(&m_mainWindow, title, message, QMessageBox::StandardButtons(QMessageBox::Ok));
 		}
 		else {
 			m_trayIcon.showMessage(title, message, QSystemTrayIcon::Information, timeout);
@@ -391,7 +385,7 @@ namespace Qonvince {
 
 	void Application::showNotification(const QString & message, int timeout) {
 		if(!QSystemTrayIcon::supportsMessages()) {
-			QMessageBox::information(m_mainWindow.get(), tr("%1 message").arg(applicationName()), message, QMessageBox::StandardButtons(QMessageBox::Ok));
+			QMessageBox::information(&m_mainWindow, tr("%1 message").arg(applicationName()), message, QMessageBox::StandardButtons(QMessageBox::Ok));
 		}
 		else {
 			m_trayIcon.showMessage(tr("%1 message").arg(applicationName()), message, QSystemTrayIcon::Information, timeout);
@@ -400,7 +394,7 @@ namespace Qonvince {
 
 
 	void Application::readQrCode() {
-		QString fileName = QFileDialog::getOpenFileName(m_mainWindow.get(), tr("Open QR code image"));
+		QString fileName = QFileDialog::getOpenFileName(&m_mainWindow, tr("Open QR code image"));
 
 		if(fileName.isEmpty()) {
 			return;
@@ -418,7 +412,7 @@ namespace Qonvince {
 			return;
 		}
 
-		m_mainWindow->otpList()->addOtp(std::unique_ptr<Otp>(reader.createOtp()));
+		m_mainWindow.otpList()->addOtp(std::unique_ptr<Otp>(reader.createOtp()));
 	}
 
 
@@ -426,10 +420,10 @@ namespace Qonvince {
 		QSettings settings;
 
 		settings.beginGroup("mainwindow");
-		m_mainWindow->readSettings(settings);
+		m_mainWindow.readSettings(settings);
 		settings.endGroup();
 
-		m_mainWindow->otpList()->clear();
+		m_mainWindow.otpList()->clear();
 		settings.beginGroup("application");
 		m_settings.read(settings);
 
@@ -459,7 +453,7 @@ namespace Qonvince {
 			}
 		}
 
-		m_mainWindow->otpList()->clear();
+		m_mainWindow.otpList()->clear();
 
 		settings.beginGroup("codes");
 		int n = settings.value("code_count", 0).toInt();
@@ -470,7 +464,7 @@ namespace Qonvince {
 
 			if(otp) {
 				connect(otp.get(), &Otp::changed, this, &Application::writeSettings);
-				m_mainWindow->otpList()->addOtp(std::move(otp));
+				m_mainWindow.otpList()->addOtp(std::move(otp));
 			}
 			else {
 				qWarning() << "failed to read code" << i;
@@ -503,7 +497,7 @@ namespace Qonvince {
 			settings.setValue("crypt_check", QCA::arrayToHex(initVec.toByteArray() + cipher.process(random).toByteArray()));
 		}
 
-		auto * list = m_mainWindow->otpList();
+		auto * list = m_mainWindow.otpList();
 		int n = list->count();
 
 		settings.beginGroup("application");
@@ -511,7 +505,7 @@ namespace Qonvince {
 		settings.endGroup();
 
 		settings.beginGroup("mainwindow");
-		m_mainWindow->writeSettings(settings);
+		m_mainWindow.writeSettings(settings);
 		settings.endGroup();
 
 		settings.beginGroup("codes");
@@ -536,13 +530,13 @@ namespace Qonvince {
 
 	void Application::onTrayIconActivated(QSystemTrayIcon::ActivationReason reason) {
 		if(QSystemTrayIcon::Trigger == reason) {
-			if(m_mainWindow->isHidden() || !m_mainWindow->isActiveWindow()) {
-				m_mainWindow->show();
-				m_mainWindow->raise();
-				m_mainWindow->activateWindow();
+			if(m_mainWindow.isHidden() || !m_mainWindow.isActiveWindow()) {
+				m_mainWindow.show();
+				m_mainWindow.raise();
+				m_mainWindow.activateWindow();
 			}
 			else {
-				m_mainWindow->hide();
+				m_mainWindow.hide();
 			}
 		}
 	}
@@ -552,7 +546,7 @@ namespace Qonvince {
 		disconnect(m_quitOnMainWindowClosedConnection);
 
 		if(m_settings.quitOnMainWindowClosed()) {
-			m_quitOnMainWindowClosedConnection = connect(m_mainWindow.get(), &MainWindow::closing, this, &QApplication::quit);
+			m_quitOnMainWindowClosedConnection = connect(&m_mainWindow, &MainWindow::closing, this, &QApplication::quit);
 		}
 		else {
 			disconnect(m_quitOnMainWindowClosedConnection);
@@ -561,13 +555,11 @@ namespace Qonvince {
 
 
 	void Application::showAboutDialogue() {
-		if(!m_aboutDialogue) {
-			m_aboutDialogue = std::make_unique<AboutDialogue>();
-		}
+		static AboutDialogue aboutDialogue;
 
-		m_aboutDialogue->show();
-		m_aboutDialogue->raise();
-		m_aboutDialogue->activateWindow();
+		aboutDialogue.show();
+		aboutDialogue.raise();
+		aboutDialogue.activateWindow();
 	}
 
 
@@ -577,9 +569,10 @@ namespace Qonvince {
 
 
 	void Application::showSettingsWidget() {
-		m_settingsWidget->show();
-		m_settingsWidget->activateWindow();
-		m_settingsWidget->raise();
+		static SettingsWidget settingsWidget(m_settings);
+		settingsWidget.show();
+		settingsWidget.activateWindow();
+		settingsWidget.raise();
 	}
 
 

@@ -36,6 +36,7 @@
 #include "algorithms.h"
 #include "mainwindow.h"
 #include "settings.h"
+#include "settingswidget.h"
 #include "aboutdialogue.h"
 #include "otpdisplayplugin.h"
 
@@ -86,7 +87,7 @@ namespace Qonvince {
 		}
 
 		inline static Application * qonvince() {
-			return s_instance;
+			return static_cast<Application *>(QApplication::instance());
 		}
 
 		inline Settings & settings() {
@@ -111,8 +112,8 @@ namespace Qonvince {
 		bool readCodeSettings();
 		void writeSettings() const;
 		void showAboutDialogue();
-		void clearClipboard();
 		void showSettingsWidget();
+		void clearClipboard();
 
 	private Q_SLOTS:
 		void onTrayIconActivated(QSystemTrayIcon::ActivationReason reason);
@@ -121,12 +122,8 @@ namespace Qonvince {
 	private:
 		static bool ensureDirectory(const QStandardPaths::StandardLocation & location, const QString & path);
 
-		static Application * s_instance;
-
 		Settings m_settings;
-		std::unique_ptr<MainWindow> m_mainWindow;
-		std::unique_ptr<SettingsWidget> m_settingsWidget;
-		std::unique_ptr<AboutDialogue> m_aboutDialogue;
+		MainWindow m_mainWindow;
 		QSystemTrayIcon m_trayIcon;
 		QMenu m_trayIconMenu;
 		QMetaObject::Connection m_quitOnMainWindowClosedConnection;
