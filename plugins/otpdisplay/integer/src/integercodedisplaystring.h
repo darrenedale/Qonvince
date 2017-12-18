@@ -17,34 +17,26 @@
  * along with Qonvince. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QONVINCE_INTEGEROTPCODEDISPLAYPLUGIN_H
-#define QONVINCE_INTEGEROTPCODEDISPLAYPLUGIN_H
+#ifndef QONVINCE_INTEGEROTPCODEDISPLAYPLUGINBASE_H
+#define QONVINCE_INTEGEROTPCODEDISPLAYPLUGINBASE_H
 
-#include "otpdisplayplugin.h"
+#include <QString>
+#include <QByteArray>
 
-class QString;
+template<int Digits>
+inline QString integerCodeDisplayString(const QByteArray & hmac) {
+	// calculate offset and read value from 4 bytes at offset
+	int offset = static_cast<char>(hmac[19]) & 0xf;
+	auto ret = static_cast<quint32>((hmac[offset] & 0x7f) << 24 | (hmac[offset + 1] & 0xff) << 16 | (hmac[offset + 2] & 0xff) << 8 | (hmac[offset + 3] & 0xff));
 
-namespace Qonvince {
-	class IntegerOtpDisplayPlugin
-	: public OtpDisplayPlugin {
-	public:
-		IntegerOtpDisplayPlugin(int digits);
-		virtual ~IntegerOtpDisplayPlugin();
+	// convert value to requested number of digits
+	quint32 mod = 1;
 
-		virtual QString pluginName() const override;
-		virtual QString pluginDescription() const override;
-		virtual QString pluginAuthor() const override;
-		virtual QString displayString(const QByteArray & hmac) const override;
+	for(int i = 0; i < Digits; ++i) {
+		mod *= 10;
+	}
 
-		inline int digits() const {
-			return m_digits;
-		}
-
-		bool setDigits(int digits);
-
-	private:
-		int m_digits;
-	};
-}  // namespace Qonvince
+	return QString::number(ret % mod).rightJustified(Digits, '0');
+}
 
 #endif  // QONVINCE_INTEGEROTPCODEDISPLAYPLUGIN_H

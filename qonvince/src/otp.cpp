@@ -40,8 +40,7 @@
 #include <QtCrypto/QtCrypto>
 
 #include "application.h"
-#include "crypt.h"
-#include "integerotpdisplayplugin.h"
+#include "otpdisplayplugin.h"
 
 
 namespace Qonvince {
@@ -77,7 +76,7 @@ namespace Qonvince {
 	  m_baselineTime(0),
 	  m_refreshTimer(std::make_unique<QBasicTimer>()),
 	  m_resync(false),
-	  m_displayPlugin(nullptr) {
+	  m_displayPluginName() {
 		blockSignals(true);
 		setSeed(seed, seedType);
 		refreshCode();
@@ -245,23 +244,14 @@ namespace Qonvince {
 		}
 	}
 
-	bool Otp::setDisplayPlugin(const std::shared_ptr<OtpDisplayPlugin> & plugin) {
-		if(plugin != m_displayPlugin) {
-			QString oldName;
-			QString newName;
 
-			if(m_displayPlugin) {
-				oldName = m_displayPlugin->pluginName();
-			}
+	bool Otp::setDisplayPluginName(const QString & pluginName) {
+		if(pluginName != m_displayPluginName) {
+			QString oldName = m_displayPluginName;
+			m_displayPluginName = pluginName;
 
-			m_displayPlugin = plugin;
-
-			if(m_displayPlugin) {
-				newName = m_displayPlugin->pluginName();
-			}
-
-			Q_EMIT displayPluginChanged(oldName, newName);
-			Q_EMIT displayPluginChanged(newName);
+			Q_EMIT displayPluginChanged(oldName, pluginName);
+			Q_EMIT displayPluginChanged(pluginName);
 			Q_EMIT changed();
 			refreshCode();
 		}
@@ -298,11 +288,20 @@ namespace Qonvince {
 			int digits = settings.value("digits").toInt(&ok);
 
 			if(ok) {
-				pluginName = QString("%1-digit number").arg(digits);
+				if(8 == digits) {
+					pluginName = QStringLiteral("EightDigitsPlugin");
+				}
+				else if(6 == digits) {
+					pluginName = QStringLiteral("SixDigitsPlugin");
+				}
+				else {
+					std::cerr << __PRETTY_FUNCTION__ << " (@ " << __LINE__ << "): " << digits << " is an invalid number of digits for code (old settings entry) - reverting to 6 digits\n";
+					pluginName = QStringLiteral("SixDigitsPlugin");
+				}
 			}
 		}
 
-		ret->setDisplayPlugin(qonvinceApp->otpDisplayPluginByName(pluginName));
+		ret->setDisplayPluginName(pluginName);
 
 		QString fileName = settings.value("icon").toString();
 
@@ -379,12 +378,7 @@ namespace Qonvince {
 			settings.setValue("icon", m_iconFileName);
 		}
 
-		if(m_displayPlugin) {
-			settings.setValue("pluginName", m_displayPlugin->pluginName());
-		}
-		else {
-			settings.setValue("pluginName", "");
-		}
+		settings.setValue("pluginName", m_displayPluginName);
 
 		{
 			QCA::SymmetricKey key(cryptKey);
@@ -421,9 +415,17 @@ namespace Qonvince {
 
 
 	void Otp::refreshCode() {
-		if(!m_displayPlugin) {
+		if(m_displayPluginName.isEmpty()) {
 			qWarning() << "no display plugin";
-			m_currentCode = QString();
+			m_currentCode.clear();
+			return;
+		}
+
+		auto * plugin = qonvinceApp->otpDisplayPluginByName(m_displayPluginName);
+
+		if(!plugin) {
+			qWarning() << "display plugin" << m_displayPluginName << "not found";
+			m_currentCode.clear();
 			return;
 		}
 
@@ -438,7 +440,7 @@ namespace Qonvince {
 		QString code;
 
 		if(CodeType::Hotp == m_type) {
-			m_currentCode = hotp(mySeed, m_displayPlugin, counter());
+			m_currentCode = hotp(mySeed, plugin, counter());
 			Q_EMIT newCodeGenerated(m_currentCode);
 		}
 		else {
@@ -448,7 +450,7 @@ namespace Qonvince {
 				duration = 30;
 			}
 
-			code = totp(mySeed, m_displayPlugin, baselineSecSinceEpoch(), duration);
+			code = totp(mySeed, plugin, baselineSecSinceEpoch(), duration);
 
 			if(!code.isEmpty()) {
 				if(m_currentCode != code) {
@@ -491,13 +493,13 @@ namespace Qonvince {
 
 	// hmac() hotp() and totp() are candidates for optimisation - they are the most-called
 	// in-application functions
-	QString Otp::totp(const QByteArray & seed, const std::shared_ptr<OtpDisplayPlugin> & plugin, time_t base, int interval) {
+	QString Otp::totp(const QByteArray & seed, LibQonvince::OtpDisplayPlugin * plugin, time_t base, int interval) {
 		quint64 code = static_cast<quint64>(std::floor((QDateTime::currentDateTime().toUTC().toTime_t() - base) / interval));
 		return hotp(seed, plugin, code);
 	}
 
 
-	QString Otp::hotp(const QByteArray & seed, const std::shared_ptr<OtpDisplayPlugin> & plugin, quint64 counter) {
+	QString Otp::hotp(const QByteArray & seed, LibQonvince::OtpDisplayPlugin * plugin, quint64 counter) {
 		Q_ASSERT_X(plugin, __PRETTY_FUNCTION__, "null plugin");
 
 		char myCounter[8];
@@ -509,7 +511,7 @@ namespace Qonvince {
 		}
 
 		QByteArray res = hmac(seed, QByteArray(myCounter, 8));
-		return plugin->displayString(res);
+		return plugin->codeDisplayString(res);
 	}
 
 

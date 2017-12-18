@@ -30,7 +30,7 @@
 #include <QRegExp>
 #include <QRegularExpression>
 
-#include "integerotpdisplayplugin.h"
+#include "application.h"
 
 
 namespace Qonvince {
@@ -106,7 +106,7 @@ namespace Qonvince {
 			else if("digits" == parts[0]) {
 				int myDigits = parts[1].toInt();
 
-				if(6 <= myDigits && 8 >= myDigits) {
+				if(6 == myDigits || 8 == myDigits) {
 					digits = myDigits;
 				}
 				else {
@@ -145,11 +145,11 @@ namespace Qonvince {
 
 
 	std::unique_ptr<Otp> OtpQrCodeReader::createOtp() const {
-		if(!m_seed.isEmpty()) {
+		if(!m_seed.isEmpty() && (6 == m_digits || 8 == m_digits)) {
 			auto ret = std::make_unique<Otp>(type(), issuer(), name(), seed(), Otp::SeedType::Base32);
 			ret->setCounter(static_cast<quint64>(m_counter));
 			ret->setInterval(m_interval);
-			ret->setDisplayPlugin(std::make_shared<IntegerOtpDisplayPlugin>(m_digits));
+			ret->setDisplayPluginName((8 == m_digits ? QStringLiteral("EightDigitsPlugin") : QStringLiteral("SixDigitsPlugin")));
 			return ret;
 		}
 

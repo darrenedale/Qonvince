@@ -53,9 +53,7 @@
 #include "otplistwidget.h"
 #include "otp.h"
 #include "otpqrcodereader.h"
-#include "otpdisplayplugin.h"
-#include "integerotpdisplayplugin.h"
-#include "steamotpdisplayplugin.h"
+#include "pluginfactory.h"
 
 
 namespace Qonvince {
@@ -146,7 +144,7 @@ namespace Qonvince {
 
 		static SingleInstanceGuard runChecker(QStringLiteral("blarglefangledungle"));
 		static QCA::Initializer qcaInitializer;
-	}
+	}  // namespace Detail
 
 
 	Application::Application(int & argc, char ** argv)
@@ -154,9 +152,10 @@ namespace Qonvince {
 	  // random-ish string identifying the shared memory that is in place
 	  // if application is already running
 	  m_settings(),
-//	  m_mainWindow(nullptr),
+	  //	  m_mainWindow(nullptr),
 	  m_trayIcon(QIcon::fromTheme("qonvince", QIcon(":/icons/systray"))),
-	  m_trayIconMenu(tr("Qonvince")) {
+	  m_trayIconMenu(tr("Qonvince")),
+	  m_displayPluginFactory(".displayplugin") {
 		setOrganizationName("Équit");
 		setOrganizationDomain("equituk.net");
 		setApplicationName("Qonvince");
@@ -165,15 +164,26 @@ namespace Qonvince {
 		setQuitOnLastWindowClosed(false);
 		QSettings::setDefaultFormat(QSettings::IniFormat);
 
-		// add the built-in code display plugins
-		std::shared_ptr<OtpDisplayPlugin> plugin = std::make_shared<IntegerOtpDisplayPlugin>(6);
-		m_codeDisplayPlugins.insert({plugin->pluginName(), plugin});
-		plugin = std::make_shared<IntegerOtpDisplayPlugin>(8);
-		m_codeDisplayPlugins.insert({plugin->pluginName(), plugin});
-		plugin = std::make_shared<SteamOtpDisplayPlugin>();
-		m_codeDisplayPlugins.insert({plugin->pluginName(), plugin});
+		// set the search paths for the display plugin factory
+		for(const auto & pathRoot : QStandardPaths::standardLocations(QStandardPaths::AppDataLocation)) {
+			m_displayPluginFactory.addSearchPath(pathRoot + "/plugins/otpdisplay");
+		}
 
-//		m_mainWindow = std::make_unique<MainWindow>();
+#ifndef NDEBUG
+		// search in the build dir
+		m_displayPluginFactory.addSearchPath("../plugins/otpdisplay");
+#endif
+
+		m_displayPluginFactory.loadAllPlugins();
+		// add the built-in code display plugins
+		//		std::shared_ptr<OtpDisplayPlugin> plugin = std::make_shared<IntegerOtpDisplayPlugin>(6);
+		//		m_codeDisplayPlugins.insert({plugin->pluginName(), plugin});
+		//		plugin = std::make_shared<IntegerOtpDisplayPlugin>(8);
+		//		m_codeDisplayPlugins.insert({plugin->pluginName(), plugin});
+		//		plugin = std::make_shared<SteamOtpDisplayPlugin>();
+		//		m_codeDisplayPlugins.insert({plugin->pluginName(), plugin});
+
+		//		m_mainWindow = std::make_unique<MainWindow>();
 		m_trayIcon.setToolTip(tr("%1: One-Time passcode generator.").arg(applicationDisplayName()));
 
 		m_trayIconMenu.addAction(tr("Show main window"), &m_mainWindow, &MainWindow::show);
@@ -241,28 +251,6 @@ namespace Qonvince {
 			ret = DesktopEnvironment::WindowsPhone;
 #endif
 		}
-
-		return ret;
-	}
-
-
-	PluginPtr Application::otpDisplayPluginByName(const QString & name) const {
-		const auto it = m_codeDisplayPlugins.find(name);
-
-		if(it != m_codeDisplayPlugins.cend()) {
-			return it->second;
-		}
-
-		return nullptr;
-	}
-
-
-	PluginArray Application::otpDisplayPlugins() const {
-		PluginArray ret;
-
-		std::transform(m_codeDisplayPlugins.cbegin(), m_codeDisplayPlugins.cend(), std::back_inserter(ret), [](const auto & item) {
-			return item.second;
-		});
 
 		return ret;
 	}

@@ -12,7 +12,6 @@ add_executable(qonvince
 	src/passworddialogue.cpp
 	src/aboutdialogue.cpp
 	src/application.cpp
-	src/crypt.cpp
 	src/libqrencode.cpp
 	src/main.cpp
 	src/mainwindow.cpp
@@ -22,14 +21,12 @@ add_executable(qonvince
 	src/settings.cpp
 	src/settingswidget.cpp
 	src/otp.cpp
-	src/otpdisplayplugin.cpp
 	src/otpeditor.cpp
 	src/otpeditordialogue.cpp
 	src/otplistwidget.cpp
 	src/otplistwidgetitem.cpp
-	src/steamotpdisplayplugin.cpp
-	src/integerotpdisplayplugin.cpp
 	src/iconselectbutton.cpp
+	src/qtiostream.cpp
 	resources/icons.qrc
 	)
 

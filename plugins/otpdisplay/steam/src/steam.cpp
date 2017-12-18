@@ -1,39 +1,17 @@
-#include "steamotpdisplayplugin.h"
+#include "steam.h"
 
 #include <array>
 
 
-namespace Qonvince {
+DECLARE_LIBQONVINCE_OTPDISPLAYPLUGIN(SteamOtpDisplayPlugin, "Steam code", "Display the code as a Steam-type 5-character code.", "Darren Edale", "1.0.0")
 
 
 static constexpr const std::array<char, 26> Alphabet = {{'2', '3', '4', '5', '6', '7', '8', '9', 'B', 'C', 'D', 'F', 'G', 'H', 'J', 'K', 'M', 'N', 'P', 'Q', 'R', 'T', 'V', 'W', 'X', 'Y'}};
 static constexpr const int CodeDigits = 5;
 
 
-SteamOtpDisplayPlugin::SteamOtpDisplayPlugin() = default;
-
-
-SteamOtpDisplayPlugin::~SteamOtpDisplayPlugin() = default;
-
-
-
-QString SteamOtpDisplayPlugin::pluginName() const {
-	return QStringLiteral("5-digit Steam code");
-}
-
-
-QString SteamOtpDisplayPlugin::pluginDescription() const {
-	return QStringLiteral("A 5-digit steam guard code.");
-}
-
-
-QString SteamOtpDisplayPlugin::pluginAuthor() const {
-	return QStringLiteral("Darren Edale");
-}
-
-
 // heavily influenced by WinAuth's Steam code generator
-QString SteamOtpDisplayPlugin::displayString( const QByteArray & hmac ) const {
+QString SteamOtpDisplayPlugin::codeDisplayString(const QByteArray & hmac) const {
 	// the last 4 bits of the mac say where the code starts
 	// (e.g. if last 4 bit are 1100, we start at byte 12)
 	int i = hmac[19] & 0x0f;
@@ -54,6 +32,3 @@ QString SteamOtpDisplayPlugin::displayString( const QByteArray & hmac ) const {
 
 	return code;
 }
-
-
-}	// namespace Qonvince

@@ -59,7 +59,7 @@ namespace Qonvince {
 
 		// TODO make this a plugin chooser custom widget
 		for(const auto & plugin : qonvinceApp->otpDisplayPlugins()) {
-			m_ui->displayPlugin->addItem(plugin->pluginName());
+			m_ui->displayPlugin->addItem(plugin->displayName(), plugin->name());
 		}
 
 		m_ui->advancedSettingsWidget->setVisible(m_ui->advancedToggle->isChecked());
@@ -180,13 +180,14 @@ namespace Qonvince {
 				m_ui->icon->setIcon(m_otp->icon());
 
 				{
-					auto plugin = m_otp->displayPlugin().lock();
+					//					auto plugin = m_otp->displayPlugin().lock();
+					auto * plugin = m_otp->displayPlugin();
 
 					if(plugin) {
-						m_ui->displayPlugin->setCurrentText(plugin->pluginName());
+						m_ui->displayPlugin->setCurrentIndex(m_ui->displayPlugin->findData(plugin->name()));
 					}
 					else {
-						m_ui->displayPlugin->setCurrentText("");
+						m_ui->displayPlugin->setCurrentText({});
 					}
 				}
 
@@ -356,12 +357,12 @@ namespace Qonvince {
 
 			if(Otp::CodeType::Hotp == m_otp->type()) {
 				if(0 != m_ui->counterSpin->value()) {
-					uri += "&counter=" + QString::number(m_ui->counterSpin->value());
+					uri += QStringLiteral("&counter=") + QString::number(m_ui->counterSpin->value());
 				}
 			}
 			else {
 				if(30 != m_ui->intervalSpin->value()) {
-					uri += QString("&period=") + m_ui->intervalSpin->value();
+					uri += QStringLiteral("&period=") + QString::number(m_ui->intervalSpin->value());
 				}
 			}
 
@@ -470,14 +471,14 @@ namespace Qonvince {
 			return;
 		}
 
-		auto plugin = qonvinceApp->otpDisplayPluginByName(m_ui->displayPlugin->currentText());
+		auto pluginName = m_ui->displayPlugin->currentData().toString();
 
-		if(!plugin) {
-			qCritical() << "display plugin named" << m_ui->displayPlugin->currentText() << "not found";
+		if(!qonvinceApp->otpDisplayPluginByName(m_ui->displayPlugin->currentData().toString())) {
+			qCritical() << "display plugin \"" << m_ui->displayPlugin->currentData().toString() << "\" (" << m_ui->displayPlugin->currentText() << ") not found";
 			return;
 		}
 
-		m_otp->setDisplayPlugin(plugin);
+		m_otp->setDisplayPluginName(pluginName);
 	}
 
 

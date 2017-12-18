@@ -39,6 +39,8 @@
 #include "settingswidget.h"
 #include "aboutdialogue.h"
 #include "otpdisplayplugin.h"
+#include "pluginfactory.h"
+#include "qtstdhash.h"
 
 class QAction;
 
@@ -50,10 +52,6 @@ namespace Qonvince {
 	class SettingsWidget;
 	class AboutDialogue;
 	class Otp;
-
-	using PluginPtr = std::shared_ptr<OtpDisplayPlugin>;
-	using PluginMap = std::unordered_map<QString, PluginPtr, Qonvince::QtHash<QString>>;
-	using PluginArray = std::vector<PluginPtr>;
 
 	class Application
 	: public QApplication {
@@ -98,8 +96,13 @@ namespace Qonvince {
 			return m_settings;
 		}
 
-		PluginPtr otpDisplayPluginByName(const QString & name) const;
-		PluginArray otpDisplayPlugins() const;
+		inline LibQonvince::OtpDisplayPlugin * otpDisplayPluginByName(const QString & name) {
+			return m_displayPluginFactory.pluginByName(name);
+		}
+
+		inline std::vector<LibQonvince::OtpDisplayPlugin *> otpDisplayPlugins() {
+			return m_displayPluginFactory.loadedPlugins();
+		}
 
 		static int exec();
 
@@ -120,6 +123,7 @@ namespace Qonvince {
 		void onSettingsChanged();
 
 	private:
+		using DisplayPluginFactory = PluginFactory<LibQonvince::OtpDisplayPlugin>;
 		static bool ensureDirectory(const QStandardPaths::StandardLocation & location, const QString & path);
 
 		Settings m_settings;
@@ -128,7 +132,7 @@ namespace Qonvince {
 		QMenu m_trayIconMenu;
 		QMetaObject::Connection m_quitOnMainWindowClosedConnection;
 
-		PluginMap m_codeDisplayPlugins;
+		DisplayPluginFactory m_displayPluginFactory;
 
 		QCA::SecureArray m_cryptPassphrase;
 	};
