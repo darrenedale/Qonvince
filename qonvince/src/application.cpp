@@ -20,7 +20,6 @@
 /** \file application.cpp
   * \brief Implementation of the Application class.
   *
-  * \todo load plugins
   * \todo consider whether Application should manage a list of OTPs and
   * this list should be used as a model for list widget
   */

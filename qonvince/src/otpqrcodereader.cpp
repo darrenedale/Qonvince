@@ -70,61 +70,62 @@ namespace Qonvince {
 		int digits = 6;
 		int counter = 0;
 		int period = 30;
-		QStringList params = urlMatch.captured(5).split("&");
 
-		// TODO review this - it's a quick first effort
-		for(const auto & param : params) {
-			const QStringList parts = param.split("=");
+		for(const auto & param : urlMatch.captured(5).split("&")) {
+			auto equalsPos = param.indexOf('=');
 
-			if(2 != parts.length()) {
-				qWarning() << "found invalid parameter" << param;
+			if(-1 == equalsPos) {
+				std::cerr << "invalid parameter in URL: \"" << param << "\"\n";
 				continue;
 			}
 
-			if("secret" == parts[0]) {
-				seed = parts[1];
+			auto paramKey = param.leftRef(equalsPos);
+			auto paramValue = param.rightRef(param.size() - equalsPos - 1);
+
+			if(0 == paramKey.compare(QStringLiteral("secret"), Qt::CaseInsensitive)) {
+				seed = paramValue.toString();
 			}
-			else if("issuer" == parts[0]) {
-				if(!issuer.isEmpty() && parts[1] != issuer) {
-					qWarning() << "\"issuer\" parameter" << parts[0] << "does not agree with issuer part of URI" << issuer << ". ignoring parameter";
+			else if(0 == paramKey.compare(QStringLiteral("issuer"), Qt::CaseInsensitive)) {
+				if(!issuer.isEmpty() && paramValue != issuer) {
+					qWarning() << "\"issuer\" parameter" << paramKey << "does not agree with issuer part of URI" << issuer << ". ignoring parameter";
 				}
 				else {
-					issuer = QString::fromUtf8(QByteArray::fromPercentEncoding(parts[1].toUtf8()));
+					issuer = QString::fromUtf8(QByteArray::fromPercentEncoding(paramValue.toUtf8()));
 				}
 			}
-			else if("counter" == parts[0]) {
+			else if(0 == paramKey.compare(QStringLiteral("counter"), Qt::CaseInsensitive)) {
 				bool ok;
-				int myCounter = parts[1].toInt(&ok);
+				int myCounter = paramValue.toInt(&ok);
 
 				if(ok && 0 <= myCounter) {
 					counter = myCounter;
 				}
 				else {
-					qWarning() << "invalid \"counter\" parameter:" << parts[1];
+					qWarning() << "invalid \"counter\" parameter:" << paramValue;
 				}
 			}
-			else if("digits" == parts[0]) {
-				int myDigits = parts[1].toInt();
+			else if(0 == paramKey.compare(QStringLiteral("digits"), Qt::CaseInsensitive)) {
+				int myDigits = paramValue.toInt();
 
 				if(6 == myDigits || 8 == myDigits) {
 					digits = myDigits;
 				}
 				else {
-					qWarning() << "invalid \"digits\" parameter:" << parts[1];
+					qWarning() << "invalid \"digits\" parameter:" << paramValue;
 				}
 			}
-			else if("period" == parts[0]) {
-				int myPeriod = parts[1].toInt();
+			else if(0 == paramKey.compare(QStringLiteral("period"), Qt::CaseInsensitive)) {
+				int myPeriod = paramValue.toInt();
 
 				if(0 < myPeriod) {
 					period = myPeriod;
 				}
 				else {
-					qWarning() << "invalid \"period\" parameter:" << parts[1];
+					qWarning() << "invalid \"period\" parameter:" << paramValue;
 				}
 			}
-			else if("algorithm" == parts[0]) {
-				qWarning() << "\"algorithm\" parameter found but not yet supported. algorithm is" << parts[1] << "; only SHA1 supported";
+			else if(0 == paramKey.compare(QStringLiteral("algorithm"), Qt::CaseInsensitive)) {
+				qWarning() << "\"algorithm\" parameter found but not yet supported. algorithm is" << paramValue << "; only SHA1 supported";
 			}
 		}
 
