@@ -28,8 +28,6 @@
   * hierarchy, we know that the only items stored in the list are OtpListWidgetItem
   * instances because we've overridden addItem().
   *
-  * \todo visual feedback that a manual refresh has executed (e.g. flash
-  *   code)?
   * \todo optimise painting
   */
 
@@ -56,6 +54,7 @@
 #include "otp.h"
 #include "otplistwidgetitem.h"
 #include "otpqrcodereader.h"
+#include "qtiostream.h"
 
 #define QONVINCE_OTPCODELISTWIDGET_CODE_ICON_SIZE 32
 #define QONVINCE_OTPCODELISTWIDGET_PROGRESS_GAUGE_SIZE 0.5L /* ratio of gauge size to item height */
@@ -80,13 +79,13 @@ OtpListWidget::OtpListWidget(QWidget * parent)
   m_tickTimerId(-1),
   m_doubleClickWaitTimer(),
   m_receivedDoubleClickEvent(false),
-  m_itemMenu(),
-  m_menuCodeItem(nullptr) {
-	m_itemMenu.addAction(QIcon::fromTheme("document-edit"), tr("Edit"), this, &OtpListWidget::onEditActionTriggered);
-	m_itemMenu.addAction(tr("Remove icon"), this, &OtpListWidget::onRemoveIconActionTriggered);
-	m_itemMenu.addAction(QIcon::fromTheme("edit-copy"), tr("Copy"), this, &OtpListWidget::onCopyActionTriggered);
-	m_itemMenu.addAction(QIcon::fromTheme("view-refresh", QIcon(":/icons/codeactions/refresh")), tr("Refresh now"), this, &OtpListWidget::onRefreshActionTriggered);
-	m_itemMenu.addAction(QIcon::fromTheme("list-remove", QIcon(":/icons/codeactions/remove")), tr("Remove"), this, &OtpListWidget::onRemoveActionTriggered);
+  m_itemContextMenu(),
+  m_actionItem(nullptr) {
+	m_itemContextMenu.addAction(QIcon::fromTheme("document-edit"), tr("Edit"), this, &OtpListWidget::onEditActionTriggered);
+	m_itemContextMenu.addAction(tr("Remove icon"), this, &OtpListWidget::onRemoveIconActionTriggered);
+	m_itemContextMenu.addAction(QIcon::fromTheme("edit-copy"), tr("Copy"), this, &OtpListWidget::onCopyActionTriggered);
+	m_itemContextMenu.addAction(QIcon::fromTheme("view-refresh", QIcon(":/icons/codeactions/refresh")), tr("Refresh now"), this, &OtpListWidget::onRefreshActionTriggered);
+	m_itemContextMenu.addAction(QIcon::fromTheme("list-remove", QIcon(":/icons/codeactions/remove")), tr("Remove"), this, &OtpListWidget::onRemoveActionTriggered);
 
 	m_countdownColour = palette().color(QPalette::WindowText).lighter(150);
 	m_countdownWarningColour = m_countdownColour;
@@ -106,10 +105,7 @@ OtpListWidget::OtpListWidget(QWidget * parent)
 }
 
 
-OtpListWidget::~OtpListWidget() {
-	// TODO are these strictly necessary?
-	m_doubleClickWaitTimer.stop();
-}
+OtpListWidget::~OtpListWidget() = default;
 
 
 void OtpListWidget::synchroniseTickTimer() {
@@ -191,24 +187,14 @@ void OtpListWidget::updateCountdowns() {
 
 
 void OtpListWidget::addOtp(std::unique_ptr<Otp> && otp) {
-	addItem(new OtpListWidgetItem(std::move(otp)));
+	QListWidget::addItem(new OtpListWidgetItem(std::move(otp)));
 }
-
-
-//void OtpListWidget::addOtp(const QByteArray & seed) {
-//	addItem(new OtpListWidgetItem(std::make_unique<Otp>(Otp::CodeType::Totp, seed)));
-//}
-
-
-//void OtpListWidget::addOtp(const QString & name, const QByteArray & seed) {
-//	addItem(new OtpListWidgetItem(std::make_unique<Otp>(Otp::CodeType::Totp, name, seed)));
-//}
 
 
 void OtpListWidget::addItem(OtpListWidgetItem * item) {
 	item->setSizeHint({width(), 40});
 	QListWidget::addItem(item);
-	Otp * code = item->otp();
+	auto * code = item->otp();
 	connect(code, &Otp::changed, this, &OtpListWidget::onOtpChanged);
 	connect(code, &Otp::newCodeGenerated, this, &OtpListWidget::onOtpChanged);
 
@@ -221,10 +207,10 @@ void OtpListWidget::addItem(OtpListWidgetItem * item) {
 
 Otp * OtpListWidget::otp(int i) const {
 	if(0 <= i && count() > i) {
-		OtpListWidgetItem * it = dynamic_cast<OtpListWidgetItem *>(item(i));
+		auto * otpItem = static_cast<OtpListWidgetItem *>(item(i));
 
-		if(!!it) {
-			return it->otp();
+		if(otpItem) {
+			return otpItem->otp();
 		}
 	}
 
@@ -252,12 +238,12 @@ void OtpListWidget::setCountdownCriticalColour(const QColor & colour) {
 
 bool OtpListWidget::event(QEvent * ev) {
 	if(QEvent::ToolTip == ev->type()) {
-		QPoint globalMousePos(QCursor::pos());
-		QPoint mousePos(mapFromGlobal(globalMousePos));
+		QPoint globalMousePos = QCursor::pos();
+		QPoint mousePos = mapFromGlobal(globalMousePos);
 		QString txt;
 		Otp * item = hoveredOtp();
 
-		if(!!item) {
+		if(item) {
 			QString label;
 
 			switch(qonvinceApp->settings().codeLabelDisplayStyle()) {
@@ -287,12 +273,10 @@ bool OtpListWidget::event(QEvent * ev) {
 				txt = tr("Reveal the current code for %1.").arg(label);
 			}
 			else if(-1 != m_hoverItemIndex) {
-				/* TODO this was put together quickly - review and make construction of tooltip
-				 * more efficient. */
 				txt = tr("Double-click to edit %1.").arg(label);
 
 				if(qonvinceApp->settings().copyCodeOnClick()) {
-					txt = "<html><body><p>" + txt + "</p><p>" + tr("Click to copy the current code for %1 to the clipboard.").arg(label) + "</p></body></html>";
+					txt = QStringLiteral("<html><body><p>") % txt % QStringLiteral("</p><p>") % tr("Click to copy the current code for %1 to the clipboard.").arg(label) % QStringLiteral("</p></body></html>");
 				}
 			}
 		}
@@ -336,10 +320,10 @@ void OtpListWidget::leaveEvent(QEvent *) {
 
 
 void OtpListWidget::mouseMoveEvent(QMouseEvent * ev) {
-	OtpListWidgetItem * it = static_cast<OtpListWidgetItem *>(itemAt(ev->x(), ev->y()));
+	OtpListWidgetItem * mouseItem = static_cast<OtpListWidgetItem *>(itemAt(ev->pos()));
 	int oldHoverIndex = m_hoverItemIndex;
 
-	if(!it) {
+	if(!mouseItem) {
 		if(m_hoverItemIndex == -1) {
 			return;
 		}
@@ -347,7 +331,7 @@ void OtpListWidget::mouseMoveEvent(QMouseEvent * ev) {
 		m_hoverItemIndex = -1;
 	}
 	else {
-		int i = row(it);
+		int i = row(mouseItem);
 
 		if(i == m_hoverItemIndex) {
 			/* TODO capture whether the last rendering of the hovered item
@@ -385,13 +369,13 @@ void OtpListWidget::keyReleaseEvent(QKeyEvent * ev) {
 			return;
 		}
 
-		OtpListWidgetItem * it = static_cast<OtpListWidgetItem *>(item(m_hoverItemIndex));
+		OtpListWidgetItem * hoverItem = static_cast<OtpListWidgetItem *>(item(m_hoverItemIndex));
 
-		if(!it) {
+		if(!hoverItem) {
 			return;
 		}
 
-		QApplication::clipboard()->setText(it->otp()->code());
+		QApplication::clipboard()->setText(hoverItem->otp()->code());
 	}
 }
 
@@ -403,7 +387,7 @@ void OtpListWidget::mousePressEvent(QMouseEvent * ev) {
 		return;
 	}
 	else {
-		m_mousePressLeftStart = QPoint();
+		m_mousePressLeftStart = {};
 	}
 
 	QListWidget::mousePressEvent(ev);
@@ -413,36 +397,33 @@ void OtpListWidget::mousePressEvent(QMouseEvent * ev) {
 void OtpListWidget::mouseReleaseEvent(QMouseEvent * ev) {
 	/* check if one of the action icons has been clicked... */
 	if(Qt::LeftButton == ev->button()) {
-		QPoint mousePos(ev->pos());
+		QPoint releasePos = ev->pos();
 
-		if(m_refreshIconHitRect.contains(m_mousePressLeftStart) && m_refreshIconHitRect.contains(mousePos)) {
-			/* clicked on refresh */
-			OtpListWidgetItem * it = static_cast<OtpListWidgetItem *>(item(m_hoverItemIndex));
+		if(m_refreshIconHitRect.contains(m_mousePressLeftStart) && m_refreshIconHitRect.contains(releasePos)) {
+			auto * refreshItem = static_cast<OtpListWidgetItem *>(item(m_hoverItemIndex));
 
-			if(it) {
-				if(Otp::CodeType::Hotp == it->otp()->type()) {
-					it->otp()->incrementCounter();
+			if(refreshItem) {
+				if(Otp::CodeType::Hotp == refreshItem->otp()->type()) {
+					refreshItem->otp()->incrementCounter();
 				}
 
-				it->otp()->refreshCode();
+				refreshItem->otp()->refreshCode();
 				ev->accept();
 				return;
 			}
 		}
-		else if(m_removeIconHitRect.contains(m_mousePressLeftStart) && m_removeIconHitRect.contains(mousePos)) {
-			/* clicked on remove */
-			m_menuCodeItem = static_cast<OtpListWidgetItem *>(item(m_hoverItemIndex));
+		else if(m_removeIconHitRect.contains(m_mousePressLeftStart) && m_removeIconHitRect.contains(releasePos)) {
+			m_actionItem = static_cast<OtpListWidgetItem *>(item(m_hoverItemIndex));
 			onRemoveActionTriggered();
 			ev->accept();
 			return;
 		}
-		else if(m_copyIconHitRect.contains(m_mousePressLeftStart) && m_copyIconHitRect.contains(mousePos)) {
-			/* clicked on copy */
-			OtpListWidgetItem * it = static_cast<OtpListWidgetItem *>(item(m_hoverItemIndex));
+		else if(m_copyIconHitRect.contains(m_mousePressLeftStart) && m_copyIconHitRect.contains(releasePos)) {
+			auto * copyItem = static_cast<OtpListWidgetItem *>(item(m_hoverItemIndex));
 
-			if(!!it) {
-				QApplication::clipboard()->setText(it->otp()->code());
-				const Settings & settings = qonvinceApp->settings();
+			if(copyItem) {
+				QApplication::clipboard()->setText(copyItem->otp()->code());
+				const auto & settings = qonvinceApp->settings();
 
 				if(settings.clearClipboardAfterInterval() && 0 < settings.clipboardClearInterval()) {
 					QTimer::singleShot(1000 * settings.clipboardClearInterval(), qonvinceApp, &Application::clearClipboard);
@@ -454,15 +435,15 @@ void OtpListWidget::mouseReleaseEvent(QMouseEvent * ev) {
 
 			return;
 		}
-		else if(m_revealIconHitRect.contains(m_mousePressLeftStart) && m_revealIconHitRect.contains(mousePos)) {
-			OtpListWidgetItem * it = static_cast<OtpListWidgetItem *>(item(m_hoverItemIndex));
+		else if(m_revealIconHitRect.contains(m_mousePressLeftStart) && m_revealIconHitRect.contains(releasePos)) {
+			auto * revealItem = static_cast<OtpListWidgetItem *>(item(m_hoverItemIndex));
 
-			if(!it) {
+			if(!revealItem) {
 				qWarning() << "clicked reveal for a non-existent item";
 				return;
 			}
 
-			Otp * otp = it->otp();
+			Otp * otp = revealItem->otp();
 
 			if(!otp) {
 				qWarning() << "clicked reveal for an item that has no Otp object";
@@ -474,13 +455,14 @@ void OtpListWidget::mouseReleaseEvent(QMouseEvent * ev) {
 				return;
 			}
 
-			const Settings & settings = qonvinceApp->settings();
+			const auto & settings = qonvinceApp->settings();
 			m_revealedPasscodes.push_back(otp);
 
 			// even if otp is removed while this timer is running, it's safe -
 			// indeed necessary - to still execute the lambda because the ponter
 			// is only used to remove it from the array of revealed passcodes, it
 			// is not dereferenced
+			// HOWEVER if the widget is destroyed before the timout ... UB
 			QTimer::singleShot(1000 * settings.codeRevealTimeout(), Qt::VeryCoarseTimer, [this, otp]() {
 				removeAll(m_revealedPasscodes, otp);
 				viewport()->update();
@@ -515,7 +497,6 @@ void OtpListWidget::mouseDoubleClickEvent(QMouseEvent * ev) {
 	m_doubleClickWaitTimer.stop();
 	m_receivedDoubleClickEvent = true;
 
-	// don't emit code double-clicked signal if one of the action icons was double-clicked?
 	if(m_removeIconHitRect.contains(ev->pos()) || m_refreshIconHitRect.contains(ev->pos()) || m_copyIconHitRect.contains(ev->pos())) {
 		QListWidget::mouseDoubleClickEvent(ev);
 		return;
@@ -533,9 +514,9 @@ void OtpListWidget::mouseDoubleClickEvent(QMouseEvent * ev) {
 
 
 void OtpListWidget::mouseClickEvent(QMouseEvent * ev) {
-	/* our "fake" mouseClickEvent method is only called if the user clicked
-	 * on an item (but not one of its action icons) and it didn't turn out
-	 * to be a double-click */
+	// this "fake" mouseClickEvent method is only called if the user clicked
+	// on an item (but not one of its action icons) and it didn't turn out
+	// to be a double-click */
 	if(Qt::LeftButton == ev->button()) {
 		OtpListWidgetItem * it = static_cast<OtpListWidgetItem *>(item(m_hoverItemIndex));
 
@@ -549,62 +530,62 @@ void OtpListWidget::mouseClickEvent(QMouseEvent * ev) {
 
 
 void OtpListWidget::contextMenuEvent(QContextMenuEvent * ev) {
-	m_menuCodeItem = static_cast<OtpListWidgetItem *>(itemAt(ev->pos()));
+	m_actionItem = static_cast<OtpListWidgetItem *>(itemAt(ev->pos()));
 
-	if(!m_menuCodeItem) {
+	if(!m_actionItem) {
 		return;
 	}
 
 	ev->accept();
-	m_itemMenu.move(ev->globalPos());
-	m_itemMenu.show();
+	m_itemContextMenu.move(ev->globalPos());
+	m_itemContextMenu.show();
 }
 
 
 void OtpListWidget::onEditActionTriggered() {
-	if(!m_menuCodeItem) {
+	if(!m_actionItem) {
 		return;
 	}
 
-	Q_EMIT editCodeRequested(m_menuCodeItem->otp());
+	Q_EMIT editCodeRequested(m_actionItem->otp());
 }
 
 
 void OtpListWidget::onCopyActionTriggered() {
-	if(!m_menuCodeItem) {
+	if(!m_actionItem) {
 		return;
 	}
 
-	QApplication::clipboard()->setText(m_menuCodeItem->otp()->code());
+	QApplication::clipboard()->setText(m_actionItem->otp()->code());
 }
 
 
 void OtpListWidget::onRemoveIconActionTriggered() {
-	if(!m_menuCodeItem) {
+	if(!m_actionItem) {
 		return;
 	}
 
-	m_menuCodeItem->otp()->setIcon(QIcon());
+	m_actionItem->otp()->setIcon(QIcon());
 }
 
 
 void OtpListWidget::onRefreshActionTriggered() {
-	if(!m_menuCodeItem) {
+	if(!m_actionItem) {
 		return;
 	}
 
-	m_menuCodeItem->otp()->refreshCode();
+	m_actionItem->otp()->refreshCode();
 }
 
 
 void OtpListWidget::onRemoveActionTriggered() {
-	if(!m_menuCodeItem) {
+	if(!m_actionItem) {
 		return;
 	}
 
 	if(QMessageBox::Yes == QMessageBox::question(this, tr("%1: Remove code").arg(qApp->applicationName()), tr("Are you sure you wish to remove this code?"), QMessageBox::Yes | QMessageBox::No)) {
-		delete m_menuCodeItem;
-		m_menuCodeItem = nullptr;
+		delete m_actionItem;
+		m_actionItem = nullptr;
 
 		/* reset the hover item in case it's the one we've just deleted
 		 * it will be updated on the next mouse move event we receive */
@@ -630,25 +611,25 @@ void OtpListWidget::paintEvent(QPaintEvent * ev) {
 	m_refreshIconHitRect.setRect(0, 0, 0, 0);
 	m_removeIconHitRect.setRect(0, 0, 0, 0);
 
-	int w(viewport()->width());
+	int w = viewport()->width();
 
-	QRegion paintRegion(ev->region());
+	QRegion paintRegion = ev->region();
 	QPainter painter;
 	painter.begin(viewport());
 
-	QFont nameFont(font());
-	QFont codeFont(nameFont);
-	QPalette pal(palette());
+	QFont nameFont = font();
+	QFont codeFont = nameFont;
+	QPalette pal = palette();
 
 	nameFont.setStyleStrategy(static_cast<QFont::StyleStrategy>(QFont::PreferQuality | QFont::PreferAntialias));
 	codeFont.setStyleStrategy(static_cast<QFont::StyleStrategy>(QFont::PreferQuality | QFont::PreferAntialias));
 
 	/* paint background */
 	if(QONVINCE_OTPCODELISTWIDGET_DO_BACKGROUND_MESSAGE && m_imageDropEnabled) {
-		QString txt(tr("Drop QR code images here ..."));
+		QString txt = tr("Drop QR code images here ...");
 		int y = height() - QONVINCE_OTPCODELISTWIDGET_BACKGROUND_MESSAGE_RECT_HEIGHT;
 		int w = viewport()->width();
-		QFont bgFont(nameFont);
+		QFont bgFont = nameFont;
 		bgFont.setPixelSize(QONVINCE_OTPCODELISTWIDGET_BACKGROUND_MESSAGE_FONT_SIZE);
 		painter.save();
 		painter.setPen(QColor(192, 192, 192));
@@ -672,9 +653,9 @@ void OtpListWidget::paintEvent(QPaintEvent * ev) {
 	QRect itemRect(0, 0, w, h);
 	int timerRectSize = static_cast<int>(static_cast<long double>(h) * QONVINCE_OTPCODELISTWIDGET_PROGRESS_GAUGE_SIZE);
 	QRect iconRect(QONVINCE_OTPCODELISTWIDGET_INTERNAL_MARGIN, QONVINCE_OTPCODELISTWIDGET_INTERNAL_MARGIN, QONVINCE_OTPCODELISTWIDGET_CODE_ICON_SIZE, QONVINCE_OTPCODELISTWIDGET_CODE_ICON_SIZE);
-	QRectF timerRect(0.5L + itemRect.right() - timerRectSize - (3 * (QONVINCE_OTPCODELISTWIDGET_ITEM_ACTION_ICON_SIZE + QONVINCE_OTPCODELISTWIDGET_INTERNAL_MARGIN + QONVINCE_OTPCODELISTWIDGET_INTERNAL_MARGIN)), 0.5L + ((h - timerRectSize) / 2.0L), timerRectSize, timerRectSize);
+	QRectF timerRect(0.5 + itemRect.right() - timerRectSize - (3 * (QONVINCE_OTPCODELISTWIDGET_ITEM_ACTION_ICON_SIZE + QONVINCE_OTPCODELISTWIDGET_INTERNAL_MARGIN + QONVINCE_OTPCODELISTWIDGET_INTERNAL_MARGIN)), 0.5 + ((h - timerRectSize) / 2.0), timerRectSize, timerRectSize);
 	QRect codeRect(itemRect);
-	codeRect.setRight(timerRect.left() - (3 * QONVINCE_OTPCODELISTWIDGET_INTERNAL_MARGIN));
+	codeRect.setRight(static_cast<int>(timerRect.left() - (3 * QONVINCE_OTPCODELISTWIDGET_INTERNAL_MARGIN)));
 	/* NB right() of this rect is set once we know how far left the code and timer rendering extends */
 	QRect nameRect(QONVINCE_OTPCODELISTWIDGET_CODE_ICON_SIZE + QONVINCE_OTPCODELISTWIDGET_INTERNAL_MARGIN + QONVINCE_OTPCODELISTWIDGET_INTERNAL_MARGIN, 0, 0, h);
 
@@ -736,7 +717,7 @@ void OtpListWidget::paintEvent(QPaintEvent * ev) {
 				codeString = tr("<no code>");
 			}
 
-			QPen itemPen(normalPen);
+			QPen itemPen = normalPen;
 
 			if(i == m_hoverItemIndex) {
 				backgroundBrush = pal.highlight();
@@ -830,7 +811,7 @@ void OtpListWidget::paintEvent(QPaintEvent * ev) {
 				}
 
 				m_removeIconHitRect = QRect(itemRect.right() - QONVINCE_OTPCODELISTWIDGET_ITEM_ACTION_ICON_SIZE - QONVINCE_OTPCODELISTWIDGET_INTERNAL_MARGIN, itemRect.top() + ((itemRect.height() - QONVINCE_OTPCODELISTWIDGET_ITEM_ACTION_ICON_SIZE) / 2), QONVINCE_OTPCODELISTWIDGET_ITEM_ACTION_ICON_SIZE, QONVINCE_OTPCODELISTWIDGET_ITEM_ACTION_ICON_SIZE);
-				QIcon icon(QIcon::fromTheme("list-remove", QIcon(":/icons/codeactions/remove")));
+				QIcon icon = QIcon::fromTheme("list-remove", QIcon(":/icons/codeactions/remove"));
 				bool doHoverEffect = m_removeIconHitRect.contains(mousePos);
 
 				if(doHoverEffect) {
@@ -871,12 +852,12 @@ void OtpListWidget::paintEvent(QPaintEvent * ev) {
 }
 
 
-#ifndef NDEBUG
+#if !defined(NDEBUG)
 void OtpListWidget::debugLogNewCode(const QString & code) const {
-	Otp * c = dynamic_cast<Otp *>(sender());
+	auto * otp = qobject_cast<Otp *>(sender());
 
-	if(!!c) {
-		std::cout << "Otp object" << qPrintable(c->name()) << "generated new code" << qPrintable(code) << "\n" << std::flush;
+	if(otp) {
+		std::cout << "Otp object \"" << otp->name() << "\" generated new code \"" << code << "\"\n" << std::flush;
 	}
 }
 #endif

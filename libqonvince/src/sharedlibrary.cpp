@@ -113,10 +113,7 @@ namespace LibQonvince {
 	 * previously.
 	 */
 	SharedLibrary & SharedLibrary::operator=(SharedLibrary && other) {
-		// TODO could just std::swap()?
-		close();
-		m_lib = other.m_lib;
-		other.m_lib = nullptr;
+		std::swap(m_lib, other.m_lib);
 		return *this;
 	}
 

@@ -30,6 +30,7 @@
 #include <QTimer>
 
 #include "otp.h"
+#include "otplistwidgetitem.h"
 
 class QEvent;
 class QPaintEvent;
@@ -38,8 +39,6 @@ class QKeyEvent;
 class QContextMenuEvent;
 
 namespace Qonvince {
-
-	class OtpListWidgetItem;
 
 	class OtpListWidget
 	: public QListWidget {
@@ -95,15 +94,19 @@ namespace Qonvince {
 			return m_countdownCriticalColour;
 		}
 
+		inline OtpListWidgetItem * itemAt(const QPoint & pos) const {
+			return static_cast<OtpListWidgetItem *>(QListWidget::itemAt(pos));
+		}
+
 		Otp * otp(int i) const;
 		void addOtp(std::unique_ptr<Otp> &&);
+
+		void addItem() = delete;
 
 	public Q_SLOTS:
 		void setCountdownColour(const QColor &);
 		void setCountdownWarningColour(const QColor &);
 		void setCountdownCriticalColour(const QColor &);
-//		void addOtp(const QByteArray & seed);
-//		void addOtp(const QString & name, const QByteArray & seed);
 
 	Q_SIGNALS:
 		//		void codeAdded(Otp *);
@@ -175,11 +178,8 @@ namespace Qonvince {
 		QRect m_removeIconHitRect, m_refreshIconHitRect, m_copyIconHitRect, m_revealIconHitRect;
 		QPoint m_mousePressLeftStart;
 
-		// item context menu
-		QMenu m_itemMenu;
-
-		// item whose context-menu is visible
-		OtpListWidgetItem * m_menuCodeItem;
+		QMenu m_itemContextMenu;
+		OtpListWidgetItem * m_actionItem;
 
 		// list of hidden passcodes that are currently revealed temporarily
 		std::vector<Otp *> m_revealedPasscodes;
