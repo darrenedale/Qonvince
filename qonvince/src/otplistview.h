@@ -30,6 +30,8 @@
 #include <QTimer>
 
 #include "otp.h"
+#include "otplistmodel.h"
+#include "otplistitemdelegate.h"
 
 class QEvent;
 class QPaintEvent;
@@ -47,10 +49,7 @@ namespace Qonvince {
 		explicit OtpListView(QWidget * = nullptr);
 		virtual ~OtpListView();
 
-		inline int hoveredOtpIndex() const {
-			return m_hoverItemIndex;
-		}
-
+		int hoveredOtpIndex() const;
 		Otp * hoveredOtp() const;
 
 		inline QString hoveredOtpCode() const {
@@ -78,6 +77,11 @@ namespace Qonvince {
 		constexpr inline int itemHeight() const {
 			return 40;
 		}
+
+		inline void setModel(QAbstractItemModel *) override {
+		}
+
+		void setItemDelegate() = delete;
 
 	Q_SIGNALS:
 		//		void codeAdded(Otp *);
@@ -120,9 +124,6 @@ namespace Qonvince {
 #endif
 
 	private:
-		// index of item under mouse pointer
-		int m_hoverItemIndex;
-
 		bool m_tickTimerIsResynchronising;
 		bool m_imageDropEnabled;
 
@@ -141,14 +142,16 @@ namespace Qonvince {
 		bool m_receivedDoubleClickEvent;
 
 		// hit-test geometry for item under mouse pointer
-		QRect m_removeIconHitRect, m_refreshIconHitRect, m_copyIconHitRect, m_revealIconHitRect;
+		QRect m_removeIconHitRect;
+		QRect m_refreshIconHitRect;
+		QRect m_copyIconHitRect;
+		QRect m_revealIconHitRect;
 		QPoint m_mousePressLeftStart;
 
 		QMenu m_itemContextMenu;
 		QModelIndex m_actionItemIndex;
-
-		// list of hidden passcodes that are currently revealed temporarily
-		std::vector<Otp *> m_revealedPasscodes;
+		std::unique_ptr<OtpListModel> m_model;
+		std::unique_ptr<OtpListItemDelegate> m_delegate;
 	};
 
 }  // namespace Qonvince

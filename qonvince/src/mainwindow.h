@@ -82,8 +82,6 @@ namespace Qonvince {
 
 	private:
 		std::unique_ptr<Ui::MainWindow> m_ui;
-		std::unique_ptr<OtpListModel> m_model;
-		std::unique_ptr<OtpListItemDelegate> m_delegate;
 		QNetworkAccessManager m_netManager;
 		bool m_imageDropEnabled;
 	};

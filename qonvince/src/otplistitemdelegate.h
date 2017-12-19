@@ -6,7 +6,7 @@
 namespace Qonvince {
 
 	class OtpListItemDelegate
-	        : public QStyledItemDelegate {
+	: public QStyledItemDelegate {
 		public:
 			OtpListItemDelegate();
 
@@ -38,6 +38,12 @@ namespace Qonvince {
 
 				m_countdownCriticalColour = {-1, -1, -1};
 			}
+
+			// x position is offset from right edge of paint rect
+			QRect copyIconRect() const;
+			QRect removeIconRect() const;
+			QRect refreshIconRect() const;
+			QRect revealIconRect() const;
 
 		private:
 			QColor m_countdownWarningColour;

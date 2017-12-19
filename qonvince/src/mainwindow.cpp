@@ -53,15 +53,8 @@ namespace Qonvince {
 	MainWindow::MainWindow(QWidget * parent)
 	: QMainWindow(parent),
 	  m_ui(std::make_unique<Ui::MainWindow>()),
-	  m_model(std::make_unique<OtpListModel>()),
-	  m_delegate(std::make_unique<OtpListItemDelegate>()),
 	  m_imageDropEnabled(OtpQrCodeReader::isAvailable()) {
 		m_ui->setupUi(this);
-
-		m_ui->otpList->setModel(m_model.get());
-		m_ui->otpList->setItemDelegate(m_delegate.get());
-		m_delegate->setCountdownWarningColour(QColor(160, 160, 92));
-		m_delegate->setCountdownCriticalColour(QColor(220, 78, 92));
 
 		m_ui->addCode->setIcon(QIcon::fromTheme("list-add", QIcon(":/icons/mainwindow/add")));
 		m_ui->settings->setIcon(QIcon::fromTheme("configure-shortcuts", QIcon(":/icons/mainwindow/settings")));

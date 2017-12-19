@@ -64,16 +64,15 @@ namespace Qonvince {
 			codeString = tr("<no code>");
 		}
 
-		auto palette = option.widget->palette();
 		QPen itemPen = painter->pen();
-		QBrush backgroundBrush = palette.base();
+		QBrush backgroundBrush = option.palette.base();
 
 		if(option.state & QStyle::State_MouseOver) {
-			backgroundBrush = palette.highlight();
-			itemPen.setColor(palette.highlightedText().color());
+			backgroundBrush = option.palette.highlight();
+			itemPen.setColor(option.palette.highlightedText().color());
 		}
 		else if(0 != (index.row() % 2)) {
-			backgroundBrush = palette.alternateBase();
+			backgroundBrush = option.palette.alternateBase();
 		}
 
 		painter->setPen(itemPen);
@@ -111,7 +110,7 @@ namespace Qonvince {
 
 		/* draw the item new code timeout counter */
 		if(Otp::CodeType::Totp == codeType) {
-			auto countdownColour = palette.color(QPalette::WindowText).lighter(150);
+			auto countdownColour = option.palette.color(QPalette::WindowText).lighter(150);
 			QPen timerPen(countdownColour);
 			timerPen.setWidthF(0.5);
 			QBrush timerBrush(countdownColour);
@@ -206,6 +205,34 @@ namespace Qonvince {
 
 		return {option.rect.width(), 40};
 		//		return {(option.widget ? option.widget->width() : 400), 40};
+	}
+
+
+	QRect OtpListItemDelegate::copyIconRect() const {
+		// measured from right
+		static constexpr const int iconSlotIndex = 1;
+		return QRect(-(iconSlotIndex * (QONVINCE_OTPCODELISTWIDGET_ITEM_ACTION_ICON_SIZE + QONVINCE_OTPCODELISTWIDGET_INTERNAL_MARGIN)) - QONVINCE_OTPCODELISTWIDGET_INTERNAL_MARGIN, ((40 - QONVINCE_OTPCODELISTWIDGET_ITEM_ACTION_ICON_SIZE) / 2), QONVINCE_OTPCODELISTWIDGET_ITEM_ACTION_ICON_SIZE, QONVINCE_OTPCODELISTWIDGET_ITEM_ACTION_ICON_SIZE);
+	}
+
+
+	QRect OtpListItemDelegate::refreshIconRect() const {
+		// measured from right
+		static constexpr const int iconSlotIndex = 2;
+		return QRect(-(iconSlotIndex * (QONVINCE_OTPCODELISTWIDGET_ITEM_ACTION_ICON_SIZE + QONVINCE_OTPCODELISTWIDGET_INTERNAL_MARGIN)) - QONVINCE_OTPCODELISTWIDGET_INTERNAL_MARGIN, ((40 - QONVINCE_OTPCODELISTWIDGET_ITEM_ACTION_ICON_SIZE) / 2), QONVINCE_OTPCODELISTWIDGET_ITEM_ACTION_ICON_SIZE, QONVINCE_OTPCODELISTWIDGET_ITEM_ACTION_ICON_SIZE);
+	}
+
+
+	QRect OtpListItemDelegate::removeIconRect() const {
+		// measured from right
+		static constexpr const int iconSlotIndex = 3;
+		return QRect(-(iconSlotIndex * (QONVINCE_OTPCODELISTWIDGET_ITEM_ACTION_ICON_SIZE + QONVINCE_OTPCODELISTWIDGET_INTERNAL_MARGIN)) - QONVINCE_OTPCODELISTWIDGET_INTERNAL_MARGIN, ((40 - QONVINCE_OTPCODELISTWIDGET_ITEM_ACTION_ICON_SIZE) / 2), QONVINCE_OTPCODELISTWIDGET_ITEM_ACTION_ICON_SIZE, QONVINCE_OTPCODELISTWIDGET_ITEM_ACTION_ICON_SIZE);
+	}
+
+
+	QRect OtpListItemDelegate::revealIconRect() const {
+		// measured from right
+		static constexpr const int iconSlotIndex = 4;
+		return QRect(-(iconSlotIndex * (QONVINCE_OTPCODELISTWIDGET_ITEM_ACTION_ICON_SIZE + QONVINCE_OTPCODELISTWIDGET_INTERNAL_MARGIN)) - QONVINCE_OTPCODELISTWIDGET_INTERNAL_MARGIN, ((40 - QONVINCE_OTPCODELISTWIDGET_ITEM_ACTION_ICON_SIZE) / 2), QONVINCE_OTPCODELISTWIDGET_ITEM_ACTION_ICON_SIZE, QONVINCE_OTPCODELISTWIDGET_ITEM_ACTION_ICON_SIZE);
 	}
 
 
