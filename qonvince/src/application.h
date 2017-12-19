@@ -96,6 +96,32 @@ namespace Qonvince {
 			return m_settings;
 		}
 
+		inline int otpCount() const {
+			return static_cast<int>(m_otpList.size());
+		}
+
+		Otp * otp(int index) const {
+			if(0 > index || m_otpList.size() <= static_cast<std::size_t>(index)) {
+				return nullptr;
+			}
+
+			return m_otpList[static_cast<std::size_t>(index)].get();
+		}
+
+		inline int addOtp(std::unique_ptr<Otp> &&);
+
+		// Application takes ownership of otp
+		inline int addOtp(Otp * otp) {
+			if(contains(m_otpList, otp)) {
+				return -1;
+			}
+
+			return addOtp(std::unique_ptr<Otp>(otp));
+		}
+
+		bool removeOtp(int);
+		bool removeOtp(Otp *);
+
 		inline LibQonvince::OtpDisplayPlugin * otpDisplayPluginByName(const QString & name) {
 			return m_displayPluginFactory.pluginByName(name);
 		}
@@ -105,6 +131,14 @@ namespace Qonvince {
 		}
 
 		static int exec();
+
+	Q_SIGNALS:
+		void otpAdded(Otp *);
+		void otpAdded(int, Otp *);
+
+		// Otp object has been removed but not (yet) destroyed
+		void otpRemoved(Otp *);
+		void otpRemoved(int);
 
 	public Q_SLOTS:
 		void showNotification(const QString & title, const QString & message, int timeout = 10000);
@@ -131,6 +165,7 @@ namespace Qonvince {
 		QSystemTrayIcon m_trayIcon;
 		QMenu m_trayIconMenu;
 		QMetaObject::Connection m_quitOnMainWindowClosedConnection;
+		std::vector<std::unique_ptr<Otp>> m_otpList;
 
 		DisplayPluginFactory m_displayPluginFactory;
 

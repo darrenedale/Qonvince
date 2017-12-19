@@ -25,12 +25,14 @@
 #include <QMainWindow>
 #include <QSystemTrayIcon>
 #include <QString>
+#include <QNetworkAccessManager>
 
 class QShowEvent;
 class QCloseEvent;
 class QDropEvent;
 class QDragEnterEvent;
 class QSettings;
+class QNetworkReply;
 
 namespace Qonvince {
 
@@ -74,8 +76,11 @@ namespace Qonvince {
 		void onEditOtpRequested(Otp *);
 		void onOtpClicked(Otp *);
 
+		void onRemoteQrCodeImageDownloadFinished();
+
 	private:
 		std::unique_ptr<Ui::MainWindow> m_ui;
+		QNetworkAccessManager m_netManager;
 		bool m_imageDropEnabled;
 	};
 

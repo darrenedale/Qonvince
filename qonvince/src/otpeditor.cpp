@@ -57,11 +57,6 @@ namespace Qonvince {
 	  m_otp(nullptr) {
 		m_ui->setupUi(this);
 
-		// TODO make this a plugin chooser custom widget
-		for(const auto & plugin : qonvinceApp->otpDisplayPlugins()) {
-			m_ui->displayPlugin->addItem(plugin->displayName(), plugin->name());
-		}
-
 		m_ui->advancedSettingsWidget->setVisible(m_ui->advancedToggle->isChecked());
 		m_ui->createBarcodeButton->setVisible(false);
 
@@ -71,7 +66,7 @@ namespace Qonvince {
 		connect(m_ui->issuerEdit, &QLineEdit::textEdited, this, &OtpEditor::issuerChanged);
 		connect(m_ui->nameEdit, &QLineEdit::textEdited, this, &OtpEditor::nameChanged);
 		connect(m_ui->seedEdit, &QLineEdit::textEdited, this, &OtpEditor::seedWidgetTextEdited);
-		connect(m_ui->displayPlugin, &QComboBox::currentTextChanged, this, &OtpEditor::displayPluginNameChanged);
+		connect(m_ui->displayPlugin, &OtpDisplayPluginChooser::currentPluginChanged, this, &OtpEditor::displayPluginNameChanged);
 
 		connect(m_ui->intervalSpin, qOverload<int>(&QSpinBox::valueChanged), this, &OtpEditor::durationChanged);
 		connect(m_ui->issuerEdit, &QLineEdit::textChanged, this, &OtpEditor::updateHeading);
@@ -366,11 +361,15 @@ namespace Qonvince {
 				}
 			}
 
-			/* TODO identify if the plugin is built-in and digits-based, and if so
-		 * add the digits to the uri */
-			//		if(6 != m_ui->digitsSpin->value()) {
-			//			uri += "&digits=" + QString::number(m_ui->digitsSpin->value());
-			//		}
+			// this detection of digits URL param is not entirely satisfactory
+			auto pluginName = m_ui->displayPlugin->currentData().toString();
+
+			if(QStringLiteral("SixDigitsPlugin") == pluginName) {
+				uri += "&digits=6";
+			}
+			else if(QStringLiteral("EightDigitsPlugin") == pluginName) {
+				uri += "&digits=8";
+			}
 
 			QrCodeCreator creator(uri);
 			QImage img(creator.image(QSize(128, 128)));

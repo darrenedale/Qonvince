@@ -37,15 +37,16 @@ public:                                                  \
 	virtual const QString & name() const override;        \
 	virtual const QString & displayName() const override; \
 	virtual const QString & description() const override; \
-	virtual const QString & author() const override;            \
+	virtual const QString & author() const override;      \
 	virtual const QString & versionString() const override;
 
 	// use the macros for the api version and plugin type name because we want the
 	// content set at compile time not resolved at runtime (otherwise the checks in
 	// PluginFactory would be circumventable)
 #define DECLARE_LIBQONVINCE_OTPDISPLAYPLUGIN(className_, displayName_, description_, author_, version_) \
+	extern LibQonvince::PluginInfo pluginInfo;                                                           \
 	extern "C" {                                                                                         \
-	LibQonvince::OtpDisplayPlugin * createInstance() {                                                     \
+	LibQonvince::OtpDisplayPlugin * createInstance() {                                                   \
 		return new className_();                                                                          \
 	}                                                                                                    \
 	}                                                                                                    \
@@ -61,7 +62,7 @@ public:                                                  \
 	  QStringLiteral(author_),												/* authorName */                         \
 	  QStringLiteral(version_),											/* versionString */                      \
 	};                                                                                                   \
-	\
+																										\
 	const QString & className_::name() const {                                                           \
 		static const QString s_name = QStringLiteral(#className_);                                        \
 		return s_name;                                                                                    \
@@ -87,6 +88,6 @@ public:                                                  \
 		return s_version;                                                                                 \
 	}
 
-}  // namespace Qonvince
+}  // namespace LibQonvince
 
 #endif  // QONVINCE_OTPDISPLAYPLUGIN_H

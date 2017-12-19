@@ -403,7 +403,7 @@
        </layout>
       </item>
       <item row="0" column="1">
-       <widget class="QComboBox" name="displayPlugin"/>
+       <widget class="Qonvince::OtpDisplayPluginChooser" name="displayPlugin"/>
       </item>
      </layout>
     </widget>
@@ -436,6 +436,11 @@
     <slot>setIcon(QIcon)</slot>
     <slot>setIconPath(QString)</slot>
    </slots>
+  </customwidget>
+  <customwidget>
+   <class>Qonvince::OtpDisplayPluginChooser</class>
+   <extends>QComboBox</extends>
+   <header>src/otpdisplaypluginchooser.h</header>
   </customwidget>
  </customwidgets>
  <tabstops>

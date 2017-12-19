@@ -192,7 +192,7 @@ void OtpListWidget::addOtp(std::unique_ptr<Otp> && otp) {
 
 
 void OtpListWidget::addItem(OtpListWidgetItem * item) {
-	item->setSizeHint({width(), 40});
+	item->setSizeHint(QSize(width(), 40));
 	QListWidget::addItem(item);
 	auto * code = item->otp();
 	connect(code, &Otp::changed, this, &OtpListWidget::onOtpChanged);
@@ -324,7 +324,7 @@ void OtpListWidget::mouseMoveEvent(QMouseEvent * ev) {
 	int oldHoverIndex = m_hoverItemIndex;
 
 	if(!mouseItem) {
-		if(m_hoverItemIndex == -1) {
+		if(-1 == m_hoverItemIndex) {
 			return;
 		}
 
@@ -857,7 +857,8 @@ void OtpListWidget::debugLogNewCode(const QString & code) const {
 	auto * otp = qobject_cast<Otp *>(sender());
 
 	if(otp) {
-		std::cout << "Otp object \"" << otp->name() << "\" generated new code \"" << code << "\"\n" << std::flush;
+		std::cout << "Otp object \"" << otp->name() << "\" generated new code \"" << code << "\"\n"
+					 << std::flush;
 	}
 }
 #endif

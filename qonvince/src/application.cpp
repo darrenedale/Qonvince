@@ -255,6 +255,48 @@ namespace Qonvince {
 	}
 
 
+	int Application::addOtp(std::unique_ptr<Otp> && otp) {
+		if(!otp || contains(m_otpList, otp)) {
+			return -1;
+		}
+
+		int index = static_cast<int>(m_otpList.size());
+		m_otpList.push_back(std::move(otp));
+		Q_EMIT otpAdded(otp.get());
+		Q_EMIT otpAdded(index, otp.get());
+		return index;
+	}
+
+
+	bool Application::removeOtp(int index) {
+		if(0 > index || m_otpList.size() <= static_cast<std::size_t>(index)) {
+			return false;
+		}
+
+		return removeOtp(m_otpList[static_cast<std::size_t>(index)].get());
+	}
+
+
+	bool Application::removeOtp(Otp * otp) {
+		auto begin = m_otpList.begin();
+		auto end = m_otpList.end();
+		auto otpIter = std::find_if(begin, end, [&otp](const auto & listOtp) {
+			return listOtp.get() == otp;
+		});
+
+		if(otpIter == end) {
+			return false;
+		}
+
+		int index = static_cast<int>(std::distance(begin, otpIter));
+		auto myOtp = std::move(*otpIter);
+		m_otpList.erase(otpIter);
+		Q_EMIT otpRemoved(otp);
+		Q_EMIT otpRemoved(index);
+		return true;
+	}
+
+
 	bool Application::ensureDirectory(const QStandardPaths::StandardLocation & location, const QString & path) {
 		QString rootPath = QStandardPaths::writableLocation(location);
 

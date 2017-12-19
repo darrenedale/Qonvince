@@ -36,6 +36,8 @@
 #include <QUrl>
 #include <QMessageBox>
 #include <QStringBuilder>
+#include <QtNetwork/QNetworkReply>
+#include <QTemporaryFile>
 
 #include "application.h"
 #include "otplistwidgetitem.h"
@@ -109,10 +111,13 @@ namespace Qonvince {
 			return;
 		}
 
-		// TODO consider reading remote URLs?
 		for(const auto & url : ev->mimeData()->urls()) {
 			if(url.isLocalFile()) {
 				qonvinceApp->readQrCodeFrom(url.toLocalFile());
+			}
+			else {
+				auto * reply = m_netManager.get(QNetworkRequest(url));
+				connect(reply, &QNetworkReply::finished, this, &MainWindow::onRemoteQrCodeImageDownloadFinished);
 			}
 		}
 	}
@@ -180,6 +185,26 @@ namespace Qonvince {
 				hide();
 			}
 		}
+	}
+
+
+	void MainWindow::onRemoteQrCodeImageDownloadFinished() {
+		auto * reply = qobject_cast<QNetworkReply *>(sender());
+		Q_ASSERT_X(reply, __PRETTY_FUNCTION__, "sender is not a QNetworkReply object");
+		std::cout << "network reply received: " << reply->url();
+		QTemporaryFile imageFile;
+
+		if(!imageFile.open()) {
+			qonvinceApp->showNotification(tr("Error"), tr("A temporary file for the downloaded QR image could not be created."));
+		}
+		else if(reply->bytesAvailable() != imageFile.write(reply->readAll())) {
+			qonvinceApp->showNotification(tr("Error"), tr("The downloaded QR image could not be saved to a temporary file."));
+		}
+		else {
+			qonvinceApp->readQrCodeFrom(imageFile.fileName());
+		}
+
+		reply->deleteLater();
 	}
 
 
