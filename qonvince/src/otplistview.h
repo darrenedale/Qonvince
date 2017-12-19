@@ -17,12 +17,12 @@
  * along with Qonvince. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QUICKAUTH_OTPLISTWIDGET_H
-#define QUICKAUTH_OTPLISTWIDGET_H
+#ifndef QONVINCE_OTPLISTVIEW_H
+#define QONVINCE_OTPLISTVIEW_H
 
 #include <vector>
 
-#include <QListWidget>
+#include <QListView>
 #include <QMenu>
 #include <QColor>
 #include <QHash>
@@ -30,7 +30,6 @@
 #include <QTimer>
 
 #include "otp.h"
-#include "otplistwidgetitem.h"
 
 class QEvent;
 class QPaintEvent;
@@ -40,13 +39,13 @@ class QContextMenuEvent;
 
 namespace Qonvince {
 
-	class OtpListWidget
-	: public QListWidget {
+	class OtpListView
+	: public QListView {
 		Q_OBJECT
 
 	public:
-		explicit OtpListWidget(QWidget * = nullptr);
-		virtual ~OtpListWidget();
+		explicit OtpListView(QWidget * = nullptr);
+		virtual ~OtpListView();
 
 		inline int hoveredOtpIndex() const {
 			return m_hoverItemIndex;
@@ -76,37 +75,9 @@ namespace Qonvince {
 			return hoveredOtpCode();
 		}
 
-		void addItem(OtpListWidgetItem *);
-
 		constexpr inline int itemHeight() const {
 			return 40;
 		}
-
-		inline const QColor & countdownColour() const {
-			return m_countdownColour;
-		}
-
-		inline const QColor & countdownWarningColour() const {
-			return m_countdownWarningColour;
-		}
-
-		inline const QColor & countdownCriticalColour() const {
-			return m_countdownCriticalColour;
-		}
-
-		inline OtpListWidgetItem * itemAt(const QPoint & pos) const {
-			return static_cast<OtpListWidgetItem *>(QListWidget::itemAt(pos));
-		}
-
-		Otp * otp(int i) const;
-		void addOtp(std::unique_ptr<Otp> &&);
-
-		void addItem() = delete;
-
-	public Q_SLOTS:
-		void setCountdownColour(const QColor &);
-		void setCountdownWarningColour(const QColor &);
-		void setCountdownCriticalColour(const QColor &);
 
 	Q_SIGNALS:
 		//		void codeAdded(Otp *);
@@ -132,11 +103,10 @@ namespace Qonvince {
 		 * filtering out cases where the click is part of a double-click */
 		virtual void mouseClickEvent(QMouseEvent *);
 
-		OtpListWidgetItem * findOtp(const Otp *) const;
 		void synchroniseTickTimer();
 
 	private Q_SLOTS:
-		void onOtpChanged();
+//		void onOtpChanged();
 		void updateCountdowns();
 
 		void onEditActionTriggered();
@@ -152,10 +122,6 @@ namespace Qonvince {
 	private:
 		// index of item under mouse pointer
 		int m_hoverItemIndex;
-
-		QColor m_countdownColour;
-		QColor m_countdownWarningColour;
-		QColor m_countdownCriticalColour;
 
 		bool m_tickTimerIsResynchronising;
 		bool m_imageDropEnabled;
@@ -179,7 +145,7 @@ namespace Qonvince {
 		QPoint m_mousePressLeftStart;
 
 		QMenu m_itemContextMenu;
-		OtpListWidgetItem * m_actionItem;
+		QModelIndex m_actionItemIndex;
 
 		// list of hidden passcodes that are currently revealed temporarily
 		std::vector<Otp *> m_revealedPasscodes;
@@ -187,4 +153,4 @@ namespace Qonvince {
 
 }  // namespace Qonvince
 
-#endif  // QUICKAUTH_OTPLISTWIDGET_H
+#endif  // QONVINCE_OTPLISTVIEW_H

@@ -49,7 +49,7 @@
 #include "passworddialogue.h"
 #include "settingswidget.h"
 #include "aboutdialogue.h"
-#include "otplistwidget.h"
+#include "otplistview.h"
 #include "otp.h"
 #include "otpqrcodereader.h"
 #include "pluginfactory.h"
@@ -442,7 +442,7 @@ namespace Qonvince {
 			return;
 		}
 
-		m_mainWindow.otpList()->addOtp(std::unique_ptr<Otp>(reader.createOtp()));
+		addOtp(reader.createOtp());
 	}
 
 
@@ -453,7 +453,7 @@ namespace Qonvince {
 		m_mainWindow.readSettings(settings);
 		settings.endGroup();
 
-		m_mainWindow.otpList()->clear();
+		m_otpList.clear();
 		settings.beginGroup("application");
 		m_settings.read(settings);
 
@@ -483,7 +483,7 @@ namespace Qonvince {
 			}
 		}
 
-		m_mainWindow.otpList()->clear();
+		m_otpList.clear();
 
 		settings.beginGroup("codes");
 		int n = settings.value("code_count", 0).toInt();
@@ -494,7 +494,7 @@ namespace Qonvince {
 
 			if(otp) {
 				connect(otp.get(), &Otp::changed, this, &Application::writeSettings);
-				m_mainWindow.otpList()->addOtp(std::move(otp));
+				addOtp(std::move(otp));
 			}
 			else {
 				qWarning() << "failed to read code" << i;
@@ -527,8 +527,7 @@ namespace Qonvince {
 			settings.setValue("crypt_check", QCA::arrayToHex(initVec.toByteArray() + cipher.process(random).toByteArray()));
 		}
 
-		auto * list = m_mainWindow.otpList();
-		int n = list->count();
+		auto n = m_otpList.size();
 
 		settings.beginGroup("application");
 		m_settings.write(settings);
@@ -539,18 +538,17 @@ namespace Qonvince {
 		settings.endGroup();
 
 		settings.beginGroup("codes");
-		settings.setValue("code_count", n);
+		settings.setValue("code_count", static_cast<int>(n));
 
-		for(int i = 0; i < n; ++i) {
-			Otp * code = list->otp(i);
-
-			if(!code) {
+		auto i = 0;
+		for(const auto & otp : m_otpList) {
+			if(!otp) {
 				qWarning() << "OTP #" << i << "is null!";
 				continue;
 			}
 
 			settings.beginGroup(QString("code-%1").arg(i));
-			code->writeSettings(settings, m_cryptPassphrase);
+			otp->writeSettings(settings, m_cryptPassphrase);
 			settings.endGroup();
 		}
 

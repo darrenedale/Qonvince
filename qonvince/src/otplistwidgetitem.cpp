@@ -26,7 +26,9 @@
 
 #include "otplistwidgetitem.h"
 
-#include "otplistwidget.h"
+#include <QListWidgetItem>
+
+#include "otplistview.h"
 #include "otp.h"
 
 

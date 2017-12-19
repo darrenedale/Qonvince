@@ -33,6 +33,7 @@
 
 #include <QtCrypto/QtCrypto>
 
+#include "otp.h"
 #include "algorithms.h"
 #include "mainwindow.h"
 #include "settings.h"
@@ -51,7 +52,6 @@ namespace Qonvince {
 	class MainWindow;
 	class SettingsWidget;
 	class AboutDialogue;
-	class Otp;
 
 	class Application
 	: public QApplication {
@@ -108,11 +108,15 @@ namespace Qonvince {
 			return m_otpList[static_cast<std::size_t>(index)].get();
 		}
 
-		inline int addOtp(std::unique_ptr<Otp> &&);
+		int addOtp(std::unique_ptr<Otp> &&);
 
 		// Application takes ownership of otp
 		inline int addOtp(Otp * otp) {
-			if(contains(m_otpList, otp)) {
+			const auto end = m_otpList.cend();
+
+			if(end != std::find_if(m_otpList.cbegin(), end, [otp](const auto & listOtp) {
+					return listOtp.get() == otp;
+				})) {
 				return -1;
 			}
 

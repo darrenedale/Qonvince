@@ -2,6 +2,8 @@
 
 #include <QString>
 #include <QUrl>
+#include <QRect>
+#include <QPoint>
 
 
 namespace Qonvince {
@@ -21,6 +23,18 @@ namespace Qonvince {
 
 	std::ostream & operator<<(std::ostream & out, const QUrl & url) {
 		out << url.toString();
+		return out;
+	}
+
+
+	std::ostream & operator<<(std::ostream & out, const QRect & rect) {
+		out << rect.topLeft() << '-' << rect.bottomRight();
+		return out;
+	}
+
+
+	std::ostream & operator<<(std::ostream & out, const QPoint & point) {
+		out << '(' << point.x() << ", " << point.y() << ')';
 		return out;
 	}
 

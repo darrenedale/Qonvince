@@ -23,7 +23,7 @@
   <widget class="QWidget" name="centralWidget">
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
-     <widget class="Qonvince::OtpListWidget" name="otpList">
+     <widget class="Qonvince::OtpListView" name="otpList">
       <property name="minimumSize">
        <size>
         <width>350</width>
@@ -99,9 +99,9 @@
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
   <customwidget>
-   <class>Qonvince::OtpListWidget</class>
-   <extends>QListWidget</extends>
-   <header>src/otplistwidget.h</header>
+   <class>Qonvince::OtpListView</class>
+   <extends>QListView</extends>
+   <header>src/otplistview.h</header>
   </customwidget>
  </customwidgets>
  <tabstops>

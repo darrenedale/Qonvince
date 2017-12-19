@@ -40,8 +40,9 @@
 #include <QTemporaryFile>
 
 #include "application.h"
-#include "otplistwidgetitem.h"
 #include "otp.h"
+#include "otplistmodel.h"
+#include "otplistitemdelegate.h"
 #include "otpqrcodereader.h"
 #include "otpeditordialogue.h"
 
@@ -51,19 +52,23 @@ namespace Qonvince {
 
 	MainWindow::MainWindow(QWidget * parent)
 	: QMainWindow(parent),
-	  m_ui{std::make_unique<Ui::MainWindow>()},
+	  m_ui(std::make_unique<Ui::MainWindow>()),
+	  m_model(std::make_unique<OtpListModel>()),
+	  m_delegate(std::make_unique<OtpListItemDelegate>()),
 	  m_imageDropEnabled(OtpQrCodeReader::isAvailable()) {
 		m_ui->setupUi(this);
 
-		m_ui->otpList->setCountdownWarningColour(QColor(160, 160, 92));
-		m_ui->otpList->setCountdownCriticalColour(QColor(220, 78, 92));
+		m_ui->otpList->setModel(m_model.get());
+		m_ui->otpList->setItemDelegate(m_delegate.get());
+		m_delegate->setCountdownWarningColour(QColor(160, 160, 92));
+		m_delegate->setCountdownCriticalColour(QColor(220, 78, 92));
 
 		m_ui->addCode->setIcon(QIcon::fromTheme("list-add", QIcon(":/icons/mainwindow/add")));
 		m_ui->settings->setIcon(QIcon::fromTheme("configure-shortcuts", QIcon(":/icons/mainwindow/settings")));
 
-		connect(m_ui->otpList, &OtpListWidget::codeClicked, this, &MainWindow::onOtpClicked);
-		connect(m_ui->otpList, &OtpListWidget::codeDoubleClicked, this, &MainWindow::onOtpDoubleClicked);
-		connect(m_ui->otpList, &OtpListWidget::editCodeRequested, this, &MainWindow::onEditOtpRequested);
+		connect(m_ui->otpList, &OtpListView::codeClicked, this, &MainWindow::onOtpClicked);
+		connect(m_ui->otpList, &OtpListView::codeDoubleClicked, this, &MainWindow::onOtpDoubleClicked);
+		connect(m_ui->otpList, &OtpListView::editCodeRequested, this, &MainWindow::onEditOtpRequested);
 
 		if(m_imageDropEnabled) {
 			setAcceptDrops(true);
@@ -79,7 +84,7 @@ namespace Qonvince {
 	MainWindow::~MainWindow() = default;
 
 
-	OtpListWidget * MainWindow::otpList() const {
+	OtpListView * MainWindow::otpList() const {
 		return m_ui->otpList;
 	}
 
@@ -135,7 +140,7 @@ namespace Qonvince {
 	void MainWindow::onAddOtpClicked() {
 		auto otp = std::make_unique<Otp>(Otp::CodeType::Totp);
 		onEditOtpRequested(otp.get());
-		m_ui->otpList->addOtp(std::move(otp));
+		qonvinceApp->addOtp(std::move(otp));
 	}
 
 

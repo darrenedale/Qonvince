@@ -11,7 +11,31 @@
 namespace Qonvince {
 
 
-	OtpListModel::OtpListModel() = default;
+	OtpListModel::OtpListModel() {
+		Q_ASSERT_X(qonvinceApp, __PRETTY_FUNCTION__, "it is not possible to create an OtpListModel without a Qonvince::Application instance");
+
+		// adding/removing Otp is done directly on Application object
+		// these connections ensure that the model emits the appropriate
+		// signals when this occurs
+		// the model itself is read-only
+		// TODO Application to propagate Otp changes, model to emit signals
+		m_appConnections.push_back(connect(qonvinceApp, qOverload<int, Otp *>(&Application::otpAdded), [this](int index) {
+			beginInsertRows({}, index, index);
+			endInsertRows();
+		}));
+
+		m_appConnections.push_back(connect(qonvinceApp, qOverload<int>(&Application::otpRemoved), [this](int index) {
+			beginRemoveRows({}, index, index);
+			endRemoveRows();
+		}));
+	}
+
+
+	OtpListModel::~OtpListModel() {
+		for(const auto & connection : m_appConnections) {
+			disconnect(connection);
+		};
+	}
 
 
 	QVariant OtpListModel::headerData(int section, Qt::Orientation, int role) const {
@@ -31,6 +55,18 @@ namespace Qonvince {
 		}
 
 		switch(role) {
+			case Qt::EditRole:
+				return data(index, LabelRole);
+
+			case Qt::DisplayRole:
+				return static_cast<QString>(data(index, LabelRole).toString() % QStringLiteral(" ") % data(index, CodeRole).toString());
+
+			case OtpRole: {
+				QVariant ret;
+				ret.setValue<Otp *>(otp);
+				return ret;
+			}
+
 			case TypeRole:
 				return static_cast<int>(otp->type());
 

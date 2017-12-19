@@ -11,9 +11,6 @@ namespace Qonvince {
 #define QONVINCE_OTPCODELISTWIDGET_CODE_ICON_SIZE 32
 #define QONVINCE_OTPCODELISTWIDGET_PROGRESS_GAUGE_SIZE 0.5L /* ratio of gauge size to item height */
 #define QONVINCE_OTPCODELISTWIDGET_INTERNAL_MARGIN 4
-#define QONVINCE_OTPCODELISTWIDGET_DO_BACKGROUND_MESSAGE true
-#define QONVINCE_OTPCODELISTWIDGET_BACKGROUND_MESSAGE_FONT_SIZE 20
-#define QONVINCE_OTPCODELISTWIDGET_BACKGROUND_MESSAGE_RECT_HEIGHT 40
 #define QONVINCE_OTPCODELISTWIDGET_ITEM_ACTION_ICON_SIZE 22
 
 #define QONVINCE_OTPCODELISTWIDGET_TOTP_CRITICAL_THRESHOLD 4
@@ -25,16 +22,17 @@ namespace Qonvince {
 	}
 
 
+	// TODO this painting code could do with a review
 	void OtpListItemDelegate::paint(QPainter * painter, const QStyleOptionViewItem & option, const QModelIndex & index) const {
-		/* reset the left margin of the code rect so that when we render the
-		 * next code, which might have more digits than the last, we have the
-		 * best chance of fitting in the whole code */
-		QRect codeRect = option.rect;
-		int h = option.rect.height();
+		painter->save();
+		painter->setRenderHint(QPainter::Antialiasing, true);
+		painter->translate(option.rect.topLeft());
+		QRect itemRect({0, 0}, option.rect.size());
+		int h = itemRect.height();
 		int timerRectSize = static_cast<int>(static_cast<long double>(h) * QONVINCE_OTPCODELISTWIDGET_PROGRESS_GAUGE_SIZE);
 		QRect iconRect(QONVINCE_OTPCODELISTWIDGET_INTERNAL_MARGIN, QONVINCE_OTPCODELISTWIDGET_INTERNAL_MARGIN, QONVINCE_OTPCODELISTWIDGET_CODE_ICON_SIZE, QONVINCE_OTPCODELISTWIDGET_CODE_ICON_SIZE);
-		QRectF timerRect(0.5 + option.rect.right() - timerRectSize - (3 * (QONVINCE_OTPCODELISTWIDGET_ITEM_ACTION_ICON_SIZE + QONVINCE_OTPCODELISTWIDGET_INTERNAL_MARGIN + QONVINCE_OTPCODELISTWIDGET_INTERNAL_MARGIN)), 0.5 + ((h - timerRectSize) / 2.0), timerRectSize, timerRectSize);
-		codeRect.setLeft(QONVINCE_OTPCODELISTWIDGET_CODE_ICON_SIZE + QONVINCE_OTPCODELISTWIDGET_INTERNAL_MARGIN + QONVINCE_OTPCODELISTWIDGET_INTERNAL_MARGIN);
+		QRectF timerRect(0.5 + itemRect.right() - timerRectSize - (3 * (QONVINCE_OTPCODELISTWIDGET_ITEM_ACTION_ICON_SIZE + QONVINCE_OTPCODELISTWIDGET_INTERNAL_MARGIN + QONVINCE_OTPCODELISTWIDGET_INTERNAL_MARGIN)), 0.5 + ((h - timerRectSize) / 2.0), timerRectSize, timerRectSize);
+		QRect codeRect({QONVINCE_OTPCODELISTWIDGET_CODE_ICON_SIZE + QONVINCE_OTPCODELISTWIDGET_INTERNAL_MARGIN + QONVINCE_OTPCODELISTWIDGET_INTERNAL_MARGIN, 0}, QPoint(static_cast<int>(timerRect.left()) - QONVINCE_OTPCODELISTWIDGET_INTERNAL_MARGIN - QONVINCE_OTPCODELISTWIDGET_INTERNAL_MARGIN, h - 1));
 
 		QString codeString;
 
@@ -42,7 +40,7 @@ namespace Qonvince {
 		 * revealed it and it's not timed out */
 		bool onDemand = index.data(OtpListModel::RevealOnDemandRole).toBool();
 		bool showCode = !onDemand;
-//		bool showCode = !onDemand || contains(m_revealedPasscodes, code);
+		//		bool showCode = !onDemand || contains(m_revealedPasscodes, code);
 
 		if(showCode) {
 			codeString = index.data(OtpListModel::CodeRole).toString();
@@ -81,7 +79,7 @@ namespace Qonvince {
 		painter->setPen(itemPen);
 
 		/* draw the item background */
-		painter->fillRect(option.rect, backgroundBrush);
+		painter->fillRect(itemRect, backgroundBrush);
 
 		/* draw the item icon */
 		if(!icon.isNull()) {
@@ -96,15 +94,14 @@ namespace Qonvince {
 		QFont nameFont = painter->font();
 		QFont codeFont = nameFont;
 		nameFont.setBold(false);
-		nameFont.setPixelSize(qMax(int(nameFont.pixelSize() * 1.2), option.rect.height() / 3));
+		nameFont.setPixelSize(qMax(int(nameFont.pixelSize() * 1.2), h / 3));
 		codeFont.setBold(true);
-		codeFont.setPixelSize(option.rect.height() / 2);
+		codeFont.setPixelSize(h / 2);
 
-//		QPoint mousePos(mapFromGlobal(QCursor::pos()));
 		QRect nameRect(QONVINCE_OTPCODELISTWIDGET_CODE_ICON_SIZE + QONVINCE_OTPCODELISTWIDGET_INTERNAL_MARGIN + QONVINCE_OTPCODELISTWIDGET_INTERNAL_MARGIN, 0, 0, h);
 
 		if(!onDemand || showCode) {
-//			painter->setFont(codeFont);
+			painter->setFont(codeFont);
 			painter->drawText(codeRect, Qt::AlignVCenter | Qt::TextSingleLine | Qt::AlignRight, codeString, &codeRect);
 			nameRect.setRight(codeRect.left() - (2 * QONVINCE_OTPCODELISTWIDGET_INTERNAL_MARGIN));
 		}
@@ -141,63 +138,64 @@ namespace Qonvince {
 			painter->restore();
 		}
 
-		/* draw the item name */
-		/* NB this has to be done after the code is drawn so that we can ensure the name does not
-		 * bleed into the code */
-//		painter->setFont(nameFont);
+		// draw the name
+		// this has to be done after the code is drawn to ensure the name does not bleed into the code
+		painter->setFont(nameFont);
 		itemPen.setColor(itemPen.color().lighter(200));
 		painter->setPen(itemPen);
 		painter->drawText(nameRect, Qt::AlignVCenter | Qt::TextSingleLine | Qt::AlignLeft, displayName);
 
-		/* draw the action icons */
+		// draw the action icons
 		if(option.state & QStyle::State_MouseOver) {
-			painter->save();
+			QPoint mousePos = option.widget->mapFromGlobal(QCursor::pos()) - option.rect.topLeft();
 			painter->setRenderHint(QPainter::Antialiasing, false);
 			painter->setBrush(backgroundBrush.color().darker(125));
 			painter->setPen(Qt::NoPen);
 
 			if(onDemand && !showCode) {
-				QRect buttonRect(codeRect.right() - QONVINCE_OTPCODELISTWIDGET_ITEM_ACTION_ICON_SIZE, option.rect.top() + ((option.rect.height() - QONVINCE_OTPCODELISTWIDGET_ITEM_ACTION_ICON_SIZE) / 2), QONVINCE_OTPCODELISTWIDGET_ITEM_ACTION_ICON_SIZE, QONVINCE_OTPCODELISTWIDGET_ITEM_ACTION_ICON_SIZE);
+				QRect buttonRect(codeRect.right() - QONVINCE_OTPCODELISTWIDGET_ITEM_ACTION_ICON_SIZE, itemRect.top() + ((h - QONVINCE_OTPCODELISTWIDGET_ITEM_ACTION_ICON_SIZE) / 2), QONVINCE_OTPCODELISTWIDGET_ITEM_ACTION_ICON_SIZE, QONVINCE_OTPCODELISTWIDGET_ITEM_ACTION_ICON_SIZE);
 				QIcon icon = QIcon::fromTheme("password-show-on", QIcon(":/icons/codeactions/reveal"));
 
-//				if(buttonRect.contains(mousePos)) {
-				    painter->drawRoundedRect(buttonRect, 3, 3);
-//				}
+				if(buttonRect.contains(mousePos)) {
+					painter->drawRoundedRect(buttonRect, 3, 3);
+				}
 
 				painter->drawPixmap(buttonRect, icon.pixmap(QONVINCE_OTPCODELISTWIDGET_ITEM_ACTION_ICON_SIZE, QONVINCE_OTPCODELISTWIDGET_ITEM_ACTION_ICON_SIZE));
 			}
 
-			QRect buttonRect(option.rect.right() - QONVINCE_OTPCODELISTWIDGET_ITEM_ACTION_ICON_SIZE - QONVINCE_OTPCODELISTWIDGET_INTERNAL_MARGIN, option.rect.top() + ((option.rect.height() - QONVINCE_OTPCODELISTWIDGET_ITEM_ACTION_ICON_SIZE) / 2), QONVINCE_OTPCODELISTWIDGET_ITEM_ACTION_ICON_SIZE, QONVINCE_OTPCODELISTWIDGET_ITEM_ACTION_ICON_SIZE);
+			QRect buttonRect(itemRect.right() - QONVINCE_OTPCODELISTWIDGET_ITEM_ACTION_ICON_SIZE - QONVINCE_OTPCODELISTWIDGET_INTERNAL_MARGIN, itemRect.top() + ((h - QONVINCE_OTPCODELISTWIDGET_ITEM_ACTION_ICON_SIZE) / 2), QONVINCE_OTPCODELISTWIDGET_ITEM_ACTION_ICON_SIZE, QONVINCE_OTPCODELISTWIDGET_ITEM_ACTION_ICON_SIZE);
 			QIcon icon = QIcon::fromTheme("list-remove", QIcon(":/icons/codeactions/remove"));
-//			bool doHoverEffect = buttonRect.contains(mousePos);
+			bool doHoverEffect = buttonRect.contains(mousePos);
 
-//			if(doHoverEffect) {
-			    painter->drawRoundedRect(buttonRect, 3, 3);
-//			}
+			if(doHoverEffect) {
+				painter->drawRoundedRect(buttonRect, 3, 3);
+			}
 
 			painter->drawPixmap(buttonRect, icon.pixmap(QONVINCE_OTPCODELISTWIDGET_ITEM_ACTION_ICON_SIZE, QONVINCE_OTPCODELISTWIDGET_ITEM_ACTION_ICON_SIZE));
 
 			buttonRect.adjust(0 - QONVINCE_OTPCODELISTWIDGET_ITEM_ACTION_ICON_SIZE - QONVINCE_OTPCODELISTWIDGET_INTERNAL_MARGIN, 0, 0 - QONVINCE_OTPCODELISTWIDGET_ITEM_ACTION_ICON_SIZE - QONVINCE_OTPCODELISTWIDGET_INTERNAL_MARGIN, 0);
-//			doHoverEffect = buttonRect.contains(mousePos);
+			doHoverEffect = buttonRect.contains(mousePos);
 			icon = QIcon::fromTheme("view-refresh", QIcon(":/icons/codeactions/refresh"));
 
-//			if(doHoverEffect) {
-			    painter->drawRoundedRect(buttonRect, 3, 3);
-//			}
+			if(doHoverEffect) {
+				painter->drawRoundedRect(buttonRect, 3, 3);
+			}
 
 			painter->drawPixmap(buttonRect, icon.pixmap(QONVINCE_OTPCODELISTWIDGET_ITEM_ACTION_ICON_SIZE, QONVINCE_OTPCODELISTWIDGET_ITEM_ACTION_ICON_SIZE));
 
 			buttonRect.adjust(0 - QONVINCE_OTPCODELISTWIDGET_ITEM_ACTION_ICON_SIZE - QONVINCE_OTPCODELISTWIDGET_INTERNAL_MARGIN, 0, 0 - QONVINCE_OTPCODELISTWIDGET_ITEM_ACTION_ICON_SIZE - QONVINCE_OTPCODELISTWIDGET_INTERNAL_MARGIN, 0);
-//			doHoverEffect = buttonRect.contains(mousePos);
+			doHoverEffect = buttonRect.contains(mousePos);
 			icon = QIcon::fromTheme("edit-copy", QIcon(":/icons/codeactions/copy"));
 
-//			if(doHoverEffect) {
-			    painter->drawRoundedRect(buttonRect, 3, 3);
-//			}
+			if(doHoverEffect) {
+				painter->drawRoundedRect(buttonRect, 3, 3);
+			}
 
 			painter->drawPixmap(buttonRect, icon.pixmap(QONVINCE_OTPCODELISTWIDGET_ITEM_ACTION_ICON_SIZE, QONVINCE_OTPCODELISTWIDGET_ITEM_ACTION_ICON_SIZE));
-			painter->restore();
 		}
+
+		painter->resetTransform();
+		painter->restore();
 	}
 
 
@@ -207,8 +205,8 @@ namespace Qonvince {
 		}
 
 		return {option.rect.width(), 40};
-//		return {(option.widget ? option.widget->width() : 400), 40};
+		//		return {(option.widget ? option.widget->width() : 400), 40};
 	}
 
 
-} // namespace Qonvince
+}  // namespace Qonvince

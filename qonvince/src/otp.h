@@ -183,10 +183,6 @@ namespace Qonvince {
 			return m_displayPluginName;
 		}
 
-		inline LibQonvince::OtpDisplayPlugin * displayPlugin() const {
-			return qonvinceApp->otpDisplayPluginByName(m_displayPluginName);
-		}
-
 		bool setDisplayPluginName(const QString & pluginName);
 
 		inline void setRevealOnDemand(bool onDemandOnly) {

@@ -41,7 +41,9 @@ namespace Qonvince {
 	}
 
 	class Otp;
-	class OtpListWidget;
+	class OtpListView;
+	class OtpListModel;
+	class OtpListItemDelegate;
 
 	class MainWindow
 	: public QMainWindow {
@@ -51,7 +53,7 @@ namespace Qonvince {
 		explicit MainWindow(QWidget * = nullptr);
 		~MainWindow();
 
-		OtpListWidget * otpList() const;
+		OtpListView * otpList() const;
 
 		void writeSettings(QSettings &) const;
 		void readSettings(const QSettings &);
@@ -80,6 +82,8 @@ namespace Qonvince {
 
 	private:
 		std::unique_ptr<Ui::MainWindow> m_ui;
+		std::unique_ptr<OtpListModel> m_model;
+		std::unique_ptr<OtpListItemDelegate> m_delegate;
 		QNetworkAccessManager m_netManager;
 		bool m_imageDropEnabled;
 	};

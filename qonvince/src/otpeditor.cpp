@@ -173,18 +173,7 @@ namespace Qonvince {
 				m_ui->issuerEdit->setText(m_otp->issuer());
 				m_ui->nameEdit->setText(m_otp->name());
 				m_ui->icon->setIcon(m_otp->icon());
-
-				{
-					//					auto plugin = m_otp->displayPlugin().lock();
-					auto * plugin = m_otp->displayPlugin();
-
-					if(plugin) {
-						m_ui->displayPlugin->setCurrentIndex(m_ui->displayPlugin->findData(plugin->name()));
-					}
-					else {
-						m_ui->displayPlugin->setCurrentText({});
-					}
-				}
+				m_ui->displayPlugin->setCurrentPluginName(m_otp->displayPluginName());
 
 				m_ui->intervalSpin->setValue(m_otp->interval());
 				m_ui->baseTimeEdit->setDateTime(QDateTime::fromMSecsSinceEpoch(code->baselineSecSinceEpoch() * 1000));
