@@ -34,7 +34,7 @@ add_executable(qonvince
 	src/otpeditordialogue.cpp
 	src/otplistview.cpp
 	src/otplistitemdelegate.cpp
-#	src/otplistwidgetitem.cpp
+	src/otplistitemactionbuttons.cpp
 	src/iconselectbutton.cpp
 	src/qtiostream.cpp
 	src/otpdisplaypluginchooser.cpp

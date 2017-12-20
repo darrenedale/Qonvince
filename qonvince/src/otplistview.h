@@ -42,6 +42,7 @@ class QContextMenuEvent;
 
 namespace Qonvince {
 
+	class OtpListItemActionButtons;
 	class OtpListView
 	: public QListView {
 		Q_OBJECT
@@ -94,9 +95,8 @@ namespace Qonvince {
 	protected:
 		virtual bool event(QEvent *) override;
 		virtual void timerEvent(QTimerEvent *) override;
-		//		virtual void enterEvent(QEvent *) override;
-		//		virtual void leaveEvent(QEvent *) override;
-		virtual void mouseMoveEvent(QMouseEvent *) override;
+		virtual void enterEvent(QEvent *) override;
+		virtual void leaveEvent(QEvent *) override;
 		virtual void mousePressEvent(QMouseEvent *) override;
 		virtual void mouseReleaseEvent(QMouseEvent *) override;
 		virtual void mouseDoubleClickEvent(QMouseEvent *) override;
@@ -143,21 +143,17 @@ namespace Qonvince {
 		QTimer m_doubleClickWaitTimer;
 		bool m_receivedDoubleClickEvent;
 
-		// hit-test geometry for item under mouse pointer
-		QRect m_removeIconHitRect;
-		QRect m_refreshIconHitRect;
-		QRect m_copyIconHitRect;
+		// hit-test geometry for temp reveal icon
 		QRect m_revealIconHitRect;
-		QPoint m_mousePressLeftStart;
 
 		QMenu m_itemContextMenu;
 		QModelIndex m_actionItemIndex;
+		QModelIndex m_mousePressItemIndex;
+
 		std::unique_ptr<OtpListModel> m_model;
 		std::unique_ptr<OtpListItemDelegate> m_delegate;
 
-		std::unique_ptr<QPushButton> m_copy;
-		std::unique_ptr<QPushButton> m_refresh;
-		std::unique_ptr<QPushButton> m_remove;
+		std::unique_ptr<OtpListItemActionButtons> m_actionButtons;
 	};
 
 }  // namespace Qonvince
