@@ -145,53 +145,53 @@ namespace Qonvince {
 		painter->drawText(nameRect, Qt::AlignVCenter | Qt::TextSingleLine | Qt::AlignLeft, displayName);
 
 		// draw the action icons
-		if(option.state & QStyle::State_MouseOver) {
-			QPoint mousePos = option.widget->mapFromGlobal(QCursor::pos()) - option.rect.topLeft();
-			painter->setRenderHint(QPainter::Antialiasing, false);
-			painter->setBrush(backgroundBrush.color().darker(125));
-			painter->setPen(Qt::NoPen);
+		//		if(option.state & QStyle::State_MouseOver) {
+		//			QPoint mousePos = option.widget->mapFromGlobal(QCursor::pos()) - option.rect.topLeft();
+		//			painter->setRenderHint(QPainter::Antialiasing, false);
+		//			painter->setBrush(backgroundBrush.color().darker(125));
+		//			painter->setPen(Qt::NoPen);
 
-			if(onDemand && !showCode) {
-				QRect buttonRect(codeRect.right() - QONVINCE_OTPCODELISTWIDGET_ITEM_ACTION_ICON_SIZE, itemRect.top() + ((h - QONVINCE_OTPCODELISTWIDGET_ITEM_ACTION_ICON_SIZE) / 2), QONVINCE_OTPCODELISTWIDGET_ITEM_ACTION_ICON_SIZE, QONVINCE_OTPCODELISTWIDGET_ITEM_ACTION_ICON_SIZE);
-				QIcon icon = QIcon::fromTheme("password-show-on", QIcon(":/icons/codeactions/reveal"));
+		//			if(onDemand && !showCode) {
+		//				QRect buttonRect(codeRect.right() - QONVINCE_OTPCODELISTWIDGET_ITEM_ACTION_ICON_SIZE, itemRect.top() + ((h - QONVINCE_OTPCODELISTWIDGET_ITEM_ACTION_ICON_SIZE) / 2), QONVINCE_OTPCODELISTWIDGET_ITEM_ACTION_ICON_SIZE, QONVINCE_OTPCODELISTWIDGET_ITEM_ACTION_ICON_SIZE);
+		//				QIcon icon = QIcon::fromTheme("password-show-on", QIcon(":/icons/codeactions/reveal"));
 
-				if(buttonRect.contains(mousePos)) {
-					painter->drawRoundedRect(buttonRect, 3, 3);
-				}
+		//				if(buttonRect.contains(mousePos)) {
+		//					painter->drawRoundedRect(buttonRect, 3, 3);
+		//				}
 
-				painter->drawPixmap(buttonRect, icon.pixmap(QONVINCE_OTPCODELISTWIDGET_ITEM_ACTION_ICON_SIZE, QONVINCE_OTPCODELISTWIDGET_ITEM_ACTION_ICON_SIZE));
-			}
+		//				painter->drawPixmap(buttonRect, icon.pixmap(QONVINCE_OTPCODELISTWIDGET_ITEM_ACTION_ICON_SIZE, QONVINCE_OTPCODELISTWIDGET_ITEM_ACTION_ICON_SIZE));
+		//			}
 
-			QRect buttonRect(itemRect.right() - QONVINCE_OTPCODELISTWIDGET_ITEM_ACTION_ICON_SIZE - QONVINCE_OTPCODELISTWIDGET_INTERNAL_MARGIN, itemRect.top() + ((h - QONVINCE_OTPCODELISTWIDGET_ITEM_ACTION_ICON_SIZE) / 2), QONVINCE_OTPCODELISTWIDGET_ITEM_ACTION_ICON_SIZE, QONVINCE_OTPCODELISTWIDGET_ITEM_ACTION_ICON_SIZE);
-			QIcon icon = QIcon::fromTheme("list-remove", QIcon(":/icons/codeactions/remove"));
-			bool doHoverEffect = buttonRect.contains(mousePos);
+		//			QRect buttonRect(itemRect.right() - QONVINCE_OTPCODELISTWIDGET_ITEM_ACTION_ICON_SIZE - QONVINCE_OTPCODELISTWIDGET_INTERNAL_MARGIN, itemRect.top() + ((h - QONVINCE_OTPCODELISTWIDGET_ITEM_ACTION_ICON_SIZE) / 2), QONVINCE_OTPCODELISTWIDGET_ITEM_ACTION_ICON_SIZE, QONVINCE_OTPCODELISTWIDGET_ITEM_ACTION_ICON_SIZE);
+		//			QIcon icon = QIcon::fromTheme("list-remove", QIcon(":/icons/codeactions/remove"));
+		//			bool doHoverEffect = buttonRect.contains(mousePos);
 
-			if(doHoverEffect) {
-				painter->drawRoundedRect(buttonRect, 3, 3);
-			}
+		//			if(doHoverEffect) {
+		//				painter->drawRoundedRect(buttonRect, 3, 3);
+		//			}
 
-			painter->drawPixmap(buttonRect, icon.pixmap(QONVINCE_OTPCODELISTWIDGET_ITEM_ACTION_ICON_SIZE, QONVINCE_OTPCODELISTWIDGET_ITEM_ACTION_ICON_SIZE));
+		//			painter->drawPixmap(buttonRect, icon.pixmap(QONVINCE_OTPCODELISTWIDGET_ITEM_ACTION_ICON_SIZE, QONVINCE_OTPCODELISTWIDGET_ITEM_ACTION_ICON_SIZE));
 
-			buttonRect.adjust(0 - QONVINCE_OTPCODELISTWIDGET_ITEM_ACTION_ICON_SIZE - QONVINCE_OTPCODELISTWIDGET_INTERNAL_MARGIN, 0, 0 - QONVINCE_OTPCODELISTWIDGET_ITEM_ACTION_ICON_SIZE - QONVINCE_OTPCODELISTWIDGET_INTERNAL_MARGIN, 0);
-			doHoverEffect = buttonRect.contains(mousePos);
-			icon = QIcon::fromTheme("view-refresh", QIcon(":/icons/codeactions/refresh"));
+		//			buttonRect.adjust(0 - QONVINCE_OTPCODELISTWIDGET_ITEM_ACTION_ICON_SIZE - QONVINCE_OTPCODELISTWIDGET_INTERNAL_MARGIN, 0, 0 - QONVINCE_OTPCODELISTWIDGET_ITEM_ACTION_ICON_SIZE - QONVINCE_OTPCODELISTWIDGET_INTERNAL_MARGIN, 0);
+		//			doHoverEffect = buttonRect.contains(mousePos);
+		//			icon = QIcon::fromTheme("view-refresh", QIcon(":/icons/codeactions/refresh"));
 
-			if(doHoverEffect) {
-				painter->drawRoundedRect(buttonRect, 3, 3);
-			}
+		//			if(doHoverEffect) {
+		//				painter->drawRoundedRect(buttonRect, 3, 3);
+		//			}
 
-			painter->drawPixmap(buttonRect, icon.pixmap(QONVINCE_OTPCODELISTWIDGET_ITEM_ACTION_ICON_SIZE, QONVINCE_OTPCODELISTWIDGET_ITEM_ACTION_ICON_SIZE));
+		//			painter->drawPixmap(buttonRect, icon.pixmap(QONVINCE_OTPCODELISTWIDGET_ITEM_ACTION_ICON_SIZE, QONVINCE_OTPCODELISTWIDGET_ITEM_ACTION_ICON_SIZE));
 
-			buttonRect.adjust(0 - QONVINCE_OTPCODELISTWIDGET_ITEM_ACTION_ICON_SIZE - QONVINCE_OTPCODELISTWIDGET_INTERNAL_MARGIN, 0, 0 - QONVINCE_OTPCODELISTWIDGET_ITEM_ACTION_ICON_SIZE - QONVINCE_OTPCODELISTWIDGET_INTERNAL_MARGIN, 0);
-			doHoverEffect = buttonRect.contains(mousePos);
-			icon = QIcon::fromTheme("edit-copy", QIcon(":/icons/codeactions/copy"));
+		//			buttonRect.adjust(0 - QONVINCE_OTPCODELISTWIDGET_ITEM_ACTION_ICON_SIZE - QONVINCE_OTPCODELISTWIDGET_INTERNAL_MARGIN, 0, 0 - QONVINCE_OTPCODELISTWIDGET_ITEM_ACTION_ICON_SIZE - QONVINCE_OTPCODELISTWIDGET_INTERNAL_MARGIN, 0);
+		//			doHoverEffect = buttonRect.contains(mousePos);
+		//			icon = QIcon::fromTheme("edit-copy", QIcon(":/icons/codeactions/copy"));
 
-			if(doHoverEffect) {
-				painter->drawRoundedRect(buttonRect, 3, 3);
-			}
+		//			if(doHoverEffect) {
+		//				painter->drawRoundedRect(buttonRect, 3, 3);
+		//			}
 
-			painter->drawPixmap(buttonRect, icon.pixmap(QONVINCE_OTPCODELISTWIDGET_ITEM_ACTION_ICON_SIZE, QONVINCE_OTPCODELISTWIDGET_ITEM_ACTION_ICON_SIZE));
-		}
+		//			painter->drawPixmap(buttonRect, icon.pixmap(QONVINCE_OTPCODELISTWIDGET_ITEM_ACTION_ICON_SIZE, QONVINCE_OTPCODELISTWIDGET_ITEM_ACTION_ICON_SIZE));
+		//		}
 
 		painter->resetTransform();
 		painter->restore();

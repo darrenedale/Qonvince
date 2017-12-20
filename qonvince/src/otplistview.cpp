@@ -70,7 +70,7 @@ namespace Qonvince {
 
 	OtpListView::OtpListView(QWidget * parent)
 	: QListView(parent),
-//	  m_hoverItemIndex(-1),
+	  //	  m_hoverItemIndex(-1),
 	  m_tickTimerIsResynchronising(false),
 	  m_imageDropEnabled(OtpQrCodeReader::isAvailable()),
 	  m_tickTimerId(-1),
@@ -78,11 +78,55 @@ namespace Qonvince {
 	  m_receivedDoubleClickEvent(false),
 	  m_itemContextMenu(),
 	  m_model(std::make_unique<OtpListModel>()),
-	  m_delegate(std::make_unique<OtpListItemDelegate>()) {
+	  m_delegate(std::make_unique<OtpListItemDelegate>()),
+	  m_copy(std::make_unique<QPushButton>(QIcon::fromTheme("edit-copy", QIcon(":/icons/codeactions/copy")), QStringLiteral(""), this)),
+	  m_refresh(std::make_unique<QPushButton>(QIcon::fromTheme("view-refresh", QIcon(":/icons/codeactions/refresh")), QStringLiteral(""), this)),
+	  m_remove(std::make_unique<QPushButton>(QIcon::fromTheme("list-remove", QIcon(":/icons/codeactions/remove")), QStringLiteral(""), this)) {
+		setMouseTracking(true);
+		// TODO custom widget instead of pushbuttons
+		m_copy->setVisible(false);
+		m_refresh->setVisible(false);
+		m_remove->setVisible(false);
+		m_copy->setFlat(true);
+		m_refresh->setFlat(true);
+		m_remove->setFlat(true);
+		m_copy->setFocusPolicy(Qt::NoFocus);
+		m_refresh->setFocusPolicy(Qt::NoFocus);
+		m_remove->setFocusPolicy(Qt::NoFocus);
+
 		m_delegate->setCountdownWarningColour(QColor(160, 160, 92));
 		m_delegate->setCountdownCriticalColour(QColor(220, 78, 92));
 		QListView::setModel(m_model.get());
 		QListView::setItemDelegate(m_delegate.get());
+
+		connect(m_copy.get(), &QPushButton::clicked, [this]() {
+			std::cout << "copy code button clicked\n"
+						 << std::flush;
+			m_itemContextMenu.close();
+			m_actionItemIndex = indexAt(mapFromGlobal(QCursor::pos()));
+
+			if(!m_actionItemIndex.isValid()) {
+				std::cout << "index for hovered item is not valid\n"
+							 << std::flush;
+			}
+			onCopyActionTriggered();
+		});
+
+		connect(m_refresh.get(), &QPushButton::clicked, [this]() {
+			std::cout << "refresh code button clicked\n"
+						 << std::flush;
+			m_itemContextMenu.close();
+			m_actionItemIndex = indexAt(mapFromGlobal(QCursor::pos()));
+			onRefreshActionTriggered();
+		});
+
+		connect(m_remove.get(), &QPushButton::clicked, [this]() {
+			std::cout << "remove OTP button clicked\n"
+						 << std::flush;
+			m_itemContextMenu.close();
+			m_actionItemIndex = indexAt(mapFromGlobal(QCursor::pos()));
+			onRemoveActionTriggered();
+		});
 
 		m_itemContextMenu.addAction(QIcon::fromTheme("document-edit"), tr("Edit"), this, &OtpListView::onEditActionTriggered);
 		m_itemContextMenu.addAction(tr("Remove icon"), this, &OtpListView::onRemoveIconActionTriggered);
@@ -99,6 +143,7 @@ namespace Qonvince {
 		});
 
 		connect(&(qonvinceApp->settings()), qOverload<Settings::CodeLabelDisplayStyle>(&Settings::codeLabelDisplayStyleChanged), this, qOverload<>(&OtpListView::update));
+		connect(this, &QListView::entered, this, &OtpListView::onItemEntered);
 
 		synchroniseTickTimer();
 	}
@@ -211,52 +256,52 @@ namespace Qonvince {
 	}
 
 
-	void OtpListView::enterEvent(QEvent *) {
-		setMouseTracking(true);
-	}
+	//	void OtpListView::enterEvent(QEvent *) {
+	//	}
 
 
-	void OtpListView::leaveEvent(QEvent *) {
-		setMouseTracking(false);
-	}
+	//	void OtpListView::leaveEvent(QEvent *) {
+	//		setMouseTracking(false);
+	//	}
 
 
 	void OtpListView::mouseMoveEvent(QMouseEvent * ev) {
-//		int newHoverIndex = -1;
+		QListView::mouseMoveEvent(ev);
+		//		int newHoverIndex = -1;
 
-//		{
-//			auto newHoverModelIndex = indexAt(ev->pos());
+		//		{
+		//			auto newHoverModelIndex = indexAt(ev->pos());
 
-//			if(newHoverModelIndex.isValid()) {
-//				newHoverIndex = newHoverModelIndex.row();
-//			}
-//		}
+		//			if(newHoverModelIndex.isValid()) {
+		//				newHoverIndex = newHoverModelIndex.row();
+		//			}
+		//		}
 
-//		int oldHoverIndex = m_hoverItemIndex;
+		//		int oldHoverIndex = m_hoverItemIndex;
 
-//		if(-1 == newHoverIndex) {
-//			if(-1 == m_hoverItemIndex) {
-//				return;
-//			}
+		//		if(-1 == newHoverIndex) {
+		//			if(-1 == m_hoverItemIndex) {
+		//				return;
+		//			}
 
-//			m_hoverItemIndex = -1;
-//		}
-//		else {
-//			if(newHoverIndex == m_hoverItemIndex) {
-//				/* TODO capture whether the last rendering of the hovered item
-//			 * rendered the refresh/remove icons in "Active" state or not
-//			 * and use this to determine whether a repaint is really necessary */
-//				if(m_hoverItemIndex == -1) {
-//					return;
-//				}
-//			}
-//			else if(0 <= newHoverIndex && model()->rowCount() > newHoverIndex) {
-//				m_hoverItemIndex = newHoverIndex;
-//			}
-//			else {
-//				m_hoverItemIndex = -1;
-//			}
-//		}
+		//			m_hoverItemIndex = -1;
+		//		}
+		//		else {
+		//			if(newHoverIndex == m_hoverItemIndex) {
+		//				/* TODO capture whether the last rendering of the hovered item
+		//			 * rendered the refresh/remove icons in "Active" state or not
+		//			 * and use this to determine whether a repaint is really necessary */
+		//				if(m_hoverItemIndex == -1) {
+		//					return;
+		//				}
+		//			}
+		//			else if(0 <= newHoverIndex && model()->rowCount() > newHoverIndex) {
+		//				m_hoverItemIndex = newHoverIndex;
+		//			}
+		//			else {
+		//				m_hoverItemIndex = -1;
+		//			}
+		//		}
 	}
 
 
@@ -291,91 +336,91 @@ namespace Qonvince {
 		if(Qt::LeftButton == ev->button()) {
 			QPoint releasePos = ev->pos();
 
-		//			if(m_refreshIconHitRect.contains(m_mousePressLeftStart) && m_refreshIconHitRect.contains(releasePos)) {
-		//				auto * refreshItem = static_cast<OtpListWidgetItem *>(item(m_hoverItemIndex));
+			//			if(m_refreshIconHitRect.contains(m_mousePressLeftStart) && m_refreshIconHitRect.contains(releasePos)) {
+			//				auto * refreshItem = static_cast<OtpListWidgetItem *>(item(m_hoverItemIndex));
 
-		//				if(refreshItem) {
-		//					if(Otp::CodeType::Hotp == refreshItem->otp()->type()) {
-		//						refreshItem->otp()->incrementCounter();
-		//					}
+			//				if(refreshItem) {
+			//					if(Otp::CodeType::Hotp == refreshItem->otp()->type()) {
+			//						refreshItem->otp()->incrementCounter();
+			//					}
 
-		//					refreshItem->otp()->refreshCode();
-		//					ev->accept();
-		//					return;
-		//				}
-		//			}
-		//			else if(m_removeIconHitRect.contains(m_mousePressLeftStart) && m_removeIconHitRect.contains(releasePos)) {
-		//				m_actionItem = static_cast<OtpListWidgetItem *>(item(m_hoverItemIndex));
-		//				onRemoveActionTriggered();
-		//				ev->accept();
-		//				return;
-		//			}
-		//			else if(m_copyIconHitRect.contains(m_mousePressLeftStart) && m_copyIconHitRect.contains(releasePos)) {
-		//				auto * copyItem = static_cast<OtpListWidgetItem *>(item(m_hoverItemIndex));
+			//					refreshItem->otp()->refreshCode();
+			//					ev->accept();
+			//					return;
+			//				}
+			//			}
+			//			else if(m_removeIconHitRect.contains(m_mousePressLeftStart) && m_removeIconHitRect.contains(releasePos)) {
+			//				m_actionItem = static_cast<OtpListWidgetItem *>(item(m_hoverItemIndex));
+			//				onRemoveActionTriggered();
+			//				ev->accept();
+			//				return;
+			//			}
+			//			else if(m_copyIconHitRect.contains(m_mousePressLeftStart) && m_copyIconHitRect.contains(releasePos)) {
+			//				auto * copyItem = static_cast<OtpListWidgetItem *>(item(m_hoverItemIndex));
 
-		//				if(copyItem) {
-		//					QApplication::clipboard()->setText(copyItem->otp()->code());
-		//					const auto & settings = qonvinceApp->settings();
+			//				if(copyItem) {
+			//					QApplication::clipboard()->setText(copyItem->otp()->code());
+			//					const auto & settings = qonvinceApp->settings();
 
-		//					if(settings.clearClipboardAfterInterval() && 0 < settings.clipboardClearInterval()) {
-		//						QTimer::singleShot(1000 * settings.clipboardClearInterval(), qonvinceApp, &Application::clearClipboard);
-		//					}
+			//					if(settings.clearClipboardAfterInterval() && 0 < settings.clipboardClearInterval()) {
+			//						QTimer::singleShot(1000 * settings.clipboardClearInterval(), qonvinceApp, &Application::clearClipboard);
+			//					}
 
-		//					ev->accept();
-		//					return;
-		//				}
+			//					ev->accept();
+			//					return;
+			//				}
 
-		//				return;
-		//			}
-		//			else if(m_revealIconHitRect.contains(m_mousePressLeftStart) && m_revealIconHitRect.contains(releasePos)) {
-		//				auto * revealItem = static_cast<OtpListWidgetItem *>(item(m_hoverItemIndex));
+			//				return;
+			//			}
+			//			else if(m_revealIconHitRect.contains(m_mousePressLeftStart) && m_revealIconHitRect.contains(releasePos)) {
+			//				auto * revealItem = static_cast<OtpListWidgetItem *>(item(m_hoverItemIndex));
 
-		//				if(!revealItem) {
-		//					qWarning() << "clicked reveal for a non-existent item";
-		//					return;
-		//				}
+			//				if(!revealItem) {
+			//					qWarning() << "clicked reveal for a non-existent item";
+			//					return;
+			//				}
 
-		//				Otp * otp = revealItem->otp();
+			//				Otp * otp = revealItem->otp();
 
-		//				if(!otp) {
-		//					qWarning() << "clicked reveal for an item that has no Otp object";
-		//					return;
-		//				}
+			//				if(!otp) {
+			//					qWarning() << "clicked reveal for an item that has no Otp object";
+			//					return;
+			//				}
 
-		//				if(contains(m_revealedPasscodes, otp)) {
-		//					qWarning() << "apparently clicked reveal for a code that is already revealed";
-		//					return;
-		//				}
+			//				if(contains(m_revealedPasscodes, otp)) {
+			//					qWarning() << "apparently clicked reveal for a code that is already revealed";
+			//					return;
+			//				}
 
-		//				const auto & settings = qonvinceApp->settings();
-		//				m_revealedPasscodes.push_back(otp);
+			//				const auto & settings = qonvinceApp->settings();
+			//				m_revealedPasscodes.push_back(otp);
 
-		//				// even if otp is removed while this timer is running, it's safe -
-		//				// indeed necessary - to still execute the lambda because the ponter
-		//				// is only used to remove it from the array of revealed passcodes, it
-		//				// is not dereferenced
-		//				// HOWEVER if the widget is destroyed before the timout ... UB
-		//				QTimer::singleShot(1000 * settings.codeRevealTimeout(), Qt::VeryCoarseTimer, [this, otp]() {
-		//					removeAll(m_revealedPasscodes, otp);
-		//					viewport()->update();
-		//				});
+			//				// even if otp is removed while this timer is running, it's safe -
+			//				// indeed necessary - to still execute the lambda because the ponter
+			//				// is only used to remove it from the array of revealed passcodes, it
+			//				// is not dereferenced
+			//				// HOWEVER if the widget is destroyed before the timout ... UB
+			//				QTimer::singleShot(1000 * settings.codeRevealTimeout(), Qt::VeryCoarseTimer, [this, otp]() {
+			//					removeAll(m_revealedPasscodes, otp);
+			//					viewport()->update();
+			//				});
 
-		//				viewport()->update();
-		//				return;
-		//			}
-		//		}
+			//				viewport()->update();
+			//				return;
+			//			}
+			//		}
 
-		//		/* ... if no action icon clicked, wait to see if it's a double click. if a double-click
-		//	 * event notification is received within the timeout, the widget will respond as if
-		//	 * the user double-clicked; if the timer times out, the widget will respond as if a
-		//	 * single-click was received. this means that for single-clicks there is a short
-		//	 * delay before action is taken, which is why the action icons are checked before
-		//	 * starting the double-click checking timer - so that clicks on the icons don't feel
-		//	 * unresponsive */
-		//		if(m_doubleClickWaitTimer.isActive() || m_receivedDoubleClickEvent) {
-		//			m_receivedDoubleClickEvent = false;
-		//			QListView::mouseReleaseEvent(ev);
-		//			return;
+			//		/* ... if no action icon clicked, wait to see if it's a double click. if a double-click
+			//	 * event notification is received within the timeout, the widget will respond as if
+			//	 * the user double-clicked; if the timer times out, the widget will respond as if a
+			//	 * single-click was received. this means that for single-clicks there is a short
+			//	 * delay before action is taken, which is why the action icons are checked before
+			//	 * starting the double-click checking timer - so that clicks on the icons don't feel
+			//	 * unresponsive */
+			//		if(m_doubleClickWaitTimer.isActive() || m_receivedDoubleClickEvent) {
+			//			m_receivedDoubleClickEvent = false;
+			//			QListView::mouseReleaseEvent(ev);
+			//			return;
 		}
 
 		m_doubleClickWaitTimer.start();
@@ -489,6 +534,26 @@ namespace Qonvince {
 	}
 
 
+	void OtpListView::onItemEntered(const QModelIndex & index) {
+		// TODO move the copy/remove/refresh widgets to the specified index
+		std::cout << __PRETTY_FUNCTION__ << ": item # " << index.row() << "\n"
+					 << std::flush;
+		auto rect = visualRect(index);
+		rect.moveTopLeft({rect.right() - QONVINCE_OTPCODELISTWIDGET_ITEM_ACTION_ICON_SIZE - QONVINCE_OTPCODELISTWIDGET_INTERNAL_MARGIN, rect.top() + ((rect.height() - QONVINCE_OTPCODELISTWIDGET_ITEM_ACTION_ICON_SIZE) / 2)});
+		rect.setSize({QONVINCE_OTPCODELISTWIDGET_ITEM_ACTION_ICON_SIZE, QONVINCE_OTPCODELISTWIDGET_ITEM_ACTION_ICON_SIZE});
+
+		m_remove->setGeometry(rect);
+		rect.moveLeft(rect.left() - QONVINCE_OTPCODELISTWIDGET_ITEM_ACTION_ICON_SIZE - QONVINCE_OTPCODELISTWIDGET_INTERNAL_MARGIN);
+		m_refresh->setGeometry(rect);
+		rect.moveLeft(rect.left() - QONVINCE_OTPCODELISTWIDGET_ITEM_ACTION_ICON_SIZE - QONVINCE_OTPCODELISTWIDGET_INTERNAL_MARGIN);
+		m_copy->setGeometry(rect);
+
+		m_copy->setVisible(true);
+		m_refresh->setVisible(true);
+		m_remove->setVisible(true);
+	}
+
+
 	void OtpListView::onRefreshActionTriggered() {
 		if(!m_actionItemIndex.isValid()) {
 			return;
@@ -506,9 +571,9 @@ namespace Qonvince {
 
 
 	void OtpListView::onRemoveActionTriggered() {
-		m_actionItemIndex = {};
-
 		if(!m_actionItemIndex.isValid()) {
+			std::cerr << "action item index is not valid\n"
+						 << std::flush;
 			return;
 		}
 
@@ -516,6 +581,8 @@ namespace Qonvince {
 		auto * otp = m_actionItemIndex.data(OtpListModel::OtpRole).value<Otp *>();
 
 		if(!otp) {
+			std::cerr << "failed to retrieve OTP from model\n"
+						 << std::flush;
 			return;
 		}
 

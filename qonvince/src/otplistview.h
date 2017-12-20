@@ -23,6 +23,7 @@
 #include <vector>
 
 #include <QListView>
+#include <QPushButton>
 #include <QMenu>
 #include <QColor>
 #include <QHash>
@@ -93,8 +94,8 @@ namespace Qonvince {
 	protected:
 		virtual bool event(QEvent *) override;
 		virtual void timerEvent(QTimerEvent *) override;
-		virtual void enterEvent(QEvent *) override;
-		virtual void leaveEvent(QEvent *) override;
+		//		virtual void enterEvent(QEvent *) override;
+		//		virtual void leaveEvent(QEvent *) override;
 		virtual void mouseMoveEvent(QMouseEvent *) override;
 		virtual void mousePressEvent(QMouseEvent *) override;
 		virtual void mouseReleaseEvent(QMouseEvent *) override;
@@ -110,7 +111,7 @@ namespace Qonvince {
 		void synchroniseTickTimer();
 
 	private Q_SLOTS:
-//		void onOtpChanged();
+		//		void onOtpChanged();
 		void updateCountdowns();
 
 		void onEditActionTriggered();
@@ -118,6 +119,7 @@ namespace Qonvince {
 		void onRemoveActionTriggered();
 		void onCopyActionTriggered();
 		void onRemoveIconActionTriggered();
+		void onItemEntered(const QModelIndex &);
 
 #ifndef NDEBUG
 		void debugLogNewCode(const QString &) const;
@@ -152,6 +154,10 @@ namespace Qonvince {
 		QModelIndex m_actionItemIndex;
 		std::unique_ptr<OtpListModel> m_model;
 		std::unique_ptr<OtpListItemDelegate> m_delegate;
+
+		std::unique_ptr<QPushButton> m_copy;
+		std::unique_ptr<QPushButton> m_refresh;
+		std::unique_ptr<QPushButton> m_remove;
 	};
 
 }  // namespace Qonvince
