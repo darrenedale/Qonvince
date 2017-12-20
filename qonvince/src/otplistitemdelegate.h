@@ -1,5 +1,5 @@
-#ifndef OTPLISTITEMDELEGATE_H
-#define OTPLISTITEMDELEGATE_H
+#ifndef QONVINCE_OTPLISTITEMDELEGATE_H
+#define QONVINCE_OTPLISTITEMDELEGATE_H
 
 #include <QStyledItemDelegate>
 
@@ -10,7 +10,7 @@ namespace Qonvince {
 		public:
 			OtpListItemDelegate();
 
-			void paint(QPainter * painter, const QStyleOptionViewItem & option, const QModelIndex & index) const override;
+			void paint(QPainter *, const QStyleOptionViewItem &, const QModelIndex &) const override;
 			QSize sizeHint(const QStyleOptionViewItem & , const QModelIndex &) const override;
 
 			inline const QColor & countdownWarningColour() const {
@@ -27,6 +27,7 @@ namespace Qonvince {
 					return;
 				}
 
+				// invalid means no custom colour
 				m_countdownWarningColour = {-1, -1, -1};
 			}
 
@@ -36,14 +37,9 @@ namespace Qonvince {
 					return;
 				}
 
+				// invalid means no custom colour
 				m_countdownCriticalColour = {-1, -1, -1};
 			}
-
-			// x position is offset from right edge of paint rect
-			QRect copyIconRect() const;
-			QRect removeIconRect() const;
-			QRect refreshIconRect() const;
-			QRect revealIconRect() const;
 
 		private:
 			QColor m_countdownWarningColour;

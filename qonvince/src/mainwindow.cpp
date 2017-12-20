@@ -17,30 +17,33 @@
  * along with Qonvince. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/** \file mainwindow.cpp
-  * \brief Implementation of the MainWindow class.
-  *
-  * \todo modify tooltip if qr-code drag-and-drop is not enabled
-  */
+/// \file mainwindow.cpp
+/// \brief Implementation of the MainWindow class.
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
-#include <QDebug>
+#include <algorithm>
+
+#include <QString>
+#include <QIcon>
+#include <QPoint>
+#include <QSize>
 #include <QClipboard>
-#include <QShowEvent>
+#include <QDragEnterEvent>
+#include <QDropEvent>
 #include <QCloseEvent>
 #include <QSettings>
-#include <QSystemTrayIcon>
 #include <QTimer>
 #include <QMimeData>
 #include <QUrl>
-#include <QMessageBox>
 #include <QStringBuilder>
+#include <QtNetwork/QNetworkRequest>
 #include <QtNetwork/QNetworkReply>
 #include <QTemporaryFile>
 
 #include "application.h"
 #include "otp.h"
+#include "otplistview.h"
 #include "otplistmodel.h"
 #include "otplistitemdelegate.h"
 #include "otpqrcodereader.h"

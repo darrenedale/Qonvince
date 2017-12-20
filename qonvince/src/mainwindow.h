@@ -23,8 +23,6 @@
 #include <memory>
 
 #include <QMainWindow>
-#include <QSystemTrayIcon>
-#include <QString>
 #include <QNetworkAccessManager>
 
 class QShowEvent;
