@@ -114,40 +114,7 @@
  <resources>
   <include location="../resources/icons.qrc"/>
  </resources>
- <connections>
-  <connection>
-   <sender>addCode</sender>
-   <signal>clicked()</signal>
-   <receiver>Qonvince::MainWindow</receiver>
-   <slot>onAddCodeClicked()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>392</x>
-     <y>292</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>260</x>
-     <y>266</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>settings</sender>
-   <signal>clicked()</signal>
-   <receiver>Qonvince::MainWindow</receiver>
-   <slot>onSettingsClicked()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>25</x>
-     <y>268</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>401</x>
-     <y>104</y>
-    </hint>
-   </hints>
-  </connection>
- </connections>
+ <connections/>
  <slots>
   <slot>onAddCodeClicked()</slot>
   <slot>onSettingsClicked()</slot>

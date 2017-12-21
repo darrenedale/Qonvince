@@ -144,6 +144,9 @@ namespace Qonvince {
 		void otpRemoved(Otp *);
 		void otpRemoved(int);
 
+		void otpChanged(Otp *);
+		void otpChanged(int);
+
 	public Q_SLOTS:
 		void showNotification(const QString & title, const QString & message, int timeout = 10000);
 		void showNotification(const QString & message, int timeout = 10000);

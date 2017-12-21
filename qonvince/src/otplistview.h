@@ -42,7 +42,6 @@ class QContextMenuEvent;
 
 namespace Qonvince {
 
-	class OtpListItemActionButtons;
 	class OtpListView
 	: public QListView {
 		Q_OBJECT
@@ -86,17 +85,17 @@ namespace Qonvince {
 		void setItemDelegate() = delete;
 
 	Q_SIGNALS:
-		//		void codeAdded(Otp *);
-		//		void codeRemoved(Otp *);
 		void codeClicked(Otp *);
 		void codeDoubleClicked(Otp *);
 		void editCodeRequested(Otp *);
 
 	protected:
 		virtual bool event(QEvent *) override;
+		virtual void resizeEvent(QResizeEvent *) override;
 		virtual void timerEvent(QTimerEvent *) override;
 		virtual void enterEvent(QEvent *) override;
 		virtual void leaveEvent(QEvent *) override;
+		virtual void mouseMoveEvent(QMouseEvent *) override;
 		virtual void mousePressEvent(QMouseEvent *) override;
 		virtual void mouseReleaseEvent(QMouseEvent *) override;
 		virtual void mouseDoubleClickEvent(QMouseEvent *) override;
@@ -116,6 +115,7 @@ namespace Qonvince {
 
 		void onEditActionTriggered();
 		void onRefreshActionTriggered();
+		void onRevealActionTriggered();
 		void onRemoveActionTriggered();
 		void onCopyActionTriggered();
 		void onRemoveIconActionTriggered();
@@ -143,9 +143,6 @@ namespace Qonvince {
 		QTimer m_doubleClickWaitTimer;
 		bool m_receivedDoubleClickEvent;
 
-		// hit-test geometry for temp reveal icon
-		QRect m_revealIconHitRect;
-
 		QMenu m_itemContextMenu;
 		QModelIndex m_actionItemIndex;
 		QModelIndex m_mousePressItemIndex;
@@ -153,7 +150,18 @@ namespace Qonvince {
 		std::unique_ptr<OtpListModel> m_model;
 		std::unique_ptr<OtpListItemDelegate> m_delegate;
 
-		std::unique_ptr<OtpListItemActionButtons> m_actionButtons;
+		struct ActionButtonSpec {
+			QIcon icon;
+			QRect geometry;
+		};
+
+		ActionButtonSpec m_copy;
+		ActionButtonSpec m_refresh;
+		ActionButtonSpec m_remove;
+		ActionButtonSpec m_reveal;
+
+		QRect m_actionIconHoverRect;
+		QRect m_actionIconMouseClickStartRect;
 	};
 
 }  // namespace Qonvince

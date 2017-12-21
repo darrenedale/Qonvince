@@ -104,7 +104,7 @@ namespace Qonvince {
 		void clipboardClearIntervalChanged(int newValue);
 		void clipboardClearIntervalChanged(int oldValue, int newValue);
 		void codeLabelDisplayStyleChanged(CodeLabelDisplayStyle newStyle);
-		void codeLabelDisplayStyleChanged( CodeLabelDisplayStyle oldStyle, CodeLabelDisplayStyle newStyle );
+		void codeLabelDisplayStyleChanged(CodeLabelDisplayStyle oldStyle, CodeLabelDisplayStyle newStyle);
 		void codeRevealTimeoutChanged(int newValue);
 		void codeRevealTimeoutChanged(int oldValue, int newValue);
 
@@ -112,7 +112,7 @@ namespace Qonvince {
 		inline void setSingleInstance(bool single) {
 			if(single != m_singleInstance) {
 				m_singleInstance = single;
-								Q_EMIT singleInstanceChanged(!m_singleInstance, m_singleInstance);
+				Q_EMIT singleInstanceChanged(!m_singleInstance, m_singleInstance);
 				Q_EMIT singleInstanceChanged(m_singleInstance);
 				Q_EMIT changed();
 			}
@@ -121,7 +121,7 @@ namespace Qonvince {
 		inline void setQuitOnMainWindowClosed(bool quit) {
 			if(quit != m_quitOnMainWindowClosed) {
 				m_quitOnMainWindowClosed = quit;
-								Q_EMIT quitOnMainWindowClosedChanged(!m_quitOnMainWindowClosed, m_quitOnMainWindowClosed);
+				Q_EMIT quitOnMainWindowClosedChanged(!m_quitOnMainWindowClosed, m_quitOnMainWindowClosed);
 				Q_EMIT quitOnMainWindowClosedChanged(m_quitOnMainWindowClosed);
 				Q_EMIT changed();
 			}
@@ -130,7 +130,7 @@ namespace Qonvince {
 		inline void setStartMinimised(bool minimised) {
 			if(minimised != m_startMinimised) {
 				m_startMinimised = minimised;
-								Q_EMIT startMinimisedChanged(!m_startMinimised, m_startMinimised);
+				Q_EMIT startMinimisedChanged(!m_startMinimised, m_startMinimised);
 				Q_EMIT startMinimisedChanged(m_startMinimised);
 				Q_EMIT changed();
 			}
@@ -139,7 +139,7 @@ namespace Qonvince {
 		inline void setCopyCodeOnClick(bool copy) {
 			if(copy != m_copyCodeOnClick) {
 				m_copyCodeOnClick = copy;
-								Q_EMIT copyCodeOnClickChanged(!m_copyCodeOnClick, m_copyCodeOnClick);
+				Q_EMIT copyCodeOnClickChanged(!m_copyCodeOnClick, m_copyCodeOnClick);
 				Q_EMIT copyCodeOnClickChanged(m_copyCodeOnClick);
 				Q_EMIT changed();
 			}
@@ -148,7 +148,7 @@ namespace Qonvince {
 		inline void setHideOnCodeCopyClick(bool hide) {
 			if(hide != m_hideOnCodeCopyClick) {
 				m_hideOnCodeCopyClick = hide;
-								Q_EMIT hideOnCodeCopyClickChanged(!m_hideOnCodeCopyClick, m_hideOnCodeCopyClick);
+				Q_EMIT hideOnCodeCopyClickChanged(!m_hideOnCodeCopyClick, m_hideOnCodeCopyClick);
 				Q_EMIT hideOnCodeCopyClickChanged(m_hideOnCodeCopyClick);
 				Q_EMIT changed();
 			}
@@ -157,7 +157,7 @@ namespace Qonvince {
 		inline void setClearClipboardAfterInterval(bool clear) {
 			if(clear != m_clearClipboardAfterInterval) {
 				m_clearClipboardAfterInterval = clear;
-								Q_EMIT hideOnCodeCopyClickChanged(!m_clearClipboardAfterInterval, m_clearClipboardAfterInterval);
+				Q_EMIT hideOnCodeCopyClickChanged(!m_clearClipboardAfterInterval, m_clearClipboardAfterInterval);
 				Q_EMIT hideOnCodeCopyClickChanged(m_clearClipboardAfterInterval);
 				Q_EMIT changed();
 			}
@@ -165,8 +165,8 @@ namespace Qonvince {
 
 		inline void setClipboardClearInterval(int seconds) {
 			if(seconds != m_clipboardClearInterval) {
-				qSwap(seconds, m_clipboardClearInterval);
-								Q_EMIT clipboardClearIntervalChanged(seconds, m_clipboardClearInterval);
+				std::swap(seconds, m_clipboardClearInterval);
+				Q_EMIT clipboardClearIntervalChanged(seconds, m_clipboardClearInterval);
 				Q_EMIT clipboardClearIntervalChanged(m_clipboardClearInterval);
 				Q_EMIT changed();
 			}
@@ -174,17 +174,17 @@ namespace Qonvince {
 
 		inline void setCodeRevealTimeout(int seconds) {
 			if(seconds != m_revealTimeout) {
-				qSwap(seconds, m_revealTimeout);
-								Q_EMIT clipboardClearIntervalChanged(seconds, m_revealTimeout);
-				Q_EMIT clipboardClearIntervalChanged(m_revealTimeout);
+				std::swap(seconds, m_revealTimeout);
+				Q_EMIT codeRevealTimeoutChanged(seconds, m_revealTimeout);
+				Q_EMIT codeRevealTimeoutChanged(m_revealTimeout);
 				Q_EMIT changed();
 			}
 		}
 
 		inline void setCodeLabelDisplayStyle(CodeLabelDisplayStyle style) {
 			if(style != m_codeLabelDisplayStyle) {
-				qSwap(style, m_codeLabelDisplayStyle);
-								Q_EMIT codeLabelDisplayStyleChanged(style, m_codeLabelDisplayStyle);
+				std::swap(style, m_codeLabelDisplayStyle);
+				Q_EMIT codeLabelDisplayStyleChanged(style, m_codeLabelDisplayStyle);
 				Q_EMIT codeLabelDisplayStyleChanged(m_codeLabelDisplayStyle);
 				Q_EMIT changed();
 			}

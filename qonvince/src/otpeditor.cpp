@@ -178,7 +178,7 @@ namespace Qonvince {
 				m_ui->intervalSpin->setValue(m_otp->interval());
 				m_ui->baseTimeEdit->setDateTime(QDateTime::fromMSecsSinceEpoch(code->baselineSecSinceEpoch() * 1000));
 				m_ui->counterSpin->setValue(static_cast<int>(m_otp->counter()));
-				m_ui->revealOnDemand->setChecked(m_otp->revealOnDemand());
+				m_ui->revealOnDemand->setChecked(m_otp->revealCodeOnDemand());
 				setType(m_otp->type());
 
 				connect(m_otp, &Otp::destroyed, this, &OtpEditor::close);
@@ -515,7 +515,7 @@ namespace Qonvince {
 			m_ui->revealOnDemand->setChecked(onlyOnDemand);
 		}
 
-		if(m_otp && m_otp->revealOnDemand() != onlyOnDemand) {
+		if(m_otp && m_otp->revealCodeOnDemand() != onlyOnDemand) {
 			m_otp->setRevealOnDemand(onlyOnDemand);
 		}
 	}

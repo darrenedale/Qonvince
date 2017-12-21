@@ -94,8 +94,12 @@ namespace Qonvince {
 			return m_interval;
 		}
 
-		inline bool revealOnDemand() const {
+		inline bool revealCodeOnDemand() const {
 			return m_revealOnDemand;
+		}
+
+		inline bool codeIsVisible() const {
+			return !m_revealOnDemand || m_isRevealed;
 		}
 
 		/* only for type = HOTP */
@@ -166,6 +170,8 @@ namespace Qonvince {
 		void baselineTimeChangedInSeconds(qint64 newSecSinceEpoch);
 		void counterChanged(quint64 newCounter);
 
+		void codeRevealed();
+		void codeHidden();
 		void newCodeGenerated(QString);
 
 	protected:
@@ -189,6 +195,26 @@ namespace Qonvince {
 			if(onDemandOnly != m_revealOnDemand) {
 				m_revealOnDemand = onDemandOnly;
 				Q_EMIT revealOnDemandChanged(m_revealOnDemand);
+				Q_EMIT changed();
+			}
+		}
+
+		inline void reveal() {
+			auto wasVisible = codeIsVisible();
+			m_isRevealed = true;
+
+			if(!wasVisible && codeIsVisible()) {
+				Q_EMIT codeRevealed();
+				Q_EMIT changed();
+			}
+		}
+
+		inline void hide() {
+			auto wasVisible = codeIsVisible();
+			m_isRevealed = false;
+
+			if(wasVisible && !codeIsVisible()) {
+				Q_EMIT codeHidden();
 				Q_EMIT changed();
 			}
 		}
@@ -239,6 +265,7 @@ namespace Qonvince {
 		QString m_currentCode;
 		int m_interval;
 		qint64 m_baselineTime;
+		bool m_isRevealed;
 
 		std::unique_ptr<QBasicTimer> m_refreshTimer;
 		bool m_resync;

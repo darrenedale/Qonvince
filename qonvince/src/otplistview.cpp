@@ -23,8 +23,7 @@
   *
   * \brief Implementation of the OtpListView class.
   *
-  * \todo work out how to make action widget stop stealing "hover" focus
-  * from item
+  * \todo use unobtrusive notification for OTP removal confirmation
   */
 
 #include "otplistview.h"
@@ -48,7 +47,6 @@
 #include "application.h"
 #include "otp.h"
 #include "otplistmodel.h"
-#include "otplistitemactionbuttons.h"
 #include "otpqrcodereader.h"
 #include "qtiostream.h"
 
@@ -60,7 +58,9 @@ namespace Qonvince {
 			static constexpr const int SpacingSize = 4;
 			static constexpr const int BackgroundTextSize = 20;
 			static constexpr const int BackgroundTextVerticalOffset = 40;
-			static constexpr const int ItemActionsHeight = 22;
+			static constexpr const int ActionIconExtent = 22;
+			static constexpr const QSize ActionIconSize = {ActionIconExtent, ActionIconExtent};
+			static constexpr const int ActionIconHoverRectRounding = 3;
 		}  // namespace OtpListView
 	}		// namespace Detail
 
@@ -75,18 +75,17 @@ namespace Qonvince {
 	  m_itemContextMenu(),
 	  m_model(std::make_unique<OtpListModel>()),
 	  m_delegate(std::make_unique<OtpListItemDelegate>()),
-	  m_actionButtons(std::make_unique<OtpListItemActionButtons>(this)) {
+	  m_copy({QIcon::fromTheme("edit-copy", QIcon(":/icons/codeactions/copy")), {{0, 0}, Detail::OtpListView::ActionIconSize}}),
+	  m_refresh({QIcon::fromTheme("view-refresh", QIcon(":/icons/codeactions/refresh")), {{Detail::OtpListView::ActionIconExtent + Detail::OtpListView::SpacingSize, 0}, Detail::OtpListView::ActionIconSize}}),
+	  m_remove({QIcon::fromTheme("list-remove", QIcon(":/icons/codeactions/remove")), {{2 * (Detail::OtpListView::ActionIconExtent + Detail::OtpListView::SpacingSize), 0}, Detail::OtpListView::ActionIconSize}}),
+	  m_reveal({QIcon(":/icons/codeactions/reveal"), {{3 * (Detail::OtpListView::ActionIconExtent + Detail::OtpListView::SpacingSize), 0}, Detail::OtpListView::ActionIconSize}}),
+	  m_actionIconHoverRect(),
+	  m_actionIconMouseClickStartRect() {
 		m_delegate->setCountdownWarningColour(QColor(160, 160, 92));
 		m_delegate->setCountdownCriticalColour(QColor(220, 78, 92));
+		m_delegate->setActionIconAreaWidth(4 * (Detail::OtpListView::ActionIconExtent + Detail::OtpListView::SpacingSize) + Detail::OtpListView::SpacingSize);
 		QListView::setModel(m_model.get());
 		QListView::setItemDelegate(m_delegate.get());
-
-		m_actionButtons->setVisible(false);
-		m_actionButtons->setFocusPolicy(Qt::NoFocus);
-
-		connect(m_actionButtons.get(), &OtpListItemActionButtons::copyClicked, this, &OtpListView::onCopyActionTriggered);
-		connect(m_actionButtons.get(), &OtpListItemActionButtons::refreshClicked, this, &OtpListView::onRefreshActionTriggered);
-		connect(m_actionButtons.get(), &OtpListItemActionButtons::removeClicked, this, &OtpListView::onRemoveActionTriggered);
 
 		m_itemContextMenu.addAction(QIcon::fromTheme("document-edit"), tr("Edit"), this, &OtpListView::onEditActionTriggered);
 		m_itemContextMenu.addAction(tr("Remove icon"), this, &OtpListView::onRemoveIconActionTriggered);
@@ -110,8 +109,6 @@ namespace Qonvince {
 		});
 
 		connect(&(qonvinceApp->settings()), qOverload<Settings::CodeLabelDisplayStyle>(&Settings::codeLabelDisplayStyleChanged), this, qOverload<>(&OtpListView::update));
-		connect(this, &QListView::entered, this, &OtpListView::onItemEntered);
-
 		synchroniseTickTimer();
 	}
 
@@ -148,13 +145,13 @@ namespace Qonvince {
 
 
 	Otp * OtpListView::hoveredOtp() const {
-		auto index = hoveredOtpIndex();
+		auto otpIndex = hoveredOtpIndex();
 
-		if(0 > index) {
+		if(0 > otpIndex) {
 			return nullptr;
 		}
 
-		return qonvinceApp->otp(index);
+		return qonvinceApp->otp(otpIndex);
 	}
 
 
@@ -173,32 +170,47 @@ namespace Qonvince {
 		if(QEvent::ToolTip == ev->type()) {
 			auto globalMousePos = QCursor::pos();
 			auto widgetMousePos = mapFromGlobal(globalMousePos);
-			auto index = indexAt(widgetMousePos);
+			QString tooltipTxt = QStringLiteral();
 
-			if(index.isValid()) {
-				QString txt;
-				QString label = index.data(OtpListModel::LabelRole).toString();
+			if(m_copy.geometry.contains(widgetMousePos)) {
+				tooltipTxt = tr("Copy the current code to the clipboard.");
+			}
+			else if(m_refresh.geometry.contains(widgetMousePos)) {
+				tooltipTxt = tr("Refresh the code now.");
+			}
+			else if(m_remove.geometry.contains(widgetMousePos)) {
+				tooltipTxt = tr("Remove this OTP from %1.").arg(QApplication::applicationDisplayName());
+			}
+			else if(m_reveal.geometry.contains(widgetMousePos)) {
+				tooltipTxt = tr("Reveal the current code.");
+			}
+			else {
+				auto index = indexAt(widgetMousePos);
 
-				if(m_revealIconHitRect.contains(widgetMousePos)) {
-					txt = tr("Reveal the current code.");
-				}
-				else {
-					txt = tr("Double-click to edit.");
+				if(index.isValid()) {
+					tooltipTxt = tr("Double-click to edit.");
 
 					if(qonvinceApp->settings().copyCodeOnClick()) {
-						txt = QStringLiteral("<html><body><p>") % txt % QStringLiteral("</p><p>") % tr("Click to copy the current code to the clipboard.") % QStringLiteral("</p></body></html>");
+						tooltipTxt = QStringLiteral("<html><body><p>") % tooltipTxt % QStringLiteral("</p><p>") % tr("Click to copy the current code to the clipboard.") % QStringLiteral("</p></body></html>");
 					}
 				}
+			}
 
-				if(!txt.isEmpty()) {
-					QToolTip::showText(globalMousePos, txt, this);
-					ev->accept();
-					return true;
-				}
+			if(!tooltipTxt.isEmpty()) {
+				QToolTip::showText(globalMousePos, tooltipTxt, this);
+				ev->accept();
+				return true;
 			}
 		}
 
 		return QListView::event(ev);
+	}
+
+
+	void OtpListView::resizeEvent(QResizeEvent * ev) {
+		m_actionIconMouseClickStartRect = {};
+		m_actionIconHoverRect = {};
+		QListView::resizeEvent(ev);
 	}
 
 
@@ -220,6 +232,54 @@ namespace Qonvince {
 
 	void OtpListView::leaveEvent(QEvent *) {
 		setMouseTracking(false);
+		m_actionItemIndex = {};
+	}
+
+
+	void OtpListView::mouseMoveEvent(QMouseEvent * ev) {
+		auto mousePos = ev->pos();
+
+		if(m_copy.geometry.contains(mousePos)) {
+			if(m_actionIconHoverRect != m_copy.geometry) {
+				QRegion damage(m_actionIconHoverRect);
+				damage += m_copy.geometry;
+				m_actionIconHoverRect = m_copy.geometry;
+				viewport()->update(damage);
+			}
+		}
+		else if(m_refresh.geometry.contains(mousePos)) {
+			if(m_actionIconHoverRect != m_refresh.geometry) {
+				QRegion damage(m_actionIconHoverRect);
+				damage += m_refresh.geometry;
+				m_actionIconHoverRect = m_refresh.geometry;
+				viewport()->update(damage);
+			}
+		}
+		else if(m_remove.geometry.contains(mousePos)) {
+			if(m_actionIconHoverRect != m_remove.geometry) {
+				QRegion damage(m_actionIconHoverRect);
+				damage += m_remove.geometry;
+				m_actionIconHoverRect = m_remove.geometry;
+				viewport()->update(damage);
+			}
+		}
+		else if(!m_reveal.geometry.isNull() && m_reveal.geometry.contains(mousePos)) {
+			if(m_actionIconHoverRect != m_reveal.geometry) {
+				QRegion damage(m_actionIconHoverRect);
+				damage += m_reveal.geometry;
+				m_actionIconHoverRect = m_reveal.geometry;
+				viewport()->update(damage);
+			}
+		}
+		else if(!m_actionIconHoverRect.isNull()) {
+			QRegion damage(m_actionIconHoverRect);
+			m_actionIconHoverRect = {};
+			viewport()->update(damage);
+		}
+
+		onItemEntered(indexAt(mousePos));
+		ev->accept();
+		QListView::mouseMoveEvent(ev);
 	}
 
 
@@ -238,8 +298,23 @@ namespace Qonvince {
 
 	void OtpListView::mousePressEvent(QMouseEvent * ev) {
 		if(Qt::LeftButton == ev->button()) {
-			m_mousePressItemIndex = indexAt(ev->pos());
+			auto mousePos = ev->pos();
+			m_mousePressItemIndex = indexAt(mousePos);
 			ev->accept();
+
+			// mouseMoveEvent() tracks which icon is hovered, and we can't
+			// click on an icon unless it's hovered, so we can take advantage
+			// of the work done in mouseMoveEvent and only check whether the
+			// click is within the hovered rect - we don't need to check any
+			// others because we know they can't be clicked
+			if(!m_actionIconHoverRect.isNull() && m_actionIconHoverRect.contains(mousePos)) {
+				m_actionIconMouseClickStartRect = m_actionIconHoverRect;
+				ev->accept();
+				return;
+			}
+			else {
+				m_actionIconMouseClickStartRect = {};
+			}
 		}
 
 		QListView::mousePressEvent(ev);
@@ -249,6 +324,32 @@ namespace Qonvince {
 
 	void OtpListView::mouseReleaseEvent(QMouseEvent * ev) {
 		if(Qt::LeftButton == ev->button()) {
+			if(!m_actionIconMouseClickStartRect.isNull()) {
+				auto mouseReleasePos = ev->pos();
+
+				if(m_actionIconMouseClickStartRect.contains(mouseReleasePos)) {
+					// could check for equality between click rect and icon rect, but
+					// contains is likely to be marginally quicker
+					if(m_copy.geometry.contains(mouseReleasePos)) {
+						onCopyActionTriggered();
+					}
+					else if(m_refresh.geometry.contains(mouseReleasePos)) {
+						onRefreshActionTriggered();
+					}
+					else if(m_remove.geometry.contains(mouseReleasePos)) {
+						onRemoveActionTriggered();
+					}
+					else if(!m_reveal.geometry.isNull() && m_reveal.geometry.contains(mouseReleasePos)) {
+						onRevealActionTriggered();
+					}
+
+					ev->accept();
+					return;
+				}
+
+				m_actionIconMouseClickStartRect = {};
+			}
+
 			if(m_mousePressItemIndex.isValid()) {
 				m_doubleClickWaitTimer.start();
 				ev->accept();
@@ -261,8 +362,6 @@ namespace Qonvince {
 
 
 	void OtpListView::mouseDoubleClickEvent(QMouseEvent * ev) {
-		std::cout << "received double-click event\n"
-					 << std::flush;
 		m_doubleClickWaitTimer.stop();
 		m_receivedDoubleClickEvent = true;
 		QListView::mouseDoubleClickEvent(ev);
@@ -270,8 +369,6 @@ namespace Qonvince {
 		auto * otp = hoveredOtp();
 
 		if(otp) {
-			std::cout << "emitting codeDoubleClicked signal\n"
-						 << std::flush;
 			Q_EMIT codeDoubleClicked(otp);
 			ev->accept();
 			return;
@@ -342,18 +439,50 @@ namespace Qonvince {
 
 
 	void OtpListView::onItemEntered(const QModelIndex & index) {
-		std::cout << __PRETTY_FUNCTION__ << ": item # " << index.row() << "\n"
-					 << std::flush;
-		auto rect = visualRect(index);
-		std::cout << "item geometry: " << rect << "\n"
-					 << std::flush;
-		rect.setTopLeft({rect.right() - (3 * (Detail::OtpListView::ItemActionsHeight + Detail::OtpListView::SpacingSize)), rect.top() + ((rect.height() - Detail::OtpListView::ItemActionsHeight) / 2)});
-		rect.setSize({rect.width() - Detail::OtpListView::SpacingSize, Detail::OtpListView::ItemActionsHeight});
-		std::cout << "action buttons geometry: " << rect << "\n"
-					 << std::flush;
-		m_actionButtons->setGeometry(rect);
-		m_actionButtons->setVisible(true);
+		if(!index.isValid()) {
+			m_actionItemIndex = {};
+			return;
+		}
+
+		auto itemRect = visualRect(index);
+		auto actionIconTopLeft = QPoint(itemRect.right() - (4 * (Detail::OtpListView::ActionIconExtent + Detail::OtpListView::SpacingSize)), itemRect.top() + ((itemRect.height() - Detail::OtpListView::ActionIconExtent) / 2));
+		auto & actionIconLeft = actionIconTopLeft.rx();
+
+		auto * otp = index.data(OtpListModel::OtpRole).value<Otp *>();
+
+		if(otp && otp->revealCodeOnDemand()) {
+			m_reveal.geometry = {actionIconTopLeft, Detail::OtpListView::ActionIconSize};
+		}
+		else {
+			m_reveal.geometry = {};
+		}
+
+		actionIconLeft += Detail::OtpListView::ActionIconExtent + Detail::OtpListView::SpacingSize;
+		m_copy.geometry.moveTopLeft(actionIconTopLeft);
+
+		actionIconLeft += Detail::OtpListView::ActionIconExtent + Detail::OtpListView::SpacingSize;
+		m_refresh.geometry.moveTopLeft(actionIconTopLeft);
+
+		actionIconLeft += Detail::OtpListView::ActionIconExtent + Detail::OtpListView::SpacingSize;
+		m_remove.geometry.moveTopLeft(actionIconTopLeft);
+
 		m_actionItemIndex = index;
+	}
+
+
+	void OtpListView::onRevealActionTriggered() {
+		if(!m_actionItemIndex.isValid()) {
+			return;
+		}
+
+		auto * otp = m_actionItemIndex.data(OtpListModel::OtpRole).value<Otp *>();
+
+		if(!otp) {
+			return;
+		}
+
+		otp->reveal();
+		QTimer::singleShot(1000 * qonvinceApp->settings().codeRevealTimeout(), otp, &Otp::hide);
 	}
 
 
@@ -374,16 +503,12 @@ namespace Qonvince {
 
 	void OtpListView::onRemoveActionTriggered() {
 		if(!m_actionItemIndex.isValid()) {
-			std::cerr << "action item index is not valid\n"
-						 << std::flush;
 			return;
 		}
 
 		auto * otp = m_actionItemIndex.data(OtpListModel::OtpRole).value<Otp *>();
 
 		if(!otp) {
-			std::cerr << "failed to retrieve OTP from model\n"
-						 << std::flush;
 			return;
 		}
 
@@ -411,8 +536,6 @@ namespace Qonvince {
 
 
 	void OtpListView::paintEvent(QPaintEvent * ev) {
-		ev->accept();
-
 		if(m_imageDropEnabled) {
 			QPainter painter(viewport());
 			int y = height() - Detail::OtpListView::BackgroundTextVerticalOffset;
@@ -426,6 +549,26 @@ namespace Qonvince {
 		}
 
 		QListView::paintEvent(ev);
+
+		// render the action icon overlay
+		if(m_actionItemIndex.isValid()) {
+			QPainter painter(viewport());
+			painter.setRenderHint(QPainter::Antialiasing, true);
+
+			if(!m_actionIconHoverRect.isNull()) {
+				painter.setPen(Qt::transparent);
+				painter.setBrush(palette().highlight().color().darker(125));
+				painter.drawRoundedRect(m_actionIconHoverRect, Detail::OtpListView::ActionIconHoverRectRounding, Detail::OtpListView::ActionIconHoverRectRounding);
+			}
+
+			m_copy.icon.paint(&painter, m_copy.geometry);
+			m_refresh.icon.paint(&painter, m_refresh.geometry);
+			m_remove.icon.paint(&painter, m_remove.geometry);
+
+			if(!m_reveal.geometry.isNull()) {
+				m_reveal.icon.paint(&painter, m_reveal.geometry);
+			}
+		}
 	}
 
 

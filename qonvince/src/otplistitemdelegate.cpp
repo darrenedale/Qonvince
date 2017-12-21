@@ -1,3 +1,29 @@
+/*
+ * Copyright 2015 - 2017 Darren Edale
+ *
+ * This file is part of Qonvince.
+ *
+ * Qonvince is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Qonvince is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Qonvince. If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/** \file otplistitemdelegate.cpp
+  * \author Darren Edale
+  * \date December 2017
+  *
+  * \brief Implementation of the OtpListItemDelegate class.
+  */
+
 #include "otplistitemdelegate.h"
 
 #include <QPen>
@@ -14,19 +40,18 @@ namespace Qonvince {
 		namespace OtpListItemDelegate {
 			static constexpr const auto SpacingSize = 4;
 			static constexpr const auto OtpIconExtent = 32;
-			static constexpr const auto ActionIconExtent = 22;
-			static constexpr const auto CountdownSizeRatio = 0.5L;	// ratio of counter size to item height
+			static constexpr const QSize OtpIconSize = {OtpIconExtent, OtpIconExtent};
+			static constexpr const auto CountdownSizeRatio = 0.5L;  // ratio of counter size to item height
 			static constexpr const auto CountdownWarningThreshold = 8;
 			static constexpr const auto CountdownCriticalThreshold = 4;
-
-			static const QSize OtpIconSize = {OtpIconExtent, OtpIconExtent};
-		}
-	}
+		}  // namespace OtpListItemDelegate
+	}		// namespace Detail
 
 
 	OtpListItemDelegate::OtpListItemDelegate()
 	: m_countdownWarningColour(-1, -1, -1),
-	  m_countdownCriticalColour(-1, -1, -1) {
+	  m_countdownCriticalColour(-1, -1, -1),
+	  m_actionIconAreaWidth(0) {
 	}
 
 
@@ -39,16 +64,14 @@ namespace Qonvince {
 		int height = itemRect.height();
 		int timerRectSize = static_cast<int>(height * Detail::OtpListItemDelegate::CountdownSizeRatio);
 		QRect iconRect({Detail::OtpListItemDelegate::SpacingSize, Detail::OtpListItemDelegate::SpacingSize}, Detail::OtpListItemDelegate::OtpIconSize);
-		QRectF timerRect({0.5 + itemRect.right() - timerRectSize - (3 * (Detail::OtpListItemDelegate::ActionIconExtent + (2 * Detail::OtpListItemDelegate::SpacingSize))), 0.5 + ((height - timerRectSize) / 2.0)}, QSize(timerRectSize, timerRectSize));
+		QRectF timerRect({0.5 + itemRect.right() - timerRectSize - actionIconAreaWidth(), 0.5 + ((height - timerRectSize) / 2.0)}, QSize(timerRectSize, timerRectSize));
 		QRect codeRect({Detail::OtpListItemDelegate::OtpIconExtent + (2 * Detail::OtpListItemDelegate::SpacingSize), 0}, QPoint(static_cast<int>(timerRect.left()) - Detail::OtpListItemDelegate::SpacingSize - Detail::OtpListItemDelegate::SpacingSize, height - 1));
 
 		QString codeString;
 
 		// only show the code if it's not hidden, or is hidden but user has manually
 		// revealed it and it's not timed out
-		bool onDemand = index.data(OtpListModel::RevealOnDemandRole).toBool();
-		bool showCode = !onDemand;
-		//		bool showCode = !onDemand || contains(m_revealedPasscodes, code);
+		bool showCode = index.data(OtpListModel::IsRevealedRole).toBool();
 
 		if(showCode) {
 			codeString = index.data(OtpListModel::CodeRole).toString();
@@ -68,7 +91,7 @@ namespace Qonvince {
 			displayName = tr("<unnamed>");
 		}
 
-		if(!onDemand && codeString.isEmpty()) {
+		if(showCode && codeString.isEmpty()) {
 			codeString = tr("<no code>");
 		}
 
@@ -105,13 +128,13 @@ namespace Qonvince {
 
 		QRect nameRect(Detail::OtpListItemDelegate::OtpIconExtent + (2 * Detail::OtpListItemDelegate::SpacingSize), 0, 0, height);
 
-		if(!onDemand || showCode) {
+		if(showCode) {
 			painter->setFont(codeFont);
 			painter->drawText(codeRect, Qt::AlignVCenter | Qt::TextSingleLine | Qt::AlignRight, codeString, &codeRect);
 			nameRect.setRight(codeRect.left() - (2 * Detail::OtpListItemDelegate::SpacingSize));
 		}
 		else {
-			nameRect.setRight(codeRect.right() - Detail::OtpListItemDelegate::ActionIconExtent - (2 * Detail::OtpListItemDelegate::SpacingSize));
+			nameRect.setRight(codeRect.right());
 		}
 
 		// draw the countdown

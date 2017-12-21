@@ -62,6 +62,8 @@ namespace Qonvince {
 		m_ui->addCode->setIcon(QIcon::fromTheme("list-add", QIcon(":/icons/mainwindow/add")));
 		m_ui->settings->setIcon(QIcon::fromTheme("configure-shortcuts", QIcon(":/icons/mainwindow/settings")));
 
+		connect(m_ui->addCode, &QPushButton::clicked, this, &MainWindow::onAddOtpClicked);
+		connect(m_ui->settings, &QPushButton::clicked, this, &MainWindow::onSettingsClicked);
 		connect(m_ui->otpList, &OtpListView::codeClicked, this, &MainWindow::onOtpClicked);
 		connect(m_ui->otpList, &OtpListView::codeDoubleClicked, this, &MainWindow::onOtpDoubleClicked);
 		connect(m_ui->otpList, &OtpListView::editCodeRequested, this, &MainWindow::onEditOtpRequested);

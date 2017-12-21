@@ -27,6 +27,7 @@
 
 #include <array>
 #include <iostream>
+#include <iterator>
 
 #include <QDebug>
 #include <QString>
@@ -261,9 +262,27 @@ namespace Qonvince {
 		}
 
 		int index = static_cast<int>(m_otpList.size());
+		auto * myOtp = otp.get();
 		m_otpList.push_back(std::move(otp));
-		Q_EMIT otpAdded(otp.get());
-		Q_EMIT otpAdded(index, otp.get());
+		Q_EMIT otpAdded(myOtp);
+		Q_EMIT otpAdded(index, myOtp);
+
+		// capture myOtp by value so that it can be used in signal emitted
+		// by the lambda. it is NOT dereferenced in the lambda, and is
+		// passed on to receivers only if it is verified that it is still
+		// in the Application's list
+		connect(myOtp, &Otp::changed, [this, otp = myOtp]() {
+			const auto otpBegin = m_otpList.cbegin();
+			const auto otpIter = std::find_if(otpBegin, m_otpList.cend(), [otp](const auto & listOtp) {
+				return listOtp.get() == otp;
+			});
+
+			Q_ASSERT_X(m_otpList.cend() != otpIter, "Application::addOtp", "Otp object that sent changed() signal is not owned by Application instance");
+
+			Q_EMIT otpChanged(otp);
+			Q_EMIT otpChanged(static_cast<int>(std::distance(otpBegin, otpIter)));
+		});
+
 		return index;
 	}
 

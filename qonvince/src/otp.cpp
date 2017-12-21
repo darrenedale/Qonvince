@@ -74,6 +74,7 @@ namespace Qonvince {
 	  m_counter(0),
 	  m_interval(DefaultInterval),
 	  m_baselineTime(0),
+	  m_isRevealed(false),
 	  m_refreshTimer(std::make_unique<QBasicTimer>()),
 	  m_resync(false),
 	  m_displayPluginName() {
@@ -402,7 +403,7 @@ namespace Qonvince {
 			settings.setValue("baseline_time", baselineSecSinceEpoch());
 		}
 
-		settings.setValue("revealOnDemand", revealOnDemand());
+		settings.setValue("revealOnDemand", revealCodeOnDemand());
 	}
 
 

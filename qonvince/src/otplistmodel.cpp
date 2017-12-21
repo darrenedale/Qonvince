@@ -1,3 +1,29 @@
+/*
+ * Copyright 2015 - 2017 Darren Edale
+ *
+ * This file is part of Qonvince.
+ *
+ * Qonvince is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Qonvince is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Qonvince. If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/** \file otplistmodel.cpp
+  * \author Darren Edale
+  * \date December 2017
+  *
+  * \brief Implementation of the OtpListModel class.
+  */
+
 #include "otplistmodel.h"
 
 #include <QString>
@@ -27,6 +53,11 @@ namespace Qonvince {
 		m_appConnections.push_back(connect(qonvinceApp, qOverload<int>(&Application::otpRemoved), [this](int index) {
 			beginRemoveRows({}, index, index);
 			endRemoveRows();
+		}));
+
+		m_appConnections.push_back(connect(qonvinceApp, qOverload<int>(&Application::otpChanged), [this](int otpIndex) {
+			const auto itemIndex = index(otpIndex, 0);
+			Q_EMIT dataChanged(itemIndex, itemIndex);
 		}));
 	}
 
@@ -117,7 +148,10 @@ namespace Qonvince {
 				return otp->counter();
 
 			case RevealOnDemandRole:
-				return otp->revealOnDemand();
+				return otp->revealCodeOnDemand();
+
+			case IsRevealedRole:
+				return otp->codeIsVisible();
 		}
 
 		return {};
