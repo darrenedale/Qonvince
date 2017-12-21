@@ -481,6 +481,10 @@ namespace Qonvince {
 			return;
 		}
 
+		if(otp->codeIsVisible()) {
+			return;
+		}
+
 		otp->reveal();
 		QTimer::singleShot(1000 * qonvinceApp->settings().codeRevealTimeout(), otp, &Otp::hide);
 	}

@@ -17,12 +17,9 @@
  * along with Qonvince. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/** \file application.cpp
-  * \brief Implementation of the Application class.
-  *
-  * \todo consider whether Application should manage a list of OTPs and
-  * this list should be used as a model for list widget
-  */
+/// \file application.cpp
+/// \brief Implementation of the Application class.
+
 #include "application.h"
 
 #include <array>

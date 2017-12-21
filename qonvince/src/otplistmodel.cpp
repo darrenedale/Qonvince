@@ -44,7 +44,6 @@ namespace Qonvince {
 		// these connections ensure that the model emits the appropriate
 		// signals when this occurs
 		// the model itself is read-only
-		// TODO Application to propagate Otp changes, model to emit signals
 		m_appConnections.push_back(connect(qonvinceApp, qOverload<int, Otp *>(&Application::otpAdded), [this](int index) {
 			beginInsertRows({}, index, index);
 			endInsertRows();
