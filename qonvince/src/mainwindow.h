@@ -39,9 +39,6 @@ namespace Qonvince {
 	}
 
 	class Otp;
-	class OtpListView;
-	class OtpListModel;
-	class OtpListItemDelegate;
 
 	class MainWindow
 	: public QMainWindow {
@@ -50,8 +47,6 @@ namespace Qonvince {
 	public:
 		explicit MainWindow(QWidget * = nullptr);
 		~MainWindow();
-
-		OtpListView * otpList() const;
 
 		void writeSettings(QSettings &) const;
 		void readSettings(const QSettings &);
@@ -65,6 +60,7 @@ namespace Qonvince {
 		virtual void dropEvent(QDropEvent *) override;
 
 	private Q_SLOTS:
+		// TODO these could all be lambdas to reduce header footprint
 		void refreshTooltip();
 		void onAddOtpClicked();
 		void onSettingsClicked();
@@ -75,7 +71,6 @@ namespace Qonvince {
 
 		void onEditOtpRequested(Otp *);
 		void onOtpClicked(Otp *);
-
 		void onRemoteQrCodeImageDownloadFinished();
 
 	private:

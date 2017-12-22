@@ -19,6 +19,7 @@
 
 /// \file mainwindow.cpp
 /// \brief Implementation of the MainWindow class.
+
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
@@ -80,11 +81,6 @@ namespace Qonvince {
 
 
 	MainWindow::~MainWindow() = default;
-
-
-	OtpListView * MainWindow::otpList() const {
-		return m_ui->otpList;
-	}
 
 
 	void MainWindow::closeEvent(QCloseEvent * ev) {
@@ -194,7 +190,6 @@ namespace Qonvince {
 	void MainWindow::onRemoteQrCodeImageDownloadFinished() {
 		auto * reply = qobject_cast<QNetworkReply *>(sender());
 		Q_ASSERT_X(reply, __PRETTY_FUNCTION__, "sender is not a QNetworkReply object");
-		std::cout << "network reply received: " << reply->url();
 		QTemporaryFile imageFile;
 
 		if(!imageFile.open()) {

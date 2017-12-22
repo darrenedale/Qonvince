@@ -54,6 +54,7 @@ namespace Qonvince {
 		static constexpr const int DefaultDigits = 6;
 		static const QDateTime DefaultBaselineTime;
 
+		// TODO rename this just Type
 		enum class CodeType {
 			Totp = 0,
 			Hotp
@@ -102,13 +103,12 @@ namespace Qonvince {
 			return !m_revealOnDemand || m_isRevealed;
 		}
 
-		/* only for type = HOTP */
+		// only for type = HOTP
 		quint64 counter() const {
 			return m_counter;
 		}
 
-		// only for type = TOTP
-		// *always* in UTC
+		// only for type = TOTP; *always* in UTC
 		inline const QDateTime baselineTime() const {
 			return QDateTime::fromMSecsSinceEpoch(m_baselineTime).toUTC();
 		}
@@ -139,9 +139,14 @@ namespace Qonvince {
 
 		const QString & code();
 
+		inline const QString & displayPluginName() const {
+			return m_displayPluginName;
+		}
+
 		void writeSettings(QSettings & settings, const QCA::SecureArray & cryptKey) const;
 
 	Q_SIGNALS:
+		// TODO consider slimming down the # of signals
 		void typeChanged(CodeType oldType, CodeType newType);
 		void issuerChanged(QString oldIssuer, QString newIssuer);
 		void nameChanged(QString oldName, QString newName);
@@ -184,10 +189,6 @@ namespace Qonvince {
 		void setIcon(const QIcon &);
 		bool setSeed(const QByteArray &, const SeedType & = SeedType::Plain);
 		void setInterval(const int &);
-
-		inline const QString & displayPluginName() const {
-			return m_displayPluginName;
-		}
 
 		bool setDisplayPluginName(const QString & pluginName);
 
@@ -250,6 +251,7 @@ namespace Qonvince {
 		static QByteArray hmac(const QByteArray & key, const QByteArray & message);
 
 	private:
+		// TODO consider reordering members to fix alignment issues
 		CodeType m_type;
 		QString m_issuer;
 		QString m_name;
