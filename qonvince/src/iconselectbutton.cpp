@@ -17,9 +17,8 @@
  * along with Qonvince. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/** \file iconselectbutton.cpp
-  * \brief Implementation of the IconSelectButton widget.
-  */
+/// \file iconselectbutton.cpp
+/// \brief Implementation of the IconSelectButton widget.
 
 #include "iconselectbutton.h"
 #include "ui_iconselectbutton.h"

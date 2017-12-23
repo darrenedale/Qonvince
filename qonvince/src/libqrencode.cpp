@@ -26,26 +26,33 @@
 #include <QDebug>
 
 
-extern "C" {
-struct QRcode {
-	int version;			  ///< version of the symbol
-	int width;				  ///< width of the symbol
-	unsigned char * data;  ///< symbol data
-};
-
-enum DummyEnum {
-	Zero = 0,
-	One,
-	Two,
-	Three,
-};
-}
-
-
 namespace Qonvince {
 
-	using EncodeFunction = QRcode * (*) (const char * string, int version, DummyEnum level, DummyEnum hint, int casesensitive);
-	using FreeFunction = void (*)(QRcode * code);
+
+	namespace Detail {
+		namespace LibQrEncode {
+			extern "C" {
+			struct QRcodeData {
+				int version;
+				int width;
+				unsigned char * data;
+			};
+
+
+			enum DummyEnum {
+				Zero = 0,
+				One,
+				Two,
+				Three,
+			};
+			}
+		}
+	}
+
+
+	using EncodeFunction = Detail::LibQrEncode::QRcodeData * (*) (const char * string, int version, Detail::LibQrEncode::DummyEnum level, Detail::LibQrEncode::DummyEnum hint, int casesensitive);
+	using FreeFunction = void (*)(Detail::LibQrEncode::QRcodeData * code);
+
 
 	LibQrEncode::LibQrEncode()
 #if defined(Q_OS_UNIX)
@@ -85,7 +92,7 @@ namespace Qonvince {
 		}
 
 		// (data, version = 1, level = 0 (lowest), mode = 2 (8-bit mode), caseSensitive = 1 )
-		QRcode * qr = QRcode_encodeString(data.toStdString().c_str(), 1, Zero, Two, 1);
+		Detail::LibQrEncode::QRcodeData * qr = QRcode_encodeString(data.toStdString().c_str(), 1, Detail::LibQrEncode::Zero, Detail::LibQrEncode::Two, 1);
 
 		if(!qr) {
 			return ret;
@@ -97,4 +104,6 @@ namespace Qonvince {
 		QRcode_free(qr);
 		return ret;
 	}
+
+
 }  // namespace Qonvince
