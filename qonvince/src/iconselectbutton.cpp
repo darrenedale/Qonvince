@@ -32,11 +32,18 @@
 
 namespace Qonvince {
 
+
+namespace Detail {
+	namespace IconSelectButton {
+		static constexpr const int Padding = 8;
+	}
+}
+
 	IconSelectButton::IconSelectButton(QWidget * parent)
-	: QWidget{parent},
-	  m_ui{std::make_unique<Ui::IconSelectButton>()},
-	  m_icon{},
-	  m_iconPath{} {
+	: QWidget(parent),
+	  m_ui(std::make_unique<Ui::IconSelectButton>()),
+	  m_icon(),
+	  m_iconPath() {
 		m_ui->setupUi(this);
 		m_ui->clear->setVisible(false);
 	}
@@ -56,22 +63,25 @@ namespace Qonvince {
 	}
 
 
-	QSize IconSelectButton::sizeHint(void) const {
-		static const QSize padding{8, 8};
+	IconSelectButton::~IconSelectButton() = default;
+
+
+	QSize IconSelectButton::sizeHint() const {
+		static const auto padding = QSize(Detail::IconSelectButton::Padding, Detail::IconSelectButton::Padding);
 		return m_ui->chooseIcon->iconSize() + padding;
 	}
 
 
-	void IconSelectButton::clear(void) {
+	void IconSelectButton::clear() {
 		m_icon = {};
-		m_iconPath = QString{};
+		m_iconPath.clear();
 		m_ui->chooseIcon->setIcon({});
 		m_ui->clear->setVisible(false);
 		Q_EMIT cleared();
 	}
 
 
-	void IconSelectButton::chooseIcon(void) {
+	void IconSelectButton::chooseIcon() {
 		QString fileName = QFileDialog::getOpenFileName(this, tr("%1 - Choose Icon").arg(QApplication::applicationDisplayName()), (m_iconPath.isEmpty() ? QDir::homePath() : m_iconPath));
 
 		if(fileName.isEmpty()) {
@@ -86,7 +96,7 @@ namespace Qonvince {
 
 
 	void IconSelectButton::setIcon(const QIcon & ic) {
-		m_iconPath = QString{};
+		m_iconPath.clear();
 		m_icon = ic;
 		m_ui->chooseIcon->setIcon(ic);
 		m_ui->clear->setVisible(!m_icon.isNull());
@@ -119,9 +129,6 @@ namespace Qonvince {
 	void IconSelectButton::resizeEvent(QResizeEvent *) {
 		m_ui->clear->move(m_ui->chooseIcon->width() - m_ui->clear->width(), m_ui->clear->y());
 	}
-
-
-	IconSelectButton::~IconSelectButton(void) = default;
 
 
 }  // namespace Qonvince

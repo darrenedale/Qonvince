@@ -38,35 +38,35 @@ namespace Qonvince {
 			Q_OBJECT
 
 		public:
-			explicit IconSelectButton( QWidget * parent = nullptr );
-			explicit IconSelectButton( const QIcon & icon, QWidget * parent = nullptr );
-			explicit IconSelectButton( const QString & path, QWidget * parent = nullptr );
-			~IconSelectButton( void );
+			explicit IconSelectButton(QWidget * = nullptr);
+			explicit IconSelectButton(const QIcon &, QWidget * = nullptr);
+			explicit IconSelectButton(const QString &, QWidget * = nullptr);
+			~IconSelectButton();
 
-			inline const QIcon & icon( void ) const {
+			inline const QIcon & icon() const {
 				return m_icon;
 			}
 
-			inline const QString & iconPath( void ) const {
+			inline const QString & iconPath() const {
 				return m_iconPath;
 			}
 
-			virtual QSize sizeHint( void ) const;
+			virtual QSize sizeHint() const;
 
 		Q_SIGNALS:
-			void iconChanged( const QIcon & icon );
-			void iconChanged( const QString & path );
-			void cleared( void );
+			void iconChanged(const QIcon &);
+			void iconChanged(const QString &);
+			void cleared();
 
 		public Q_SLOTS:
-			void clear( void );
-			void chooseIcon( void );
-			void setIcon( const QIcon & ic );
-			bool setIcon( const QString & path );
-			void setIconSize( const QSize & size );
+			void clear();
+			void chooseIcon();
+			void setIcon(const QIcon & ic);
+			bool setIcon(const QString & path);
+			void setIconSize(const QSize & size);
 
 		protected:
-			virtual void resizeEvent( QResizeEvent * );
+			virtual void resizeEvent(QResizeEvent *);
 
 		private:
 			std::unique_ptr<Ui::IconSelectButton> m_ui;
