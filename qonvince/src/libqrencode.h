@@ -50,7 +50,7 @@ namespace Qonvince {
 	  * 0 and should be rendered in the background colour in the QR code
 	  * image.
 	  *
-	  * If isValid is set to false when creating a QrCode with encodeString,
+	  * If isValid is set to false when creating a QrCode with encodeString(),
 	  * then the QR code data could not be created for some reason (most
 	  * likely the library has not been loaded) and there will be no data
 	  * to render to an image.
