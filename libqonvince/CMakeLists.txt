@@ -1,7 +1,9 @@
 cmake_minimum_required(VERSION 3.1)
 
-add_library(libqonvince_shared SHARED)
-add_library(libqonvince_static STATIC)
+set(libqonvince_sources src/sharedlibrary.cpp src/otpdisplayplugin.cpp)
+
+add_library(libqonvince_shared SHARED ${libqonvince_sources})
+add_library(libqonvince_static STATIC ${libqonvince_sources})
 
 find_package(Qt5 COMPONENTS Core)
 
@@ -10,7 +12,7 @@ set_target_properties(libqonvince_shared libqonvince_static PROPERTIES
 	LIBRARY_OUTPUT_NAME qonvince
 	ARCHIVE_OUTPUT_NAME qonvince
 	SOVERSION 0.5.0
-	SOURCES "src/sharedlibrary.cpp;src/otpdisplayplugin.cpp"
+#	SOURCES "src/sharedlibrary.cpp;src/otpdisplayplugin.cpp"
 #	CXX_CLANG_TIDY clang-tidy-5.0
 )
 
