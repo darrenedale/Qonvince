@@ -575,17 +575,4 @@ namespace Qonvince {
 		}
 	}
 
-
-#if !defined(NDEBUG)
-	void OtpListView::debugLogNewCode(const QString & code) const {
-		auto * otp = qobject_cast<Otp *>(sender());
-
-		if(otp) {
-			std::cout << "Otp object \"" << otp->name() << "\" generated new code \"" << code << "\"\n"
-						 << std::flush;
-		}
-	}
-#endif
-
-
 }  // namespace Qonvince

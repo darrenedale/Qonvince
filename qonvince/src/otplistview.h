@@ -121,10 +121,6 @@ namespace Qonvince {
 		void onRemoveIconActionTriggered();
 		void onItemEntered(const QModelIndex &);
 
-#ifndef NDEBUG
-		void debugLogNewCode(const QString &) const;
-#endif
-
 	private:
 		bool m_tickTimerIsResynchronising;
 		bool m_imageDropEnabled;
