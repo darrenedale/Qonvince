@@ -1,8 +1,8 @@
 [Desktop Entry]
-Name=Qonvince Qt5
+Name=Qonvince
 Comment=OTP generator for Qt5
 GenericName=OTP generator for Qt5
-Exec=qonvince-qt5
+Exec=qonvince
 Terminal=false
 Type=Application
 Icon=qonvince
