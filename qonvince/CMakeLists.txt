@@ -55,3 +55,35 @@ set_target_properties(qonvince PROPERTIES
 add_dependencies(qonvince libqonvince_shared)
 target_include_directories(qonvince PUBLIC "${CMAKE_CURRENT_LIST_DIR}/../libqonvince/src")
 target_link_libraries(qonvince ${QONVICE_QT_LIBS} ${QCA_LIBRARY} dl libqonvince_shared)
+
+set(QONVINCE_ICON_INSTALL_DIR "/usr/share/icons/hicolor")
+
+install(TARGETS qonvince RUNTIME DESTINATION bin COMPONENT application)
+install(FILES "../dist/qonvince.desktop" DESTINATION /usr/share/applications
+	PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_EXECUTE GROUP_READ WORLD_EXECUTE WORLD_READ
+	CONFIGURATIONS Release
+	COMPONENT application)
+install(FILES "../dist/application_icon.svg" DESTINATION "${QONVINCE_ICON_INSTALL_DIR}/scalable/apps"
+	PERMISSIONS OWNER_WRITE OWNER_READ GROUP_READ WORLD_READ
+	CONFIGURATIONS Release
+	COMPONENT application)
+install(FILES "../dist/application_icon_32.png" DESTINATION "${QONVINCE_ICON_INSTALL_DIR}/32x32/apps"
+	PERMISSIONS OWNER_WRITE OWNER_READ GROUP_READ WORgLD_READ
+	CONFIGURATIONS Release
+	COMPONENT application)
+install(FILES "../dist/application_icon_24.png" DESTINATION "${QONVINCE_ICON_INSTALL_DIR}/24x24/apps"
+	PERMISSIONS OWNER_WRITE OWNER_READ GROUP_READ WORLD_READ
+	CONFIGURATIONS Release
+	COMPONENT application)
+install(FILES "../dist/application_icon.png" DESTINATION "${QONVINCE_ICON_INSTALL_DIR}/128x128/apps"
+	PERMISSIONS OWNER_WRITE OWNER_READ GROUP_READ WORLD_READ
+	CONFIGURATIONS Release
+	COMPONENT application)
+install(FILES "../dist/doc/qonvince/copyright.txt" "../dist/doc/qonvince/changelog" "../dist/doc/qonvince/changelog.Debian" DESTINATION "/usr/share/doc/qonvince"
+	PERMISSIONS OWNER_WRITE OWNER_READ GROUP_READ WORLD_READ
+	CONFIGURATIONS Release
+	COMPONENT application)
+install(FILES "../dist/man/qonvince.1" DESTINATION "/usr/share/man/man1"
+	PERMISSIONS OWNER_WRITE OWNER_READ GROUP_READ WORLD_READ
+	CONFIGURATIONS Release
+	COMPONENT application)

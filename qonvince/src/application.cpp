@@ -153,7 +153,7 @@ namespace Qonvince {
 	  m_trayIcon(QIcon::fromTheme("qonvince", QIcon(":/icons/systray"))),
 	  m_trayIconMenu(tr("Qonvince")),
 	  m_displayPluginFactory(".displayplugin") {
-		setOrganizationName("Équit");
+		setOrganizationName("Equit");
 		setOrganizationDomain("equituk.net");
 		setApplicationName("Qonvince");
 		setApplicationDisplayName("Qonvince");

@@ -26,3 +26,6 @@ set_target_properties(libqonvince_static PROPERTIES
 # TODO -ldl is only required on unix-like OS
 target_link_libraries(libqonvince_shared dl Qt5::Core)
 target_link_libraries(libqonvince_static dl Qt5::Core)
+
+install(TARGETS libqonvince_shared LIBRARY DESTINATION /lib/x86_64-linux-gnu COMPONENT libraries)
+install(TARGETS libqonvince_static ARCHIVE DESTINATION /lib/x86_64-linux-gnu COMPONENT libraries)
