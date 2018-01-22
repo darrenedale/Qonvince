@@ -407,6 +407,10 @@ namespace Qonvince {
 		app->onSettingsChanged();
 		app->m_trayIcon.show();
 
+		if(!OtpQrCodeReader::isAvailable()) {
+			qonvinceApp->showNotification(tr("%1 message").arg(Application::applicationDisplayName()), tr("Drag and drop of QR code images is not available. You may need to install additional software to enable this."));
+		}
+
 		if(!forceStartMinimised && !app->m_settings.startMinimised()) {
 			app->m_mainWindow.show();
 		}

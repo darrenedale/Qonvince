@@ -77,7 +77,6 @@ namespace Qonvince {
 	private:
 		std::unique_ptr<Ui::MainWindow> m_ui;
 		QNetworkAccessManager m_netManager;
-		bool m_imageDropEnabled;
 	};
 
 }  // namespace Qonvince

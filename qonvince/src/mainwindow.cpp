@@ -56,9 +56,12 @@ namespace Qonvince {
 
 	MainWindow::MainWindow(QWidget * parent)
 	: QMainWindow(parent),
-	  m_ui(std::make_unique<Ui::MainWindow>()),
-	  m_imageDropEnabled(OtpQrCodeReader::isAvailable()) {
+	  m_ui(std::make_unique<Ui::MainWindow>()) {
 		m_ui->setupUi(this);
+
+		if(OtpQrCodeReader::isAvailable()) {
+			setAcceptDrops(true);
+		}
 
 		m_ui->addCode->setIcon(QIcon::fromTheme("list-add", QIcon(":/icons/mainwindow/add")));
 		m_ui->settings->setIcon(QIcon::fromTheme("configure-shortcuts", QIcon(":/icons/mainwindow/settings")));
@@ -68,13 +71,6 @@ namespace Qonvince {
 		connect(m_ui->otpList, &OtpListView::codeClicked, this, &MainWindow::onOtpClicked);
 		connect(m_ui->otpList, &OtpListView::codeDoubleClicked, this, &MainWindow::onOtpDoubleClicked);
 		connect(m_ui->otpList, &OtpListView::editCodeRequested, this, &MainWindow::onEditOtpRequested);
-
-		if(m_imageDropEnabled) {
-			setAcceptDrops(true);
-		}
-		else {
-			qonvinceApp->showNotification(tr("%1 message").arg(Application::applicationDisplayName()), tr("Drag and drop of QR code images is not available. You may need to install additional software to enable this."));
-		}
 
 		connect(&(qonvinceApp->settings()), qOverload<bool>(&Settings::copyCodeOnClickChanged), this, &MainWindow::refreshTooltip);
 	}
@@ -90,7 +86,7 @@ namespace Qonvince {
 
 
 	void MainWindow::dragEnterEvent(QDragEnterEvent * ev) {
-		if(!m_imageDropEnabled) {
+		if(!OtpQrCodeReader::isAvailable()) {
 			return;
 		}
 
@@ -106,7 +102,7 @@ namespace Qonvince {
 
 
 	void MainWindow::dropEvent(QDropEvent * ev) {
-		if(!m_imageDropEnabled) {
+		if(!OtpQrCodeReader::isAvailable()) {
 			return;
 		}
 
@@ -124,7 +120,7 @@ namespace Qonvince {
 
 	void MainWindow::refreshTooltip() {
 		// looks a bit odd, but should make translation simpler - no HTML required
-		QString tt = QStringLiteral("<html><body><p>%1</p>%2%3</body></html>").arg(tr("Double-click an entry to edit its details."), (qonvinceApp->settings().copyCodeOnClick() ? QStringLiteral("<p>%1</p>").arg(tr("Click an entry to copy its current code to the clipboard.")) : ""), (m_imageDropEnabled ? QStringLiteral("<p>%1</p>").arg(tr("Drop a QR code image on this window to decode it.")) : ""));
+		QString tt = QStringLiteral("<html><body><p>%1</p>%2%3</body></html>").arg(tr("Double-click an entry to edit its details."), (qonvinceApp->settings().copyCodeOnClick() ? QStringLiteral("<p>%1</p>").arg(tr("Click an entry to copy its current code to the clipboard.")) : ""), (OtpQrCodeReader::isAvailable() ? QStringLiteral("<p>%1</p>").arg(tr("Drop a QR code image on this window to decode it.")) : ""));
 
 		setToolTip(tt);
 		m_ui->otpList->setToolTip(tt);

@@ -37,7 +37,7 @@
 #include <QCryptographicHash>
 #include <QStandardPaths>
 
-#include <QtCrypto/QtCrypto>
+#include <Qca-qt5/QtCrypto/QtCrypto>
 
 #include "application.h"
 #include "otpdisplayplugin.h"
