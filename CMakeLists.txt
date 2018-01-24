@@ -12,8 +12,12 @@ add_subdirectory(plugins)
 # cpack config
 include(InstallRequiredSystemLibraries)
 
-set(CPACK_GENERATOR "DEB")
+set(CPACK_COMPONENTS_IGNORE_GROUPS 1)
+set(CPACK_GENERATOR DEB TGZ)
+
 set(CPACK_DEB_COMPONENT_INSTALL ON)
+set(CPACK_ARCHIVE_COMPONENT_INSTALL ON)
+
 set(CPACK_DEBIAN_ENABLE_COMPONENT_DEPENDS ON)
 set(CPACK_DEBIAN_FILE_NAME DEB-DEFAULT)
 
@@ -55,6 +59,7 @@ set(CPACK_PACKAGE_INSTALL_DIRECTORY "Qonvince ${CPACK_PACKAGE_VERSION_MAJOR}.${C
 
 
 if(WIN32 AND NOT UNIX)
+  set(CPACK_GENERATOR "${CPACK_GENERATOR} NSIS")
   # There is a bug in NSI that does not handle full unix paths properly. Make
   # sure there is at least one set of four (4) backlasshes.
   set(CPACK_PACKAGE_ICON "${CMAKE_CURRENT_SOURCE_DIR}/dist\\\\application_icon_32.png")

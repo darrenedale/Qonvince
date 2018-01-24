@@ -56,34 +56,34 @@ add_dependencies(qonvince libqonvince_shared)
 target_include_directories(qonvince PUBLIC "${CMAKE_CURRENT_LIST_DIR}/../libqonvince/src")
 target_link_libraries(qonvince ${QONVICE_QT_LIBS} ${QCA_LIBRARY} dl libqonvince_shared)
 
-set(QONVINCE_ICON_INSTALL_DIR "/usr/share/icons/hicolor")
+set(QONVINCE_ICON_INSTALL_DIR "usr/share/icons/hicolor")
 
-install(TARGETS qonvince RUNTIME DESTINATION bin COMPONENT application)
-install(FILES "../dist/qonvince.desktop" DESTINATION /usr/share/applications
+install(TARGETS qonvince RUNTIME DESTINATION usr/bin COMPONENT application)
+install(FILES "../dist/qonvince.desktop" DESTINATION usr/share/applications
 	PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_EXECUTE GROUP_READ WORLD_EXECUTE WORLD_READ
 	CONFIGURATIONS Release
 	COMPONENT application)
-install(FILES "../dist/application_icon.svg" DESTINATION "${QONVINCE_ICON_INSTALL_DIR}/scalable/apps"
+install(FILES "../dist/application_icon.svg" DESTINATION "${QONVINCE_ICON_INSTALL_DIR}/scalable/apps/qonvince.svg"
 	PERMISSIONS OWNER_WRITE OWNER_READ GROUP_READ WORLD_READ
 	CONFIGURATIONS Release
 	COMPONENT application)
-install(FILES "../dist/application_icon_32.png" DESTINATION "${QONVINCE_ICON_INSTALL_DIR}/32x32/apps"
+install(FILES "../dist/application_icon_32.png" DESTINATION "${QONVINCE_ICON_INSTALL_DIR}/32x32/apps/qonvince.png"
 	PERMISSIONS OWNER_WRITE OWNER_READ GROUP_READ WORLD_READ
 	CONFIGURATIONS Release
 	COMPONENT application)
-install(FILES "../dist/application_icon_24.png" DESTINATION "${QONVINCE_ICON_INSTALL_DIR}/24x24/apps"
+install(FILES "../dist/application_icon_24.png" DESTINATION "${QONVINCE_ICON_INSTALL_DIR}/24x24/apps/qonvince.png"
 	PERMISSIONS OWNER_WRITE OWNER_READ GROUP_READ WORLD_READ
 	CONFIGURATIONS Release
 	COMPONENT application)
-install(FILES "../dist/application_icon.png" DESTINATION "${QONVINCE_ICON_INSTALL_DIR}/128x128/apps"
+install(FILES "../dist/application_icon.png" DESTINATION "${QONVINCE_ICON_INSTALL_DIR}/128x128/apps/qonvince.png"
 	PERMISSIONS OWNER_WRITE OWNER_READ GROUP_READ WORLD_READ
 	CONFIGURATIONS Release
 	COMPONENT application)
-install(FILES "../dist/doc/qonvince/copyright.txt" "../dist/doc/qonvince/changelog" "../dist/doc/qonvince/changelog.Debian" DESTINATION "/usr/share/doc/qonvince"
+install(FILES "../dist/doc/qonvince/copyright.txt" "../dist/doc/qonvince/changelog" "../dist/doc/qonvince/changelog.Debian" DESTINATION "usr/share/doc/qonvince"
 	PERMISSIONS OWNER_WRITE OWNER_READ GROUP_READ WORLD_READ
 	CONFIGURATIONS Release
 	COMPONENT application)
-install(FILES "../dist/man/qonvince.1" DESTINATION "/usr/share/man/man1"
+install(FILES "../dist/man/qonvince.1" DESTINATION "usr/share/man/man1"
 	PERMISSIONS OWNER_WRITE OWNER_READ GROUP_READ WORLD_READ
 	CONFIGURATIONS Release
 	COMPONENT application)

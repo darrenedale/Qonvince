@@ -1,0 +1,2 @@
+Qonvince generates OTP codes for two-factor security schemes, much like Google's Authenticator.
+It supports both HOTP (sequence-based) and TOTP (time-based) algorithms. 

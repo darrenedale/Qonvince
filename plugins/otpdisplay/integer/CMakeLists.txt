@@ -25,4 +25,4 @@ target_include_directories(eightdigits_display_plugin PUBLIC ${CMAKE_CURRENT_LIS
 target_link_libraries(sixdigits_display_plugin PUBLIC libqonvince_shared Qt5::Core)
 target_link_libraries(eightdigits_display_plugin PUBLIC libqonvince_shared Qt5::Core)
 
-install(TARGETS sixdigits_display_plugin eightdigits_display_plugin LIBRARY DESTINATION /usr/share/Equit/Qonvince/plugins/otpdisplay COMPONENT displayplugins)
+install(TARGETS sixdigits_display_plugin eightdigits_display_plugin LIBRARY DESTINATION usr/share/Equit/Qonvince/plugins/otpdisplay COMPONENT displayplugins)
