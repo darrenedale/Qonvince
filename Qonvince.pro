@@ -1,7 +1,10 @@
 TEMPLATE = subdirs
 
-SUBDIRS = qonvince \
-          test
+SUBDIRS = libqonvince \
+          qonvince \
+          test \
+
+CONFIG += ordered
 
 DISTFILES += \
     todo.txt \
@@ -19,5 +22,4 @@ DISTFILES += \
     dist/Qonvince-Qt5.mkpx \
     CMakeLists.txt \
     libqonvince/CMakeLists.txt \
-    tests/CMakeLists.txt
-
+    tests/CMakeLists.txt \

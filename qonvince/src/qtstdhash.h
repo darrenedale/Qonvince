@@ -30,7 +30,7 @@ namespace Qonvince {
 			typedef std::size_t result_type;
 			typedef QtClass argument_type;
 
-			result_type operator()(const argument_type & arg) {
+			result_type operator()(const argument_type & arg) const {
 				return static_cast<std::size_t>(qHash(arg));
 			}
 		};

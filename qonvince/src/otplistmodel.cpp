@@ -110,8 +110,10 @@ namespace Qonvince {
 				switch(qonvinceApp->settings().codeLabelDisplayStyle()) {
 					case Settings::CodeLabelDisplayStyle::IssuerOnly:
 						return otp->issuer();
+						
 					case Settings::CodeLabelDisplayStyle::NameOnly:
 						return otp->name();
+						
 					case Settings::CodeLabelDisplayStyle::IssuerAndName: {
 						auto issuer = otp->issuer();
 						auto name = otp->name();
@@ -127,6 +129,7 @@ namespace Qonvince {
 						}
 					}
 				}
+				break;
 
 			case CodeRole:
 				return otp->code();

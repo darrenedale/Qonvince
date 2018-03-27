@@ -1,18 +1,20 @@
-#-------------------------------------------------
-#
-# Project created by QtCreator 2015-12-08T11:16:01
-#
-#-------------------------------------------------
-
 QT       += core widgets
 
 lessThan(QT_MAJOR_VERSION, 5) {
     error("Qt version 5 is required")
 }
 
-TARGET = Qonvince
+TARGET = qonvince
 TEMPLATE = app
 CONFIG += c++14
+
+WITH_NETWORK_ACCESS {
+    QT += network
+    DEFINES += WITH_NETWORK_ACCESS
+}
+else {
+    DEFINES -= WITH_NETWORK_ACCESS
+}
 
 *-g++ {
     QMAKE_CXXFLAGS_RELEASE += -O3
@@ -27,81 +29,86 @@ CONFIG += c++14
 }
 
 win32 {
+    LIBS += -lqca-qt5
 }
 
 unix {
     LIBS += -ldl \
             -L/usr/lib/x86_64-linux-gnu/ \
             -lqca-qt5
+
+    INCLUDEPATH += /usr/include/Qca-qt5
+    DEPENDPATH += /usr/include/Qca-qt5
 }
 
-INCLUDEPATH += /usr/include/Qca-qt5
-DEPENDPATH += /usr/include/Qca-qt5
+macx {
+	TARGET = Qonvince
+}
+
+INCLUDEPATH += ../libqonvince/src
 
 SOURCES +=\
-    src/passwordwidget.cpp \
-    src/passworddialogue.cpp \
-    src/aboutdialogue.cpp \
-    src/application.cpp \
-    src/base32.cpp \
-    src/crypt.cpp \
-    src/libqrencode.cpp \
-    src/main.cpp \
-    src/mainwindow.cpp \
-    src/otpqrcodereader.cpp \
-    src/qrcodecreator.cpp \
-    src/qrcodereader.cpp \
-    src/settings.cpp \
-    src/settingswidget.cpp \
-    src/sharedlibrary.cpp \
-    src/otp.cpp \
-    src/otpdisplayplugin.cpp \
-    src/otpeditor.cpp \
-    src/otplistwidget.cpp \
-    src/otplistwidgetitem.cpp \
-    src/steamotpdisplayplugin.cpp \
-    src/integerotpdisplayplugin.cpp \
-    src/iconselectbutton.cpp \
-    test/src/base32.cpp \
-    test/src/stringcase.cpp
+	src/passwordwidget.cpp \
+	src/passworddialogue.cpp \
+	src/aboutdialogue.cpp \
+	src/application.cpp \
+	src/libqrencode.cpp \
+	src/main.cpp \
+	src/mainwindow.cpp \
+	src/otpqrcodereader.cpp \
+	src/qrcodecreator.cpp \
+	src/qrcodereader.cpp \
+	src/settings.cpp \
+	src/settingswidget.cpp \
+	src/otp.cpp \
+	src/otpeditor.cpp \
+	src/otpeditordialogue.cpp \
+	src/otplistview.cpp \
+	src/otplistitemdelegate.cpp \
+	src/iconselectbutton.cpp \
+	src/qtiostream.cpp \
+	src/otpdisplaypluginchooser.cpp \
+	src/otplistmodel.cpp \
 
 HEADERS  += \
-    src/passwordwidget.h \
-    src/passworddialogue.h \
-    src/aboutdialogue.h \
-    src/application.h \
-    src/base32.h \
-    src/crypt.h \
-    src/libqrencode.h \
-    src/mainwindow.h \
-    src/otpqrcodereader.h \
-    src/qrcodecreator.h \
-    src/qrcodereader.h \
-    src/settings.h \
-    src/settingswidget.h \
-    src/sharedlibrary.h \
-    src/otp.h \
-    src/otpdisplayplugin.h \
-    src/otpeditor.h \
-    src/otplistwidget.h \
-    src/otplistwidgetitem.h \
-    src/integerotpdisplayplugin.h \
-    src/steamotpdisplayplugin.h \
-    src/algorithms.h \
-    src/iconselectbutton.h \
-    src/algorithms.h
+	src/aboutdialogue.h \
+	src/algorithms.h \
+	src/application.h \
+	src/iconselectbutton.h \
+	src/libqrencode.h \
+	src/mainwindow.h \
+	src/otpcodeitemdelegate.h \
+	src/otpdisplaypluginchooser.h \
+	src/otpeditordialogue.h \
+	src/otpeditor.h \
+	src/otp.h \
+	src/otplistitemdelegate.h \
+	src/otplistmodel.h \
+	src/otplistview.h \
+	src/otplistwidgetitem.h \
+	src/otpqrcodereader.h \
+	src/passworddialogue.h \
+	src/passwordwidget.h \
+	src/pluginfactory.h \
+	src/qrcodecreator.h \
+	src/qrcodereader.h \
+	src/qtiostream.h \
+	src/qtstdhash.h \
+	src/settings.h \
+	src/settingswidget.h \
 
-FORMS    += \
-    ui/passwordwidget.ui \
-    ui/passworddialogue.ui \
-    ui/aboutdialogue.ui \
-    ui/mainwindow.ui \
-    ui/settingswidget.ui \
-    ui/otpeditor.ui \
-    ui/iconselectbutton.ui
+FORMS += \
+ 	ui/aboutdialogue.ui \
+ 	ui/iconselectbutton.ui \
+ 	ui/mainwindow.ui \
+ 	ui/otpeditordialogue.ui \
+ 	ui/otpeditor.ui \
+ 	ui/passworddialogue.ui \
+ 	ui/passwordwidget.ui \
+ 	ui/settingswidget.ui \
 
 RESOURCES += \
-    icons.qrc
+    resources/icons.qrc \
 
 DISTFILES += \
     CMakeLists.txt \

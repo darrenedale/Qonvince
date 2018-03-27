@@ -23,14 +23,17 @@
 #include <memory>
 
 #include <QMainWindow>
-#include <QNetworkAccessManager>
 
 class QShowEvent;
 class QCloseEvent;
 class QDropEvent;
 class QDragEnterEvent;
 class QSettings;
+
+#if defined(WITH_NETWORK_ACCESS)
+#include <QNetworkAccessManager>
 class QNetworkReply;
+#endif
 
 namespace Qonvince {
 
@@ -72,11 +75,16 @@ namespace Qonvince {
 
 		void onEditOtpRequested(Otp *);
 		void onOtpClicked(Otp *);
-		void onRemoteQrCodeImageDownloadFinished();
 
 	private:
 		std::unique_ptr<Ui::MainWindow> m_ui;
+#if defined(WITH_NETWORK_ACCESS)
+	private:
 		QNetworkAccessManager m_netManager;
+
+	private Q_SLOTS:
+		void onRemoteQrCodeImageDownloadFinished();
+#endif
 	};
 
 }  // namespace Qonvince

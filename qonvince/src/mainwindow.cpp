@@ -38,9 +38,12 @@
 #include <QMimeData>
 #include <QUrl>
 #include <QStringBuilder>
+#include <QTemporaryFile>
+
+#if defined(WITH_NETWORK_ACCESS)
 #include <QtNetwork/QNetworkRequest>
 #include <QtNetwork/QNetworkReply>
-#include <QTemporaryFile>
+#endif
 
 #include "application.h"
 #include "otp.h"
@@ -110,10 +113,12 @@ namespace Qonvince {
 			if(url.isLocalFile()) {
 				qonvinceApp->readQrCodeFrom(url.toLocalFile());
 			}
+#if defined(WITH_NETWORK_ACCESS)
 			else {
 				auto * reply = m_netManager.get(QNetworkRequest(url));
 				connect(reply, &QNetworkReply::finished, this, &MainWindow::onRemoteQrCodeImageDownloadFinished);
 			}
+#endif
 		}
 	}
 
@@ -183,6 +188,7 @@ namespace Qonvince {
 	}
 
 
+#if defined(WITH_NETWORK_ACCESS)
 	void MainWindow::onRemoteQrCodeImageDownloadFinished() {
 		auto * reply = qobject_cast<QNetworkReply *>(sender());
 		Q_ASSERT_X(reply, __PRETTY_FUNCTION__, "sender is not a QNetworkReply object");
@@ -200,6 +206,7 @@ namespace Qonvince {
 
 		reply->deleteLater();
 	}
+#endif
 
 
 	void MainWindow::readSettings(const QSettings & settings) {

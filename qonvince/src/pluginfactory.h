@@ -163,7 +163,7 @@ namespace Qonvince {
 				return false;
 			}
 
-			auto * info = static_cast<LibQonvince::PluginInfo *>(symbol);
+			auto * info = reinterpret_cast<LibQonvince::PluginInfo *>(symbol);
 #if !defined(NDEBUG)
 			std::cout << "\nPlugin type: " << qPrintable(info->pluginType) << "\n";
 			std::cout << "API version: " << info->apiVersion << "\n";
