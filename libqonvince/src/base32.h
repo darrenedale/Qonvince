@@ -125,8 +125,9 @@ namespace LibQonvince {
 			}
 
 			int j;
+			int iLoopEnd = static_cast<int>(ba.size());
 
-			for(int i = 0; i < ba.size(); i += 8) {
+			for(int i = 0; i < iLoopEnd; i += 8) {
 				uint64_t out = 0x00;
 
 				for(j = 0; j < 8; ++j) {

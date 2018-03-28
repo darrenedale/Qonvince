@@ -21,8 +21,7 @@ CONFIG += c++14
 }
 
 win32 {
-    LIBS += -ldl \
-            -lqca-qt5
+    LIBS += -lqca-qt5
 }
 
 unix {

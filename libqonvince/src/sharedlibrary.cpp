@@ -19,16 +19,16 @@
 #include <vector>
 #include <winbase.h>
 
-namespace Equit {
+namespace {
 	/* convert UTF8-encoded std::string to std::wstring */
-	static inline std::wstring stringToWString(const std::string & str) {
-		auto strLength = str.length() + 1;
+	inline std::wstring stringToWString(const std::string & str) {
+		auto strLength = static_cast<int>(str.length()) + 1;
 		auto bufferSize = MultiByteToWideChar(CP_UTF8, 0, str.c_str(), strLength, nullptr, 0);
-		std::vector<whcar_t> buffer(bufferSize);
-		MultiByteToWideChar(CP_UTF8, 0, str.c_str(), strLength, buffer.data, static_cast<int>(bufferSize));
-		return buffer;
+		std::vector<wchar_t> buffer(static_cast<std::string::size_type>(bufferSize));
+		MultiByteToWideChar(CP_UTF8, 0, str.c_str(), strLength, buffer.data(), bufferSize);
+		return buffer.data();
 	}
-}  // namespace Equit
+}  // namespace
 
 #define LIBQONVINCE_SL_DLOPEN(path) LoadLibrary(static_cast<LPCWSTR>(stringToWString(path).c_str()))
 #define LIBQONVINCE_SL_DLSYM(lib, sym) GetProcAddress((lib), (sym))

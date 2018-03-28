@@ -20,4 +20,10 @@
     <qresource prefix="/icons/passworddialogue">
         <file alias="lock">icons/passworddialogue/lock.svg</file>
     </qresource>
+    <qresource prefix="/icons/iconselectbutton">
+        <file alias="clear">icons/iconselectbutton/clear.svg</file>
+    </qresource>
+    <qresource prefix="/icons/otpeditor">
+        <file alias="reset">icons/otpeditor/reset.svg</file>
+    </qresource>
 </RCC>

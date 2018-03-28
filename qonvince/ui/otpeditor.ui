@@ -395,8 +395,8 @@
            <string>...</string>
           </property>
           <property name="icon">
-           <iconset theme="edit-undo">
-            <normaloff>.</normaloff>.</iconset>
+           <iconset theme="edit-undo" resource="../resources/icons.qrc">
+            <normaloff>:/icons/otpeditor/reset</normaloff>:/icons/otpeditor/reset</iconset>
           </property>
          </widget>
         </item>
@@ -458,7 +458,9 @@
   <tabstop>readBarcodeButton</tabstop>
   <tabstop>icon</tabstop>
  </tabstops>
- <resources/>
+ <resources>
+  <include location="../resources/icons.qrc"/>
+ </resources>
  <connections>
   <connection>
    <sender>readBarcodeButton</sender>

@@ -23,3 +23,7 @@ DISTFILES += \
     CMakeLists.txt \
     libqonvince/CMakeLists.txt \
     tests/CMakeLists.txt \
+
+RESOURCES += \
+    qonvince/icons.qrc \
+    qonvince/icons.qrc

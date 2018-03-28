@@ -18,24 +18,24 @@
  */
 
 #include <iostream>
-#include "base32.h"
-
-
-using Base32 = LibQonvince::Base32<std::string>;
+#include "src/algorithms.h"
 
 
 int main(int argc, char * argv[]) {
-	(void) argc;
-	(void) argv;
+	{
+		std::string allLower = "abcdefghijklmnopqrstuvwxyz1234567890!\"£$%^&*()";
 
-	Base32::ByteArray data = reinterpret_cast<const Base32::ByteArray::value_type *>("what have you done for me lately?\n");
-	Base32 encoder(data);
+		std::cout << "All lower case: \"" << allLower << "\"\n";
+		Qonvince::toUpper(allLower);
+		std::cout << "Converted     : \"" << allLower << "\"\n";
+	}
 
-	std::cout << "Plain: \"" << data.data() << "\"\n";
-	// expected: "O5UGC5BANBQXMZJAPFXXKIDEN5XGKIDGN5ZCA3LFEBWGC5DFNR4T6CQ="
-	std::cout << "Base32: \"" << encoder.encoded().data() << "\"\n";
+	{
+		std::string allUpper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890!\"£$%^&*()";
+		std::cout << "All upper case: \"" << allUpper << "\"\n";
+		Qonvince::toLower(allUpper);
+		std::cout << "Converted     : \"" << allUpper << "\"\n";
+	}
 
-	encoder.setEncoded(encoder.encoded());
-	std::cout << "Plain: \"" << encoder.plain().data() << "\"\n";
 	return 0;
 }

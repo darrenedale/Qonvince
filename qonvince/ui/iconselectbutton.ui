@@ -96,8 +96,8 @@ QPushButton#chooseIcon:focus {
     <string/>
    </property>
    <property name="icon">
-    <iconset theme="edit-clear">
-     <normaloff>.</normaloff>.</iconset>
+    <iconset theme="edit-clear" resource="../resources/icons.qrc">
+     <normaloff>:/icons/iconselectbutton/clear</normaloff>:/icons/iconselectbutton/clear</iconset>
    </property>
    <property name="iconSize">
     <size>
@@ -110,7 +110,9 @@ QPushButton#chooseIcon:focus {
    </property>
   </widget>
  </widget>
- <resources/>
+ <resources>
+  <include location="../resources/icons.qrc"/>
+ </resources>
  <connections>
   <connection>
    <sender>chooseIcon</sender>

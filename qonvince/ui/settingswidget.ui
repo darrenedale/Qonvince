@@ -28,7 +28,7 @@
         <string>Qonvince by Darren Edale.</string>
        </property>
        <property name="pixmap">
-        <pixmap resource="../icons.qrc">:/icons/applicationIcon</pixmap>
+        <pixmap resource="../resources/icons.qrc">:/icons/applicationIcon</pixmap>
        </property>
        <property name="scaledContents">
         <bool>true</bool>
@@ -325,7 +325,7 @@
   </layout>
  </widget>
  <resources>
-  <include location="../icons.qrc"/>
+  <include location="../resources/icons.qrc"/>
  </resources>
  <connections>
   <connection>

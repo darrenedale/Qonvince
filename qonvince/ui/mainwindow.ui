@@ -52,8 +52,8 @@
          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Adjust the settings for Qonvince.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
         <property name="icon">
-         <iconset theme="configure-shortcuts">
-          <normaloff>.</normaloff>.</iconset>
+         <iconset theme="configure-shortcuts" resource="../resources/icons.qrc">
+          <normaloff>:/icons/mainwindow/settings</normaloff>:/icons/mainwindow/settings</iconset>
         </property>
        </widget>
       </item>
@@ -79,8 +79,8 @@
          <string>Add</string>
         </property>
         <property name="icon">
-         <iconset theme="list-add">
-          <normaloff>.</normaloff>.</iconset>
+         <iconset theme="list-add" resource="../resources/icons.qrc">
+          <normaloff>:/icons/mainwindow/add</normaloff>:/icons/mainwindow/add</iconset>
         </property>
        </widget>
       </item>
@@ -94,7 +94,7 @@
      <x>0</x>
      <y>0</y>
      <width>400</width>
-     <height>20</height>
+     <height>23</height>
     </rect>
    </property>
   </widget>

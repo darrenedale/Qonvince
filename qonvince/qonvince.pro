@@ -28,8 +28,13 @@ else {
     QMAKE_CXXFLAGS_RELEASE += /O3
 }
 
+
+
+INCLUDEPATH += $$PWD/../libqonvince
+DEPENDPATH += $$PWD/../libqonvince
+
 win32 {
-    LIBS += -lqca-qt5
+    LIBS += -lqca-qt5 -L$$OUT_PWD/../libqonvince/release/ -lqonvince
 }
 
 unix {
@@ -42,8 +47,12 @@ unix {
 }
 
 macx {
-	TARGET = Qonvince
+    TARGET = Qonvince
 }
+
+win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../libqonvince/release/ -lqonvince
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../libqonvince/debug/ -lqonvince
+else:unix: LIBS += -L$$OUT_PWD/../libqonvince/ -lqonvince
 
 INCLUDEPATH += ../libqonvince/src
 
@@ -114,4 +123,3 @@ DISTFILES += \
     CMakeLists.txt \
     cmake/FindQCA.cmake \
     cmake/COPYING-CMAKE-SCRIPTS
-
