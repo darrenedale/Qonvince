@@ -48,7 +48,7 @@ namespace Qonvince {
 
 		QString name() const;
 		QString issuer() const;
-		Otp::CodeType type() const;
+		OtpType type() const;
 		bool revealOnDemand() const;
 
 		inline Otp * otp() const {
@@ -60,7 +60,7 @@ namespace Qonvince {
 
 		void setName(const QString &);
 		void setIssuer(const QString &);
-		void setType(Otp::CodeType);
+		void setType(OtpType);
 		void setRevealOnDemand(bool);
 
 		void chooseIcon();
@@ -75,7 +75,7 @@ namespace Qonvince {
 		void dropEvent(QDropEvent *) override;
 
 	Q_SIGNALS:
-		void typeChanged(Otp::CodeType);
+		void typeChanged(OtpType);
 		void issuerChanged(QString);
 		void nameChanged(QString);
 		void seedChanged(QString);

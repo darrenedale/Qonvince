@@ -36,12 +36,13 @@
 #include <QMimeData>
 #include <QMessageBox>
 
+#include "types.h"
+#include "qtiostream.h"
+#include "functions.h"
 #include "application.h"
 #include "otpqrcodereader.h"
 #include "qrcodecreator.h"
 #include "otpdisplayplugin.h"
-#include "qtiostream.h"
-#include "functions.h"
 
 
 namespace Qonvince {
@@ -61,8 +62,8 @@ namespace Qonvince {
 		m_ui->advancedSettingsWidget->setVisible(m_ui->advancedToggle->isChecked());
 		m_ui->createBarcodeButton->setVisible(false);
 
-		m_ui->codeTypeGroup->setId(m_ui->hotpButton, static_cast<int>(Otp::CodeType::Hotp));
-		m_ui->codeTypeGroup->setId(m_ui->totpButton, static_cast<int>(Otp::CodeType::Totp));
+		m_ui->codeTypeGroup->setId(m_ui->hotpButton, static_cast<int>(OtpType::Hotp));
+		m_ui->codeTypeGroup->setId(m_ui->totpButton, static_cast<int>(OtpType::Totp));
 
 		connect(m_ui->issuerEdit, &QLineEdit::textEdited, this, &OtpEditor::issuerChanged);
 		connect(m_ui->nameEdit, &QLineEdit::textEdited, this, &OtpEditor::nameChanged);
@@ -80,7 +81,7 @@ namespace Qonvince {
 				return;
 			}
 
-			Q_EMIT typeChanged(static_cast<Otp::CodeType>(id));
+			Q_EMIT typeChanged(static_cast<OtpType>(id));
 		});
 
 		connect(m_ui->counterSpin, qOverload<int>(&QSpinBox::valueChanged), [this](int value) {
@@ -99,7 +100,7 @@ namespace Qonvince {
 
 		// this one needs a context, however, otherwise the settings will continue to call the
 		// lambda after this editor has been removed
-		connect(&(qonvinceApp->settings()), qOverload<Settings::CodeLabelDisplayStyle>(&Settings::codeLabelDisplayStyleChanged), this, [this]() {
+		connect(&(qonvinceApp->settings()), qOverload<CodeLabelDisplayStyle>(&Settings::codeLabelDisplayStyleChanged), this, [this]() {
 			updateHeading();
 			updateWindowTitle();
 		});
@@ -125,7 +126,7 @@ namespace Qonvince {
 		std::cerr << "deleting editor for code @ 0x" << (static_cast<void *>(m_otp)) << " - ";
 
 		if(m_otp) {
-			std::cerr << m_otp->issuer() << ":" << m_otp->name() << "\n";
+			std::cerr << otpLabel(m_otp) << "\n";
 		}
 		else {
 			std::cerr << "{Untitled}\n";
@@ -134,8 +135,8 @@ namespace Qonvince {
 	}
 
 
-	Otp::CodeType OtpEditor::type() const {
-		return (m_ui->hotpButton->isChecked() ? Otp::CodeType::Hotp : Otp::CodeType::Totp);
+	OtpType OtpEditor::type() const {
+		return (m_ui->hotpButton->isChecked() ? OtpType::Hotp : OtpType::Totp);
 	}
 
 
@@ -187,7 +188,7 @@ namespace Qonvince {
 				setType(m_otp->type());
 
 				connect(m_otp, &Otp::destroyed, this, &OtpEditor::close);
-				connect(m_otp, qOverload<Otp::CodeType>(&Otp::typeChanged), this, &OtpEditor::setType);
+				connect(m_otp, qOverload<OtpType>(&Otp::typeChanged), this, &OtpEditor::setType);
 				connect(m_otp, qOverload<QString>(&Otp::issuerChanged), this, &OtpEditor::setIssuer);
 				connect(m_otp, qOverload<QString>(&Otp::issuerChanged), this, &OtpEditor::updateWindowTitle);
 				connect(m_otp, qOverload<QString>(&Otp::nameChanged), this, &OtpEditor::setName);
@@ -319,9 +320,9 @@ namespace Qonvince {
 		QString seed(m_ui->seedEdit->text());
 
 		if(!seed.isEmpty()) {
-			QString uri = QStringLiteral("otpauth://%1/%2:%3?secret=%4").arg((Otp::CodeType::Hotp == m_otp->type() ? QStringLiteral("hotp") : QStringLiteral("totp")), QString::fromUtf8(m_ui->issuerEdit->text().toUtf8().toPercentEncoding()), QString::fromUtf8(m_ui->nameEdit->text().toUtf8().toPercentEncoding()), seed);
+			QString uri = QStringLiteral("otpauth://%1/%2:%3?secret=%4").arg((OtpType::Hotp == m_otp->type() ? QStringLiteral("hotp") : QStringLiteral("totp")), QString::fromUtf8(m_ui->issuerEdit->text().toUtf8().toPercentEncoding()), QString::fromUtf8(m_ui->nameEdit->text().toUtf8().toPercentEncoding()), seed);
 
-			if(Otp::CodeType::Hotp == m_otp->type()) {
+			if(OtpType::Hotp == m_otp->type()) {
 				if(0 != m_ui->counterSpin->value()) {
 					uri += QStringLiteral("&counter=") + QString::number(m_ui->counterSpin->value());
 				}
@@ -367,15 +368,15 @@ namespace Qonvince {
 		QString heading;
 
 		switch(qonvinceApp->settings().codeLabelDisplayStyle()) {
-			case Settings::NameOnly:
+			case CodeLabelDisplayStyle::NameOnly:
 				heading = name;
 				break;
 
-			case Settings::IssuerOnly:
+			case CodeLabelDisplayStyle::IssuerOnly:
 				heading = issuer;
 				break;
 
-			case Settings::IssuerAndName:
+			case CodeLabelDisplayStyle::IssuerAndName:
 				if(!name.isEmpty()) {
 					if(!issuer.isEmpty()) {
 						heading = issuer % ": " % name;
@@ -464,19 +465,19 @@ namespace Qonvince {
 	}
 
 
-	void OtpEditor::setType(Otp::CodeType codeType) {
+	void OtpEditor::setType(OtpType codeType) {
 		if(codeType != type()) {
 			QSignalBlocker hBlocker(m_ui->hotpButton);
 			QSignalBlocker tBlocker(m_ui->totpButton);
 
-			if(Otp::CodeType::Hotp == codeType) {
+			if(OtpType::Hotp == codeType) {
 				m_ui->hotpButton->setChecked(true);
 				m_ui->totpButton->setChecked(false);
 				m_ui->intervalSpin->setEnabled(false);
 				m_ui->baseTimeEdit->setEnabled(false);
 				m_ui->counterSpin->setEnabled(true);
 			}
-			else if(Otp::CodeType::Totp == codeType) {
+			else if(OtpType::Totp == codeType) {
 				m_ui->hotpButton->setChecked(false);
 				m_ui->totpButton->setChecked(true);
 				m_ui->intervalSpin->setEnabled(true);

@@ -43,12 +43,13 @@
 #include <QStyleHints>
 #include <qmath.h>
 
+#include "types.h"
+#include "qtiostream.h"
+#include "functions.h"
 #include "application.h"
 #include "otp.h"
 #include "otplistmodel.h"
 #include "otpqrcodereader.h"
-#include "qtiostream.h"
-#include "functions.h"
 
 
 namespace Qonvince {
@@ -109,7 +110,7 @@ namespace Qonvince {
 			m_mousePressItemIndex = {};
 		});
 
-		connect(&(qonvinceApp->settings()), qOverload<Settings::CodeLabelDisplayStyle>(&Settings::codeLabelDisplayStyleChanged), this, qOverload<>(&OtpListView::update));
+		connect(&(qonvinceApp->settings()), qOverload<CodeLabelDisplayStyle>(&Settings::codeLabelDisplayStyleChanged), this, qOverload<>(&OtpListView::update));
 		synchroniseTickTimer();
 	}
 

@@ -16,40 +16,35 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-
-#include "functions.h"
-
-#include <QStringBuilder>
-
-#include "types.h"
-#include "application.h"
-#include "settings.h"
-#include "otp.h"
-
+#ifndef QONVINCE_TYPES_H
+#define QONVINCE_TYPES_H
 
 namespace Qonvince {
 
-	QString otpLabel(Otp * otp) {
-		switch(qonvinceApp->settings().codeLabelDisplayStyle()) {
-			case CodeLabelDisplayStyle::NameOnly:
-				return otp->name();
+	enum class DesktopEnvironment {
+		Unknown,
+		Kde,
+		Gnome,
+		Unity,
+		Xfce,
+		Lxde,
+		WindowsDesktop,
+		MacOSx,
+		Android,
+		WindowsPhone,
+	};
 
-			case CodeLabelDisplayStyle::IssuerOnly:
-				return otp->issuer();
+	enum class OtpType {
+		Totp = 0,
+		Hotp
+	};
 
-			case CodeLabelDisplayStyle::IssuerAndName:
-				if(const auto & name = otp->name(); !name.isEmpty()) {
-					if(const auto & issuer = otp->issuer(); !issuer.isEmpty()) {
-						return issuer % QStringLiteral(": ") % name;
-					}
-
-					return name;
-				}
-
-				return otp->issuer();
-		}
-
-		return QStringLiteral("");
-	}
+	enum class CodeLabelDisplayStyle {
+		IssuerAndName = 0,
+		NameOnly,
+		IssuerOnly
+	};
 
 }  // namespace Qonvince
+
+#endif  // QONVINCE_TYPES_H

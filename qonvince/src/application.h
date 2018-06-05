@@ -33,6 +33,7 @@
 
 #include <Qca-qt5/QtCrypto/QtCrypto>
 
+#include "types.h"
 #include "otp.h"
 #include "algorithms.h"
 #include "mainwindow.h"
@@ -58,18 +59,18 @@ namespace Qonvince {
 		Q_OBJECT
 
 	public:
-		enum class DesktopEnvironment {
-			Unknown,
-			Kde,
-			Gnome,
-			Unity,
-			Xfce,
-			Lxde,
-			WindowsDesktop,
-			MacOSx,
-			Android,
-			WindowsPhone,
-		};
+		//		enum class DesktopEnvironment {
+		//			Unknown,
+		//			Kde,
+		//			Gnome,
+		//			Unity,
+		//			Xfce,
+		//			Lxde,
+		//			WindowsDesktop,
+		//			MacOSx,
+		//			Android,
+		//			WindowsPhone,
+		//		};
 
 		Application(int & argc, char ** argv);
 		~Application() override;

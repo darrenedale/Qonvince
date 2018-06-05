@@ -142,7 +142,7 @@ namespace Qonvince {
 
 
 	void MainWindow::onAddOtpClicked() {
-		auto otp = std::make_unique<Otp>(Otp::CodeType::Totp);
+		auto otp = std::make_unique<Otp>(OtpType::Totp);
 		onEditOtpRequested(otp.get());
 		qonvinceApp->addOtp(std::move(otp));
 	}

@@ -31,6 +31,8 @@
 #include <QObject>
 #include <QSettings>
 
+#include "types.h"
+
 
 namespace Qonvince {
 
@@ -41,7 +43,7 @@ namespace Qonvince {
 
 	Settings::Settings(QObject * parent)
 	: QObject(parent),
-	  m_codeLabelDisplayStyle(IssuerAndName),
+	  m_codeLabelDisplayStyle(CodeLabelDisplayStyle::IssuerAndName),
 	  m_clipboardClearInterval(DefaultClipboardClearInterval),
 	  m_quitOnMainWindowClosed(true),
 	  m_startMinimised(false),
@@ -81,13 +83,13 @@ namespace Qonvince {
 		QString styleStr = settings.value(QStringLiteral("code_label_display_style"), QStringLiteral("IssuerAndName")).toString();
 
 		if(QStringLiteral("IssuerAndName") == styleStr) {
-			setCodeLabelDisplayStyle(IssuerAndName);
+			setCodeLabelDisplayStyle(CodeLabelDisplayStyle::IssuerAndName);
 		}
 		else if(QStringLiteral("NameOnly") == styleStr) {
-			setCodeLabelDisplayStyle(NameOnly);
+			setCodeLabelDisplayStyle(CodeLabelDisplayStyle::NameOnly);
 		}
 		else if(QStringLiteral("IssuerOnly") == styleStr) {
-			setCodeLabelDisplayStyle(IssuerOnly);
+			setCodeLabelDisplayStyle(CodeLabelDisplayStyle::IssuerOnly);
 		}
 		else {
 			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << R"(]: (invalid or missing "code_label_display_style" setting (")" << qPrintable(styleStr) << "\") - using default\n";
@@ -106,15 +108,15 @@ namespace Qonvince {
 		settings.setValue(QStringLiteral("code_reveal_timeout"), codeRevealTimeout());
 
 		switch(codeLabelDisplayStyle()) {
-			case IssuerAndName:
+			case CodeLabelDisplayStyle::IssuerAndName:
 				settings.setValue(QStringLiteral("code_label_display_style"), QStringLiteral("IssuerAndName"));
 				break;
 
-			case NameOnly:
+			case CodeLabelDisplayStyle::NameOnly:
 				settings.setValue(QStringLiteral("code_label_display_style"), QStringLiteral("NameOnly"));
 				break;
 
-			case IssuerOnly:
+			case CodeLabelDisplayStyle::IssuerOnly:
 				settings.setValue(QStringLiteral("code_label_display_style"), QStringLiteral("IssuerOnly"));
 				break;
 		}

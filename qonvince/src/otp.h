@@ -29,6 +29,7 @@
 #include <QIcon>
 #include <Qca-qt5/QtCrypto/QtCrypto>
 
+#include "types.h"
 #include "base32.h"
 #include "application.h"
 
@@ -53,26 +54,20 @@ namespace Qonvince {
 		static constexpr const int DefaultDigits = 6;
 		static const QDateTime DefaultBaselineTime;
 
-		// TODO rename this just Type
-		enum class CodeType {
-			Totp = 0,
-			Hotp
-		};
-
 		enum class SeedType {
 			Plain = 0,
 			Base32
 		};
 
-		explicit Otp(CodeType type = CodeType::Totp, QObject * parent = nullptr);
-		Otp(CodeType type, const QString & issuer, const QString & name, const QByteArray & seed, SeedType seedType = SeedType::Plain, QObject * parent = nullptr);
-		Otp(CodeType type, const QString & name, const QByteArray & seed, SeedType seedType = SeedType::Plain, QObject * parent = nullptr);
-		Otp(CodeType type, const QByteArray & seed, SeedType seedType = SeedType::Plain, QObject * parent = nullptr);
+		explicit Otp(OtpType type = OtpType::Totp, QObject * parent = nullptr);
+		Otp(OtpType type, const QString & issuer, const QString & name, const QByteArray & seed, SeedType seedType = SeedType::Plain, QObject * parent = nullptr);
+		Otp(OtpType type, const QString & name, const QByteArray & seed, SeedType seedType = SeedType::Plain, QObject * parent = nullptr);
+		Otp(OtpType type, const QByteArray & seed, SeedType seedType = SeedType::Plain, QObject * parent = nullptr);
 		~Otp() override;
 
 		static std::unique_ptr<Otp> fromSettings(const QSettings & settings, const QCA::SecureArray & cryptKey);
 
-		inline const CodeType & type() const {
+		inline const OtpType & type() const {
 			return m_type;
 		}
 
@@ -146,7 +141,7 @@ namespace Qonvince {
 
 	Q_SIGNALS:
 		// TODO consider slimming down the # of signals
-		void typeChanged(CodeType oldType, CodeType newType);
+		void typeChanged(OtpType oldType, OtpType newType);
 		void issuerChanged(QString oldIssuer, QString newIssuer);
 		void nameChanged(QString oldName, QString newName);
 		void seedChanged(QByteArray oldSeed, QByteArray newSeed);
@@ -160,7 +155,7 @@ namespace Qonvince {
 
 		void changed();
 
-		void typeChanged(Otp::CodeType newType);
+		void typeChanged(OtpType newType);
 		void issuerChanged(QString newIssuer);
 		void nameChanged(QString newName);
 		void iconChanged(QIcon newIcon);
@@ -182,7 +177,7 @@ namespace Qonvince {
 		void timerEvent(QTimerEvent *) override;
 
 	public Q_SLOTS:
-		void setType(Otp::CodeType);
+		void setType(OtpType);
 		void setName(const QString &);
 		void setIssuer(const QString &);
 		void setIcon(const QIcon &);
@@ -264,7 +259,7 @@ namespace Qonvince {
 		QString m_currentCode;
 		qint64 m_baselineTime;
 		int m_interval;
-		CodeType m_type;
+		OtpType m_type;
 		std::unique_ptr<QBasicTimer> m_refreshTimer;
 		bool m_revealOnDemand;
 		bool m_isRevealed;

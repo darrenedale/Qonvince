@@ -29,6 +29,7 @@
 
 #include <iostream>
 
+#include "types.h"
 #include "settings.h"
 
 
@@ -145,8 +146,8 @@ namespace Qonvince {
 	}
 
 
-	Settings::CodeLabelDisplayStyle SettingsWidget::codeLabelDisplayStyle() const {
-		static Settings::CodeLabelDisplayStyle transTable[] = {Settings::IssuerAndName, Settings::NameOnly, Settings::IssuerOnly};
+	CodeLabelDisplayStyle SettingsWidget::codeLabelDisplayStyle() const {
+		static CodeLabelDisplayStyle transTable[] = {CodeLabelDisplayStyle::IssuerAndName, CodeLabelDisplayStyle::NameOnly, CodeLabelDisplayStyle::IssuerOnly};
 		int i = m_ui->codeLabelDisplayStyle->currentIndex();
 
 		if(0 <= i && i < static_cast<int>(sizeof transTable)) {
@@ -154,7 +155,7 @@ namespace Qonvince {
 		}
 
 		std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: unexpected display style current index (" << i << "), returning default style\n";
-		return Settings::IssuerAndName;
+		return CodeLabelDisplayStyle::IssuerAndName;
 	}
 
 
@@ -163,17 +164,17 @@ namespace Qonvince {
 	}
 
 
-	void SettingsWidget::setCodeLabelDisplayStyle(Settings::CodeLabelDisplayStyle style) {
+	void SettingsWidget::setCodeLabelDisplayStyle(CodeLabelDisplayStyle style) {
 		switch(style) {
-			case Settings::IssuerAndName:
+			case CodeLabelDisplayStyle::IssuerAndName:
 				m_ui->codeLabelDisplayStyle->setCurrentIndex(0);
 				break;
 
-			case Settings::NameOnly:
+			case CodeLabelDisplayStyle::NameOnly:
 				m_ui->codeLabelDisplayStyle->setCurrentIndex(1);
 				break;
 
-			case Settings::IssuerOnly:
+			case CodeLabelDisplayStyle::IssuerOnly:
 				m_ui->codeLabelDisplayStyle->setCurrentIndex(2);
 				break;
 		}

@@ -42,7 +42,6 @@
 
 #include "application.h"
 #include "otpdisplayplugin.h"
-#include "qtendianextra.h"
 #include "qtiostream.h"
 
 
@@ -53,22 +52,22 @@ namespace Qonvince {
 	static constexpr const int InitializationVectorSize = 16;
 
 
-	Otp::Otp(CodeType type, QObject * parent)
+	Otp::Otp(OtpType type, QObject * parent)
 	: Otp{type, {}, {}, {}, SeedType::Plain, parent} {
 	}
 
 
-	Otp::Otp(CodeType type, const QString & name, const QByteArray & seed, SeedType seedType, QObject * parent)
+	Otp::Otp(OtpType type, const QString & name, const QByteArray & seed, SeedType seedType, QObject * parent)
 	: Otp{type, {}, name, seed, seedType, parent} {
 	}
 
 
-	Otp::Otp(CodeType type, const QByteArray & seed, SeedType seedType, QObject * parent)
+	Otp::Otp(OtpType type, const QByteArray & seed, SeedType seedType, QObject * parent)
 	: Otp{type, {}, {}, seed, seedType, parent} {
 	}
 
 
-	Otp::Otp(CodeType type, const QString & issuer, const QString & name, const QByteArray & seed, SeedType seedType, QObject * parent)
+	Otp::Otp(OtpType type, const QString & issuer, const QString & name, const QByteArray & seed, SeedType seedType, QObject * parent)
 	: QObject{parent},
 	  m_issuer{issuer},
 	  m_name{name},
@@ -103,14 +102,14 @@ namespace Qonvince {
 	}
 
 
-	void Otp::setType(CodeType type) {
+	void Otp::setType(OtpType type) {
 		if(type != m_type) {
 			qSwap(type, m_type);
 
-			if(CodeType::Hotp == m_type) {
+			if(OtpType::Hotp == m_type) {
 				m_refreshTimer->stop();
 			}
-			else if(CodeType::Totp == m_type) {
+			else if(OtpType::Totp == m_type) {
 				resynchroniseRefreshTimer();
 			}
 
@@ -279,7 +278,7 @@ namespace Qonvince {
 	std::unique_ptr<Otp> Otp::fromSettings(const QSettings & settings, const QCA::SecureArray & cryptKey) {
 		//		static constexpr std::array<QChar, 6> s_validIconFileNameChars = {{'a', 'b', 'c', 'd', 'e', 'f'}};
 
-		auto ret = std::make_unique<Otp>("HOTP" == settings.value(QStringLiteral("type"), "TOTP").toString() ? CodeType::Hotp : CodeType::Totp);
+		auto ret = std::make_unique<Otp>("HOTP" == settings.value(QStringLiteral("type"), "TOTP").toString() ? OtpType::Hotp : OtpType::Totp);
 		ret->setName(settings.value(QStringLiteral("name")).toString());
 		ret->setIssuer(settings.value(QStringLiteral("issuer")).toString());
 
@@ -358,7 +357,7 @@ namespace Qonvince {
 			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: decryption of seed failed\n";
 		}
 
-		if(CodeType::Hotp == ret->type()) {
+		if(OtpType::Hotp == ret->type()) {
 			ret->setCounter(static_cast<uint64_t>(settings.value(QStringLiteral("counter"), 0).toInt()));
 		}
 		else {
@@ -397,7 +396,7 @@ namespace Qonvince {
 			}
 		}
 
-		if(CodeType::Hotp == type()) {
+		if(OtpType::Hotp == type()) {
 			settings.setValue(QStringLiteral("type"), QStringLiteral("HOTP"));
 			settings.setValue(QStringLiteral("counter"), counter());
 		}
@@ -444,7 +443,7 @@ namespace Qonvince {
 
 		QString code;
 
-		if(CodeType::Hotp == m_type) {
+		if(OtpType::Hotp == m_type) {
 			m_currentCode = plugin->codeDisplayString(hotp(mySeed, counter()));
 			Q_EMIT newCodeGenerated(m_currentCode);
 		}
@@ -474,7 +473,7 @@ namespace Qonvince {
 	void Otp::internalRefreshCode() {
 		refreshCode();
 
-		if(CodeType::Totp == m_type) {
+		if(OtpType::Totp == m_type) {
 			if(1 < timeSinceLastCode()) {
 				resynchroniseRefreshTimer();
 			}
@@ -502,7 +501,7 @@ namespace Qonvince {
 
 
 	QByteArray Otp::hotp(const QByteArray & seed, uint64_t counter) {
-		counter = qToBigEndian(counter);
+		counter = qToBigEndian(static_cast<quint64>(counter));
 		auto * counterBytes = reinterpret_cast<char *>(&counter);
 		return hmac(seed, QByteArray(counterBytes, 8));
 	}

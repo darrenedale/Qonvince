@@ -62,7 +62,7 @@ namespace Qonvince {
 			return false;
 		}
 
-		Otp::CodeType type = (QStringLiteral("hotp") == typeString ? Otp::CodeType::Hotp : Otp::CodeType::Totp);
+		OtpType type = (QStringLiteral("hotp") == typeString ? OtpType::Hotp : OtpType::Totp);
 		QString issuer = QString::fromUtf8(QByteArray::fromPercentEncoding(urlMatch.captured(3).toUtf8()));
 		QString name = QString::fromUtf8(QByteArray::fromPercentEncoding(urlMatch.captured(4).toUtf8()));
 		QString seed;

@@ -24,6 +24,7 @@
 
 #include <QWidget>
 
+#include "types.h"
 #include "settings.h"
 
 namespace Qonvince {
@@ -47,7 +48,7 @@ namespace Qonvince {
 		bool hideOnCodeCopyClick() const;
 		bool clearClipboardAfterInterval() const;
 		int clipboardClearInterval() const;
-		Settings::CodeLabelDisplayStyle codeLabelDisplayStyle() const;
+		CodeLabelDisplayStyle codeLabelDisplayStyle() const;
 		int codeRevealTimeout() const;
 
 	public Q_SLOTS:
@@ -58,7 +59,7 @@ namespace Qonvince {
 		void setHideOnCodeCopyClick(bool hide);
 		void setClearClipboardAfterInterval(bool clear);
 		void setClipboardClearInterval(int interval);
-		void setCodeLabelDisplayStyle(Settings::CodeLabelDisplayStyle style);
+		void setCodeLabelDisplayStyle(CodeLabelDisplayStyle style);
 		void setCodeRevealTimeout(int timeout);
 
 	private Q_SLOTS:

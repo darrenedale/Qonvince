@@ -22,6 +22,8 @@
 
 #include <QObject>
 
+#include "types.h"
+
 class QSettings;
 
 namespace Qonvince {
@@ -30,11 +32,11 @@ namespace Qonvince {
 		Q_OBJECT
 
 	public:
-		enum CodeLabelDisplayStyle {
-			IssuerAndName = 0,
-			NameOnly,
-			IssuerOnly
-		};
+		//		enum CodeLabelDisplayStyle {
+		//			IssuerAndName = 0,
+		//			NameOnly,
+		//			IssuerOnly
+		//		};
 
 		explicit Settings(QObject * parent = nullptr);
 		Settings(const Settings &) = delete;

@@ -86,8 +86,8 @@ HEADERS  += \
 	src/qtstdhash.h \
 	src/settings.h \
 	src/settingswidget.h \
-    src/qtendianextra.h \
-    src/functions.h
+    src/functions.h \
+    src/types.h
 
 FORMS += \
  	ui/aboutdialogue.ui \

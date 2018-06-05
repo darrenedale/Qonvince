@@ -79,7 +79,7 @@ namespace Qonvince {
 
 		auto displayName = index.data(OtpListModel::LabelRole).toString();
 		auto icon = index.data(OtpListModel::IconRole).value<QIcon>();
-		auto codeType = static_cast<Otp::CodeType>(index.data(OtpListModel::TypeRole).toInt());
+		auto codeType = static_cast<OtpType>(index.data(OtpListModel::TypeRole).toInt());
 		auto countdown = index.data(OtpListModel::TimeToNextCodeRole).toInt();
 		auto interval = index.data(OtpListModel::IntervalRole).toInt();
 
@@ -112,7 +112,7 @@ namespace Qonvince {
 			icon.paint(painter, iconRect);
 		}
 
-		if(Detail::OtpListItemDelegate::CountdownWarningThreshold >= countdown && Otp::CodeType::Totp == codeType) {
+		if(Detail::OtpListItemDelegate::CountdownWarningThreshold >= countdown && OtpType::Totp == codeType) {
 			painter->setPen(itemPen.color().lighter(200 + (30 * (5 - countdown))));
 		}
 		else {
@@ -138,7 +138,7 @@ namespace Qonvince {
 		}
 
 		// draw the countdown
-		if(Otp::CodeType::Totp == codeType) {
+		if(OtpType::Totp == codeType) {
 			auto countdownColour = option.palette.color(QPalette::WindowText).lighter(150);
 			QPen timerPen(countdownColour);
 			timerPen.setWidthF(0.5);

@@ -20,6 +20,7 @@
 #ifndef QONVINCE_OTPQRCODEREADER_H
 #define QONVINCE_OTPQRCODEREADER_H
 
+#include "types.h"
 #include "qrcodereader.h"
 #include "otp.h"
 
@@ -30,7 +31,7 @@ namespace Qonvince {
 	public:
 		OtpQrCodeReader(const QString & fileName, QObject * parent = nullptr);
 
-		inline const Otp::CodeType & type() const {
+		inline const OtpType & type() const {
 			return m_type;
 		}
 
@@ -73,7 +74,7 @@ namespace Qonvince {
 		int m_interval;
 		int m_counter;
 		int m_digits;
-		Otp::CodeType m_type;
+		OtpType m_type;
 		time_t m_baselineTime;
 	};
 

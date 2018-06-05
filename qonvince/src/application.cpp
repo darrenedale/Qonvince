@@ -213,7 +213,7 @@ namespace Qonvince {
 	Application::~Application() = default;
 
 
-	Application::DesktopEnvironment Application::desktopEnvironment() {
+	DesktopEnvironment Application::desktopEnvironment() {
 		static DesktopEnvironment ret = DesktopEnvironment::Unknown;
 		static bool done = false;
 
@@ -386,6 +386,7 @@ namespace Qonvince {
 			forceStartMinimised = true;
 		}
 
+		// TODO if settings file does not exist, ask user for passphrase to create a new one
 		{
 			PasswordDialogue dlg(tr("Enter the passphrase used to encrypt your settings."));
 
@@ -583,13 +584,7 @@ namespace Qonvince {
 
 				auto i = 0;
 				for(const auto & otp : m_otpList) {
-					// TODO make this an assert
-					if(!otp) {
-						std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: OTP #" << i << "is null!\n";
-						++i;
-						continue;
-					}
-
+					Q_ASSERT_X(otp, __PRETTY_FUNCTION__, "found null OTP in OTP list");
 					settings.beginGroup(QStringLiteral("code-%1").arg(i));
 					otp->writeSettings(settings, m_cryptPassphrase);
 					settings.endGroup();
