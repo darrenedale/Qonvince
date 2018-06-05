@@ -6,8 +6,10 @@
 DECLARE_LIBQONVINCE_OTPDISPLAYPLUGIN(SteamOtpDisplayPlugin, "Steam code", "Display the code as a Steam-type 5-character code.", "Darren Edale", "1.0.0")
 
 
-static constexpr const std::array<char, 26> Alphabet = {{'2', '3', '4', '5', '6', '7', '8', '9', 'B', 'C', 'D', 'F', 'G', 'H', 'J', 'K', 'M', 'N', 'P', 'Q', 'R', 'T', 'V', 'W', 'X', 'Y'}};
-static constexpr const int CodeDigits = 5;
+namespace {
+	constexpr const std::array<char, 26> Alphabet = {{'2', '3', '4', '5', '6', '7', '8', '9', 'B', 'C', 'D', 'F', 'G', 'H', 'J', 'K', 'M', 'N', 'P', 'Q', 'R', 'T', 'V', 'W', 'X', 'Y'}};
+	constexpr const int CodeDigits = 5;
+}  // namespace
 
 
 // heavily influenced by WinAuth's Steam code generator

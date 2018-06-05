@@ -24,9 +24,12 @@
 
 namespace Qonvince {
 
+	// Q_OBJECT macro is omitted because technically it's only required if we define signals/slots
 	class OtpListItemDelegate
 	: public QStyledItemDelegate {
 	public:
+		// doesn't take parent arg because we only ever use objects of this class as
+		// smart pointers
 		OtpListItemDelegate();
 
 		void paint(QPainter *, const QStyleOptionViewItem &, const QModelIndex &) const override;
@@ -60,7 +63,7 @@ namespace Qonvince {
 			m_countdownCriticalColour = {-1, -1, -1};
 		}
 
-		inline constexpr int actionIconAreaWidth(void) const {
+		inline constexpr int actionIconAreaWidth() const {
 			return m_actionIconAreaWidth;
 		}
 
@@ -76,4 +79,4 @@ namespace Qonvince {
 
 }  // namespace Qonvince
 
-#endif  // OTPLISTITEMDELEGATE_H
+#endif  // QONVINCE_OTPLISTITEMDELEGATE_H

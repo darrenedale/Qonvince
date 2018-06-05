@@ -15,7 +15,7 @@
 #include "sharedlibrary.h"
 #include "plugininfo.h"
 #include "qtiostream.h"
-#include "algorithms.h"
+#include "qtstdhash.h"
 
 #if defined(Q_OS_UNIX)
 #define QONVINCE_PLUGINFACTORY_DEFAULT_SUFFIX ".so"
@@ -35,11 +35,11 @@ namespace Qonvince {
 	public:
 		using PathList = std::vector<QString>;
 
-		explicit PluginFactory(const QString suffix = QONVINCE_PLUGINFACTORY_DEFAULT_SUFFIX)
+		explicit PluginFactory(const QString & suffix = QStringLiteral(QONVINCE_PLUGINFACTORY_DEFAULT_SUFFIX))
 		: m_suffix(suffix) {
 		}
 
-		explicit PluginFactory(const PathList & searchPaths, const QString suffix = QONVINCE_PLUGINFACTORY_DEFAULT_SUFFIX)
+		explicit PluginFactory(const PathList & searchPaths, const QString & suffix = QStringLiteral(QONVINCE_PLUGINFACTORY_DEFAULT_SUFFIX))
 		: PluginFactory(suffix) {
 			setSearchPaths(searchPaths);
 		}
@@ -94,7 +94,7 @@ namespace Qonvince {
 			m_loadedPlugins.clear();
 		}
 
-		std::vector<PluginType *> loadedPlugins(void) const {
+		std::vector<PluginType *> loadedPlugins() const {
 			std::vector<PluginType *> ret;
 
 			std::transform(m_loadedPlugins.cbegin(), m_loadedPlugins.cend(), std::back_inserter(ret), [](const typename decltype(m_loadedPlugins)::value_type & plugin) {
@@ -142,24 +142,24 @@ namespace Qonvince {
 			auto lib = SharedLibrary(path.toStdString());
 
 			if(!lib.isOpen()) {
-				std::cerr << __PRETTY_FUNCTION__ << " (" << QFileInfo(__FILE__).fileName() << '@' << __LINE__ << "): failed to open plugin file \"" << path << "\" (\"" << lib.lastError() << "\")\n";
+				std::cerr << __PRETTY_FUNCTION__ << " (" << __FILE__ << " [" << __LINE__ << "]: failed to open plugin file \"" << path << "\" (\"" << lib.lastError() << "\")\n";
 				return false;
 			}
 
 			if(!lib.hasSymbol("pluginInfo")) {
-				std::cerr << __PRETTY_FUNCTION__ << " (" << QFileInfo(__FILE__).fileName() << '@' << __LINE__ << "): plugin \"" << path << "\" does not provide a PluginInfo data structure\n";
+				std::cerr << __PRETTY_FUNCTION__ << " (" << __FILE__ << " [" << __LINE__ << "]: plugin \"" << path << "\" does not provide a PluginInfo data structure\n";
 				return false;
 			}
 
 			SharedLibrary::Symbol symbol = nullptr;
 
 			if(!lib.symbol("pluginInfo", &symbol)) {
-				std::cerr << __PRETTY_FUNCTION__ << " (" << QFileInfo(__FILE__).fileName() << '@' << __LINE__ << "): the plugin information could not be fetched from the plugin \"" << path << "\"\n";
+				std::cerr << __PRETTY_FUNCTION__ << " (" << __FILE__ << " [" << __LINE__ << "]: the plugin information could not be fetched from the plugin \"" << path << "\"\n";
 				return false;
 			}
 
 			if(!symbol) {
-				std::cerr << __PRETTY_FUNCTION__ << " (" << QFileInfo(__FILE__).fileName() << '@' << __LINE__ << "): the plugin information fetched from the plugin \"" << path << "\" was null\n";
+				std::cerr << __PRETTY_FUNCTION__ << " (" << __FILE__ << " [" << __LINE__ << "]: the plugin information fetched from the plugin \"" << path << "\" was null\n";
 				return false;
 			}
 
@@ -175,44 +175,44 @@ namespace Qonvince {
 			std::cout << "Description: " << qPrintable(info->description) << "\n\n";
 #endif
 			if(0 != info->pluginType.compare(PluginType::PlugnTypeName)) {
-				std::cerr << __PRETTY_FUNCTION__ << " (" << QFileInfo(__FILE__).fileName() << '@' << __LINE__ << "): the plugin \"" << path << "\" is not a(n) " << PluginType::PlugnTypeName << "\n";
+				std::cerr << __PRETTY_FUNCTION__ << " (" << __FILE__ << " [" << __LINE__ << "]: the plugin \"" << path << "\" is not a(n) " << PluginType::PlugnTypeName << "\n";
 				return false;
 			}
 
 			if(PluginType::ApiVersion != info->apiVersion) {
-				std::cerr << __PRETTY_FUNCTION__ << " (" << QFileInfo(__FILE__).fileName() << '@' << __LINE__ << "): the plugin \"" << path << "\" has an incorrect API version (it has v" << info->apiVersion << ", expecting v" << PluginType::ApiVersion << ")\n";
+				std::cerr << __PRETTY_FUNCTION__ << " (" << __FILE__ << " [" << __LINE__ << "]: the plugin \"" << path << "\" has an incorrect API version (it has v" << info->apiVersion << ", expecting v" << PluginType::ApiVersion << ")\n";
 				return false;
 			}
 
 			if(!lib.hasSymbol("createInstance")) {
-				std::cerr << __PRETTY_FUNCTION__ << " (" << QFileInfo(__FILE__).fileName() << '@' << __LINE__ << "): plugin \"" << path << "\" does not provide an createInstance() function\n";
+				std::cerr << __PRETTY_FUNCTION__ << " (" << __FILE__ << " [" << __LINE__ << "]: plugin \"" << path << "\" does not provide an createInstance() function\n";
 				return false;
 			}
 
 			if(!lib.symbol("createInstance", &symbol)) {
-				std::cerr << __PRETTY_FUNCTION__ << " (" << QFileInfo(__FILE__).fileName() << '@' << __LINE__ << "): the createInstance() function could not be fetched from the plugin \"" << path << "\"\n";
+				std::cerr << __PRETTY_FUNCTION__ << " (" << __FILE__ << " [" << __LINE__ << "]: the createInstance() function could not be fetched from the plugin \"" << path << "\"\n";
 				return false;
 			}
 
 			if(!symbol) {
-				std::cerr << __PRETTY_FUNCTION__ << " (" << QFileInfo(__FILE__).fileName() << '@' << __LINE__ << "): the createInstance() function in the plugin \"" << path << "\" is null\n";
+				std::cerr << __PRETTY_FUNCTION__ << " (" << __FILE__ << " [" << __LINE__ << "]: the createInstance() function in the plugin \"" << path << "\" is null\n";
 				return false;
 			}
 
-			InstanceFunction instanceFn = reinterpret_cast<InstanceFunction>(symbol);
+			auto instanceFn = reinterpret_cast<InstanceFunction>(symbol);
 			std::unique_ptr<PluginType> plugin(instanceFn());
 
 			if(!plugin) {
-				std::cerr << __PRETTY_FUNCTION__ << " (" << QFileInfo(__FILE__).fileName() << '@' << __LINE__ << "): the createInstance() function in the plugin \"" << path << "\" did not provide a plugin instnace\n";
+				std::cerr << __PRETTY_FUNCTION__ << " (" << __FILE__ << " [" << __LINE__ << "]: the createInstance() function in the plugin \"" << path << "\" did not provide a plugin instnace\n";
 				return false;
 			}
 
 			if(m_loadedPlugins.cend() != m_loadedPlugins.find(plugin->name())) {
-				std::cerr << __PRETTY_FUNCTION__ << " (" << QFileInfo(__FILE__).fileName() << '@' << __LINE__ << "): the plugin loaded from the file \"" << path << "\" has a name (\"" << plugin->name() << "\") that is identical to another pluging that is already loaded and therefore cannot be used.\n";
+				std::cerr << __PRETTY_FUNCTION__ << " (" << __FILE__ << " [" << __LINE__ << "]: the plugin loaded from the file \"" << path << "\" has a name (\"" << plugin->name() << "\") that is identical to another pluging that is already loaded and therefore cannot be used.\n";
 				return false;
 			}
 
-			std::cout << __PRETTY_FUNCTION__ << " (" << QFileInfo(__FILE__).fileName() << '@' << __LINE__ << ") : successfully loaded anlyais plugin \"" << plugin->name() << "\" from \"" << path << "\"\n";
+			std::cout << __PRETTY_FUNCTION__ << " (" << __FILE__ << " [" << __LINE__ << ") : successfully loaded anlyais plugin \"" << plugin->name() << "\" from \"" << path << "\"\n";
 			m_openLibs.push_back(std::move(lib));
 			m_loadedPlugins.insert(std::make_pair(plugin->name(), std::move(plugin)));
 			return true;
@@ -223,18 +223,19 @@ namespace Qonvince {
 			QFileInfo pluginPathInfo(path);
 
 			if(!pluginPathInfo.exists()) {
-				std::cerr << __PRETTY_FUNCTION__ << " (" << QFileInfo(__FILE__).fileName() << '@' << __LINE__ << "): path \"" << path << "\" does not exist or is not readable.\n";
+				std::cerr << __PRETTY_FUNCTION__ << " (" << __FILE__ << " [" << __LINE__ << "]: path \"" << path << "\" does not exist or is not readable.\n";
 				return;
 			}
 
 			if(!pluginPathInfo.isDir()) {
-				std::cerr << __PRETTY_FUNCTION__ << " (" << QFileInfo(__FILE__).fileName() << '@' << __LINE__ << "): path \"" << path << "\" is not a directory.\n";
+				std::cerr << __PRETTY_FUNCTION__ << " (" << __FILE__ << " [" << __LINE__ << "]: path \"" << path << "\" is not a directory.\n";
 				return;
 			}
 
 			auto suffixSize = m_suffix.size();
+			const auto entries = QDir(path).entryInfoList();
 
-			for(const auto & entry : QDir(path).entryInfoList()) {
+			for(const auto & entry : entries) {
 				if(!entry.isFile() || entry.isSymLink()) {
 					continue;
 				}
@@ -243,7 +244,7 @@ namespace Qonvince {
 				auto pluginPathLen = pluginPath.size();
 
 				if(pluginPathLen <= suffixSize || !pluginPath.endsWith(m_suffix)) {
-					std::cerr << __PRETTY_FUNCTION__ << " (" << QFileInfo(__FILE__).fileName() << '@' << __LINE__ << "): file \"" << pluginPath << "\" does not have suffix \"" << m_suffix << "\"\n";
+					std::cerr << __PRETTY_FUNCTION__ << " (" << __FILE__ << " [" << __LINE__ << "]: file \"" << pluginPath << "\" does not have suffix \"" << m_suffix << "\"\n";
 					continue;
 				}
 
@@ -273,4 +274,3 @@ namespace Qonvince {
 #undef QONVINCE_PLUGINFACTORY_DEFAULT_SUFFIX
 
 #endif  // QONVINCE_PLUGINFACTORY_H
-

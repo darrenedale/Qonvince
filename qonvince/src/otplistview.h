@@ -48,7 +48,7 @@ namespace Qonvince {
 
 	public:
 		explicit OtpListView(QWidget * = nullptr);
-		virtual ~OtpListView();
+		~OtpListView() override;
 
 		int hoveredOtpIndex() const;
 		Otp * hoveredOtp() const;
@@ -90,22 +90,22 @@ namespace Qonvince {
 		void editCodeRequested(Otp *);
 
 	protected:
-		virtual bool event(QEvent *) override;
-		virtual void resizeEvent(QResizeEvent *) override;
-		virtual void timerEvent(QTimerEvent *) override;
-		virtual void enterEvent(QEvent *) override;
-		virtual void leaveEvent(QEvent *) override;
-		virtual void mouseMoveEvent(QMouseEvent *) override;
-		virtual void mousePressEvent(QMouseEvent *) override;
-		virtual void mouseReleaseEvent(QMouseEvent *) override;
-		virtual void mouseDoubleClickEvent(QMouseEvent *) override;
-		virtual void paintEvent(QPaintEvent *) override;
-		virtual void contextMenuEvent(QContextMenuEvent *) override;
-		virtual void keyReleaseEvent(QKeyEvent *) override;
+		bool event(QEvent * event) override;
+		void resizeEvent(QResizeEvent * event) override;
+		void timerEvent(QTimerEvent * event) override;
+		void enterEvent(QEvent * event) override;
+		void leaveEvent(QEvent * event) override;
+		void mouseMoveEvent(QMouseEvent * event) override;
+		void mousePressEvent(QMouseEvent * event) override;
+		void mouseReleaseEvent(QMouseEvent * event) override;
+		void mouseDoubleClickEvent(QMouseEvent * event) override;
+		void paintEvent(QPaintEvent * event) override;
+		void contextMenuEvent(QContextMenuEvent * event) override;
+		void keyReleaseEvent(QKeyEvent * event) override;
 
-		/* this is not a Qt event method, it's one we've synthesised by
-		 * filtering out cases where the click is part of a double-click */
-		virtual void mouseClickEvent(QMouseEvent *);
+		// this is not a Qt event method, it's one we've synthesised by
+		// filtering out cases where the click is part of a double-click
+		virtual void mouseClickEvent(QMouseEvent * event);
 
 		void synchroniseTickTimer();
 

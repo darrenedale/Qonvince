@@ -37,7 +37,7 @@ namespace Qonvince {
 	public:
 		explicit OtpListWidgetItem(OtpListWidget * = nullptr);
 		OtpListWidgetItem(std::unique_ptr<Otp> &&, OtpListWidget * = nullptr);
-		virtual ~OtpListWidgetItem();
+		~OtpListWidgetItem() override;
 
 		inline Otp * otp() const {
 			return m_otp.get();

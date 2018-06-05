@@ -26,7 +26,6 @@
 #include "otpeditor.h"
 #include "ui_otpeditor.h"
 
-#include <QDebug>
 #include <QStringBuilder>
 #include <QFileDialog>
 #include <QMessageBox>
@@ -72,6 +71,8 @@ namespace Qonvince {
 		connect(m_ui->issuerEdit, &QLineEdit::textChanged, this, &OtpEditor::updateHeading);
 		connect(m_ui->nameEdit, &QLineEdit::textChanged, this, &OtpEditor::updateHeading);
 
+		// no need to fix -Wclazy-connect-3arg-lambda for these: emitter can't outlive
+		// captured this
 		connect(m_ui->codeTypeGroup, qOverload<int, bool>(&QButtonGroup::buttonToggled), [this](int id, bool checked) {
 			if(!checked) {
 				return;
@@ -100,12 +101,12 @@ namespace Qonvince {
 		});
 
 		if(!OtpQrCodeReader::isAvailable()) {
-			qWarning() << "reading of QR code images is not available";
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: reading of QR code images is not available\n";
 			m_ui->readBarcodeButton->setVisible(false);
 		}
 
 		if(!QrCodeCreator::isAvailable()) {
-			qWarning() << "creation of QR code images is not available";
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: creation of QR code images is not available\n";
 			m_ui->createBarcodeButton->setVisible(false);
 		}
 
@@ -273,8 +274,10 @@ namespace Qonvince {
 
 	void OtpEditor::dragEnterEvent(QDragEnterEvent * ev) {
 		if(((Qt::CopyAction | Qt::MoveAction) & ev->proposedAction()) && ev->mimeData()->hasUrls()) {
-			for(const QUrl & u : ev->mimeData()->urls()) {
-				if("file" == u.scheme()) {
+			const auto urls = ev->mimeData()->urls();
+
+			for(const QUrl & url : urls) {
+				if(QStringLiteral("file") == url.scheme()) {
 					ev->acceptProposedAction();
 					return;
 				}
@@ -284,9 +287,11 @@ namespace Qonvince {
 
 
 	void OtpEditor::dropEvent(QDropEvent * ev) {
-		for(const QUrl & u : ev->mimeData()->urls()) {
-			if("file" == u.scheme()) {
-				qonvinceApp->readQrCodeFrom(u.path());
+		const auto urls = ev->mimeData()->urls();
+
+		for(const QUrl & url : urls) {
+			if(QStringLiteral("file") == url.scheme()) {
+				qonvinceApp->readQrCodeFrom(url.path());
 			}
 		}
 
@@ -310,34 +315,34 @@ namespace Qonvince {
 
 	bool OtpEditor::createBarcode() {
 		if(!QrCodeCreator::isAvailable()) {
-			qWarning() << "creation of QR code images is not available";
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: creation of QR code images is not available\n";
 			return false;
 		}
 
 		QString fileName = QFileDialog::getSaveFileName(this, tr("%1: Save QR Code").arg(Application::applicationName()));
 
-		if(!fileName.isEmpty()) {
-			if(QFileInfo(fileName).exists() && QMessageBox::No == QMessageBox::question(this, tr("%1: Overwrite file?").arg(Application::applicationName()), tr("The file %1 already exists.\n\nDo you want to replace it?").arg(fileName), QMessageBox::Yes | QMessageBox::No)) {
-				return false;
-			}
-
-			return createBarcode(fileName);
+		if(fileName.isEmpty()) {
+			return false;
 		}
 
-		return false;
+		if(QFileInfo::exists(fileName) && QMessageBox::No == QMessageBox::question(this, tr("%1: Overwrite file?").arg(Application::applicationName()), tr("The file %1 already exists.\n\nDo you want to replace it?").arg(fileName), QMessageBox::Yes | QMessageBox::No)) {
+			return false;
+		}
+
+		return createBarcode(fileName);
 	}
 
 
 	bool OtpEditor::createBarcode(const QString & fileName) {
 		if(!QrCodeCreator::isAvailable()) {
-			qWarning() << "creation of QR code images is not available";
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: creation of QR code images is not available\n";
 			return false;
 		}
 
 		QString seed(m_ui->seedEdit->text());
 
 		if(!seed.isEmpty()) {
-			QString uri = QString("otpauth://%1/%2:%3?secret=%4").arg(Otp::CodeType::Hotp == m_otp->type() ? "hotp" : "totp").arg(QString::fromUtf8(m_ui->issuerEdit->text().toUtf8().toPercentEncoding())).arg(QString::fromUtf8(m_ui->nameEdit->text().toUtf8().toPercentEncoding())).arg(seed);
+			QString uri = QStringLiteral("otpauth://%1/%2:%3?secret=%4").arg((Otp::CodeType::Hotp == m_otp->type() ? QStringLiteral("hotp") : QStringLiteral("totp")), QString::fromUtf8(m_ui->issuerEdit->text().toUtf8().toPercentEncoding()), QString::fromUtf8(m_ui->nameEdit->text().toUtf8().toPercentEncoding()), seed);
 
 			if(Otp::CodeType::Hotp == m_otp->type()) {
 				if(0 != m_ui->counterSpin->value()) {
@@ -354,10 +359,10 @@ namespace Qonvince {
 			auto pluginName = m_ui->displayPlugin->currentData().toString();
 
 			if(QStringLiteral("SixDigitsPlugin") == pluginName) {
-				uri += "&digits=6";
+				uri += QStringLiteral("&digits=6");
 			}
 			else if(QStringLiteral("EightDigitsPlugin") == pluginName) {
-				uri += "&digits=8";
+				uri += QStringLiteral("&digits=8");
 			}
 
 			QrCodeCreator creator(uri);
@@ -365,7 +370,7 @@ namespace Qonvince {
 
 			if(!img.save(fileName)) {
 				QMessageBox::warning(this, tr("%1: Error").arg(Application::applicationName()), tr("Failed to save the QR code image to %1.").arg(fileName));
-				qWarning() << "failed to save qr code image to" << fileName;
+				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: failed to save qr code image to \"" << qPrintable(fileName) << "\"\n";
 				return false;
 			}
 
@@ -374,7 +379,7 @@ namespace Qonvince {
 		}
 
 		QMessageBox::warning(this, tr("%1: Error").arg(Application::applicationName()), tr("You must enter a seed in order to create a QR code image.").arg(fileName));
-		qWarning() << "no code for which to create a qr-code";
+		std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: no code for which to create a qr-code\n";
 		return false;
 	}
 
@@ -455,14 +460,14 @@ namespace Qonvince {
 
 	void OtpEditor::onDisplayPluginChanged() {
 		if(!m_otp) {
-			qWarning() << "no code for which to set plugin";
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: no code for which to set plugin\n";
 			return;
 		}
 
 		auto pluginName = m_ui->displayPlugin->currentData().toString();
 
 		if(!qonvinceApp->otpDisplayPluginByName(m_ui->displayPlugin->currentData().toString())) {
-			qCritical() << "display plugin \"" << m_ui->displayPlugin->currentData().toString() << "\" (" << m_ui->displayPlugin->currentText() << ") not found";
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: display plugin \"" << qPrintable(m_ui->displayPlugin->currentData().toString()) << "\" (" << qPrintable(m_ui->displayPlugin->currentText()) << ") not found\n";
 			return;
 		}
 
@@ -482,7 +487,7 @@ namespace Qonvince {
 	}
 
 
-	void OtpEditor::setType(const Otp::CodeType & codeType) {
+	void OtpEditor::setType(Otp::CodeType codeType) {
 		if(codeType != type()) {
 			QSignalBlocker hBlocker(m_ui->hotpButton);
 			QSignalBlocker tBlocker(m_ui->totpButton);

@@ -26,9 +26,10 @@
 
 #include "settings.h"
 
+#include <iostream>
+
 #include <QObject>
 #include <QSettings>
-#include <QDebug>
 
 
 namespace Qonvince {
@@ -40,81 +41,81 @@ namespace Qonvince {
 
 	Settings::Settings(QObject * parent)
 	: QObject(parent),
+	  m_codeLabelDisplayStyle(IssuerAndName),
+	  m_clipboardClearInterval(DefaultClipboardClearInterval),
 	  m_quitOnMainWindowClosed(true),
 	  m_startMinimised(false),
 	  m_copyCodeOnClick(false),
 	  m_hideOnCodeCopyClick(false),
-	  m_clearClipboardAfterInterval(false),
-	  m_clipboardClearInterval(DefaultClipboardClearInterval),
-	  m_codeLabelDisplayStyle(IssuerAndName) {
+	  m_clearClipboardAfterInterval(false) {
 	}
 
 
 	void Settings::read(const QSettings & settings) {
-		setSingleInstance(settings.value("single_instance", false).toBool());
-		setQuitOnMainWindowClosed(settings.value("quit_on_window_close", true).toBool());
-		setStartMinimised(settings.value("start_minimised", false).toBool());
-		setCopyCodeOnClick(settings.value("copy_code_on_click", false).toBool());
-		setHideOnCodeCopyClick(settings.value("hide_on_code_copy_click", false).toBool());
-		setClearClipboardAfterInterval(settings.value("clear_clipboard_after_interval", false).toBool());
+		setSingleInstance(settings.value(QStringLiteral("single_instance"), false).toBool());
+		setQuitOnMainWindowClosed(settings.value(QStringLiteral("quit_on_window_close"), true).toBool());
+		setStartMinimised(settings.value(QStringLiteral("start_minimised"), false).toBool());
+		setCopyCodeOnClick(settings.value(QStringLiteral("copy_code_on_click"), false).toBool());
+		setHideOnCodeCopyClick(settings.value(QStringLiteral("hide_on_code_copy_click"), false).toBool());
+		setClearClipboardAfterInterval(settings.value(QStringLiteral("clear_clipboard_after_interval"), false).toBool());
 
 		bool ok;
-		int i = settings.value("clipboard_clear_interval", DefaultClipboardClearInterval).toInt(&ok);
+		int i = settings.value(QStringLiteral("clipboard_clear_interval"), DefaultClipboardClearInterval).toInt(&ok);
 
 		if(!ok) {
-			qWarning() << "invalid \"clear_clipboard_after_interval\" setting - using default";
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: invalid \"clear_clipboard_after_interval\" setting - using default\n";
 		}
 		else {
 			setClipboardClearInterval(i);
 		}
 
-		i = settings.value("code_reveal_timeout", DefaultCodeRevealTimeout).toInt(&ok);
+		i = settings.value(QStringLiteral("code_reveal_timeout"), DefaultCodeRevealTimeout).toInt(&ok);
 
 		if(!ok) {
-			qWarning() << "invalid \"code_reveal_timeout\" setting - using default";
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: invalid \"code_reveal_timeout\" setting - using default\n";
 		}
 		else {
 			setCodeRevealTimeout(i);
 		}
 
-		QString s(settings.value("code_label_display_style", "IssuerAndName").toString());
+		QString styleStr = settings.value(QStringLiteral("code_label_display_style"), QStringLiteral("IssuerAndName")).toString();
 
-		if("IssuerAndName" == s) {
+		if(QStringLiteral("IssuerAndName") == styleStr) {
 			setCodeLabelDisplayStyle(IssuerAndName);
 		}
-		else if("NameOnly" == s) {
+		else if(QStringLiteral("NameOnly") == styleStr) {
 			setCodeLabelDisplayStyle(NameOnly);
 		}
-		else if("IssuerOnly" == s) {
+		else if(QStringLiteral("IssuerOnly") == styleStr) {
 			setCodeLabelDisplayStyle(IssuerOnly);
 		}
 		else {
-			qWarning() << "invalid or missing \"code_label_display_style\" setting (" << s << ") - using default";
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << R"(]: (invalid or missing "code_label_display_style" setting (")" << qPrintable(styleStr) << "\") - using default\n";
 		}
 	}
 
 
 	void Settings::write(QSettings & settings) const {
-		settings.setValue("single_instance", singleInstance());
-		settings.setValue("quit_on_window_close", quitOnMainWindowClosed());
-		settings.setValue("start_minimised", startMinimised());
-		settings.setValue("copy_code_on_click", copyCodeOnClick());
-		settings.setValue("hide_on_code_copy_click", hideOnCodeCopyClick());
-		settings.setValue("clear_clipboard_after_interval", clearClipboardAfterInterval());
-		settings.setValue("clipboard_clear_interval", clipboardClearInterval());
-		settings.setValue("code_reveal_timeout", codeRevealTimeout());
+		settings.setValue(QStringLiteral("single_instance"), singleInstance());
+		settings.setValue(QStringLiteral("quit_on_window_close"), quitOnMainWindowClosed());
+		settings.setValue(QStringLiteral("start_minimised"), startMinimised());
+		settings.setValue(QStringLiteral("copy_code_on_click"), copyCodeOnClick());
+		settings.setValue(QStringLiteral("hide_on_code_copy_click"), hideOnCodeCopyClick());
+		settings.setValue(QStringLiteral("clear_clipboard_after_interval"), clearClipboardAfterInterval());
+		settings.setValue(QStringLiteral("clipboard_clear_interval"), clipboardClearInterval());
+		settings.setValue(QStringLiteral("code_reveal_timeout"), codeRevealTimeout());
 
 		switch(codeLabelDisplayStyle()) {
 			case IssuerAndName:
-				settings.setValue("code_label_display_style", "IssuerAndName");
+				settings.setValue(QStringLiteral("code_label_display_style"), QStringLiteral("IssuerAndName"));
 				break;
 
 			case NameOnly:
-				settings.setValue("code_label_display_style", "NameOnly");
+				settings.setValue(QStringLiteral("code_label_display_style"), QStringLiteral("NameOnly"));
 				break;
 
 			case IssuerOnly:
-				settings.setValue("code_label_display_style", "IssuerOnly");
+				settings.setValue(QStringLiteral("code_label_display_style"), QStringLiteral("IssuerOnly"));
 				break;
 		}
 	}

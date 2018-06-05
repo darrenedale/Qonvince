@@ -15,4 +15,8 @@ set_target_properties(steam_display_plugin PROPERTIES
 target_include_directories(steam_display_plugin PUBLIC ${CMAKE_CURRENT_LIST_DIR}/../../../libqonvince/src)
 target_link_libraries(steam_display_plugin PUBLIC libqonvince_shared Qt5::Core)
 
-install(TARGETS steam_display_plugin LIBRARY DESTINATION usr/share/Equit/Qonvince/plugins/otpdisplay COMPONENT extradisplayplugins OPTIONAL)
+if(WIN32)
+	install(TARGETS steam_display_plugin RUNTIME DESTINATION usr/share/Equit/Qonvince/plugins/otpdisplay COMPONENT extradisplayplugins OPTIONAL)
+else()
+	install(TARGETS steam_display_plugin LIBRARY DESTINATION usr/share/Equit/Qonvince/plugins/otpdisplay COMPONENT extradisplayplugins OPTIONAL)
+endif()

@@ -13,25 +13,24 @@ namespace Qonvince {
 
 	class PasswordWidget
 	: public QWidget {
+		Q_OBJECT
 
-			Q_OBJECT
+	public:
+		explicit PasswordWidget(QWidget * parent = nullptr);
+		~PasswordWidget() override;
 
-		public:
-			explicit PasswordWidget(QWidget * parent = nullptr);
-			~PasswordWidget();
+		QString password() const;
 
-			QString password() const;
+	Q_SIGNALS:
+		void passwordChanged(const QString & pwd);
 
-		Q_SIGNALS:
-			void passwordChanged(const QString &);
+	public Q_SLOTS:
+		void setPassword(const QString & pwd);
 
-		public Q_SLOTS:
-			void setPassword(const QString & pw);
-
-		private:
-			std::unique_ptr<Ui::PasswordWidget> m_ui;
+	private:
+		std::unique_ptr<Ui::PasswordWidget> m_ui;
 	};
 
-} // namespace Qonvince
+}  // namespace Qonvince
 
-#endif // QONVINCE_PASWORDWIDGET_H
+#endif  // QONVINCE_PASWORDWIDGET_H

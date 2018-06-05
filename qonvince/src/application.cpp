@@ -19,6 +19,15 @@
 
 /// \file application.cpp
 /// \brief Implementation of the Application class.
+///
+/// \todo investigate segfault (mingw-w64):
+/// - remove all settings files
+/// - start qonvince
+/// - add (the first) new code
+/// - enter some settings for new code
+/// - close code editor
+/// - exit
+/// - should segfault
 
 #include "application.h"
 
@@ -26,7 +35,6 @@
 #include <iostream>
 #include <iterator>
 
-#include <QDebug>
 #include <QString>
 #include <QStringBuilder>
 #include <QChar>
@@ -56,15 +64,15 @@
 namespace Qonvince {
 
 
-	namespace Detail {
+	namespace {
 		// Based on RunGuard code from
 		// http://stackoverflow.com/questions/5006547/qt-best-practice-for-a-single-instance-app-protection
 		class SingleInstanceGuard final {
 		public:
 			explicit SingleInstanceGuard(const QString & key)
 			: m_key(key),
-			  m_memLockKey(QCryptographicHash::hash(key.toUtf8().append("_memLockKey"), QCryptographicHash::Sha1).toHex()),
-			  m_sharedmemKey(QCryptographicHash::hash(key.toUtf8().append("_sharedmemKey"), QCryptographicHash::Sha1).toHex()),
+			  m_memLockKey(QCryptographicHash::hash(key.toUtf8().append(QByteArrayLiteral("_memLockKey")), QCryptographicHash::Sha1).toHex()),
+			  m_sharedmemKey(QCryptographicHash::hash(key.toUtf8().append(QByteArrayLiteral("_sharedmemKey")), QCryptographicHash::Sha1).toHex()),
 			  m_sharedMem(m_sharedmemKey),
 			  m_memLock(m_memLockKey, 1) {
 				m_memLock.acquire();
@@ -137,38 +145,33 @@ namespace Qonvince {
 			QSharedMemory m_sharedMem;
 			QSystemSemaphore m_memLock;
 		};
-
-
-		static SingleInstanceGuard runChecker(QStringLiteral("blarglefangledungle"));
-		static QCA::Initializer qcaInitializer;
-	}  // namespace Detail
+	}  // namespace
 
 
 	Application::Application(int & argc, char ** argv)
 	: QApplication(argc, argv),
-	  // random-ish string identifying the shared memory that is in place
-	  // if application is already running
 	  m_settings(),
-	  //	  m_mainWindow(nullptr),
-	  m_trayIcon(QIcon::fromTheme("qonvince", QIcon(":/icons/systray"))),
+	  m_trayIcon(QIcon::fromTheme(QStringLiteral("qonvince"), QIcon(QStringLiteral(":/icons/systray")))),
 	  m_trayIconMenu(tr("Qonvince")),
-	  m_displayPluginFactory(".displayplugin") {
-		setOrganizationName("Equit");
-		setOrganizationDomain("equituk.net");
-		setApplicationName("Qonvince");
-		setApplicationDisplayName("Qonvince");
-		setApplicationVersion("1.8.0");
+	  m_displayPluginFactory(QStringLiteral(".displayplugin")) {
+		setOrganizationName(QStringLiteral("Equit"));
+		setOrganizationDomain(QStringLiteral("equituk.net"));
+		setApplicationName(QStringLiteral("Qonvince"));
+		setApplicationDisplayName(QStringLiteral("Qonvince"));
+		setApplicationVersion(QStringLiteral("1.8.0"));
 		setQuitOnLastWindowClosed(false);
 		QSettings::setDefaultFormat(QSettings::IniFormat);
 
 		// set the search paths for the display plugin factory
-		for(const auto & pathRoot : QStandardPaths::standardLocations(QStandardPaths::AppDataLocation)) {
-			m_displayPluginFactory.addSearchPath(pathRoot + "/plugins/otpdisplay");
+		const auto locations = QStandardPaths::standardLocations(QStandardPaths::AppDataLocation);
+
+		for(const auto & pathRoot : locations) {
+			m_displayPluginFactory.addSearchPath(pathRoot + QStringLiteral("/plugins/otpdisplay"));
 		}
 
 #ifndef NDEBUG
 		// search in the build dir
-		m_displayPluginFactory.addSearchPath("../plugins/otpdisplay");
+		m_displayPluginFactory.addSearchPath(QStringLiteral("../plugins/otpdisplay"));
 #endif
 
 		m_displayPluginFactory.loadAllPlugins();
@@ -181,19 +184,20 @@ namespace Qonvince {
 		//		m_codeDisplayPlugins.insert({plugin->pluginName(), plugin});
 
 		//		m_mainWindow = std::make_unique<MainWindow>();
+		//		m_trayIcon = new QSystemTrayIcon(QIcon(QStringLiteral(":/icons/systray")), this);
 		m_trayIcon.setToolTip(tr("%1: One-Time passcode generator.").arg(applicationDisplayName()));
 
 		m_trayIconMenu.addAction(tr("Show main window"), &m_mainWindow, &MainWindow::show);
-		m_trayIconMenu.addAction(QIcon::fromTheme("system-settings", QIcon(":/icons/app/settings")), tr("Settings..."), this, &Application::showSettingsWidget);
+		m_trayIconMenu.addAction(QIcon::fromTheme(QStringLiteral("system-settings"), QIcon(QStringLiteral(":/icons/app/settings"))), tr("Settings..."), this, &Application::showSettingsWidget);
 
 		if(OtpQrCodeReader::isAvailable()) {
 			m_trayIconMenu.addSeparator();
-			m_trayIconMenu.addAction(QIcon::fromTheme("image-png", QIcon(":/icons/app/readqrcode")), tr("Read a QR code image"), this, &Application::readQrCode);
+			m_trayIconMenu.addAction(QIcon::fromTheme(QStringLiteral("image-png"), QIcon(QStringLiteral(":/icons/app/readqrcode"))), tr("Read a QR code image"), this, &Application::readQrCode);
 		}
 
 		m_trayIconMenu.addSeparator();
 		m_trayIconMenu.addAction(tr("About %1").arg(applicationDisplayName()), this, &Application::showAboutDialogue);
-		m_trayIconMenu.addAction(QIcon::fromTheme("application-exit", QIcon(":/icons/app/quit")), tr("Quit Qonvince"), this, &Application::quit);
+		m_trayIconMenu.addAction(QIcon::fromTheme(QStringLiteral("application-exit"), QIcon(QStringLiteral(":/icons/app/quit"))), tr("Quit Qonvince"), this, &Application::quit);
 
 		m_trayIcon.setContextMenu(&m_trayIconMenu);
 
@@ -258,26 +262,26 @@ namespace Qonvince {
 			return -1;
 		}
 
-		int index = static_cast<int>(m_otpList.size());
-		auto * myOtp = otp.get();
+		auto index = static_cast<int>(m_otpList.size());
+		auto * otpPtr = otp.get();
 		m_otpList.push_back(std::move(otp));
-		Q_EMIT otpAdded(myOtp);
-		Q_EMIT otpAdded(index, myOtp);
+		Q_EMIT otpAdded(otpPtr);
+		Q_EMIT otpAdded(index, otpPtr);
 
-		// capture myOtp by value so that it can be used in signal emitted
-		// by the lambda. it is NOT dereferenced in the lambda, and is
-		// passed on to receivers only if it is verified that it is still
-		// in the Application's list
-		connect(myOtp, &Otp::changed, [this, otp = myOtp]() {
+		// clazy warning about 3arg lambda connnect() call is OK because the
+		// lambda asserts that the Otp ptr is valid; since it must check this
+		// in order to compute the index to emit in the signal in any case,
+		// there is no gain in using a context argument
+		connect(otpPtr, &Otp::changed, [this, otp = otpPtr]() {
 			const auto otpBegin = m_otpList.cbegin();
-			const auto otpIter = std::find_if(otpBegin, m_otpList.cend(), [otp](const auto & listOtp) {
+			const auto otpIt = std::find_if(otpBegin, m_otpList.cend(), [otp](const auto & listOtp) {
 				return listOtp.get() == otp;
 			});
 
-			Q_ASSERT_X(m_otpList.cend() != otpIter, "Application::addOtp", "Otp object that sent changed() signal is not owned by Application instance");
+			Q_ASSERT_X(m_otpList.cend() != otpIt, "Application::addOtp", "Otp object that sent changed() signal is not owned by Application instance");
 
 			Q_EMIT otpChanged(otp);
-			Q_EMIT otpChanged(static_cast<int>(std::distance(otpBegin, otpIter)));
+			Q_EMIT otpChanged(static_cast<int>(std::distance(otpBegin, otpIt)));
 		});
 
 		return index;
@@ -304,34 +308,41 @@ namespace Qonvince {
 			return false;
 		}
 
-		int index = static_cast<int>(std::distance(begin, otpIter));
+		auto index = static_cast<int>(std::distance(begin, otpIter));
+
+		// need this to keep the Otp alive while the signals are emitted
+		// NOTE this means that otpRemoved can only be connected using
+		// direct connections (queued connections won't work)
 		auto myOtp = std::move(*otpIter);
 		m_otpList.erase(otpIter);
-		Q_EMIT otpRemoved(otp);
+		//		std::cout << __PRETTY_FUNCTION__ << " (" << __LINE__ << "): emitting otpRemoved(" << static_cast<void *>(otp) << ")\n";
+		//		Q_EMIT otpRemoved(otp);
+		std::cout << __PRETTY_FUNCTION__ << " (" << __LINE__ << "): emitting otpRemoved(" << index << ")\n";
 		Q_EMIT otpRemoved(index);
 		return true;
 	}
 
 
-	bool Application::ensureDirectory(const QStandardPaths::StandardLocation & location, const QString & path) {
+	bool Application::ensureDirectory(QStandardPaths::StandardLocation location, const QString & path) {
 		QString rootPath = QStandardPaths::writableLocation(location);
 
 		if(rootPath.isEmpty()) {
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: failed to find writable location for standard location of type " << static_cast<int>(location) << "\n";
 			return false;
 		}
 
 		// check that the path is not malicious
-		if(rootPath != QDir(rootPath % "/" % path).absolutePath().left(rootPath.length())) {
+		if(rootPath != QDir(rootPath % QStringLiteral("/") % path).absolutePath().left(rootPath.length())) {
 			// path contains ".." components that move it out of root data directory
-			qWarning() << path << "is not a valid subdirectory";
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: \"" << qPrintable(path) << "\" is not a valid subdirectory\n";
 			return false;
 		}
 
 		if(path.isEmpty() || path.trimmed().isEmpty()) {
-			qWarning() << "path" << path << "is enmpty or contains only whitespace";
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: path \"" << qPrintable(path) << "\" is enmpty or contains only whitespace\n";
 		}
 
-		auto isValidPathChar = [](const QChar & ch) -> bool {
+		auto isValidPathChar = [](QChar ch) -> bool {
 			static std::array<QChar, 6> s_validChars = {{'-', '_', ' ', '.', '~', '/'}};
 			return ch.isLetterOrNumber() || (s_validChars.cend() != std::find(s_validChars.cbegin(), s_validChars.cend(), ch));
 		};
@@ -340,11 +351,18 @@ namespace Qonvince {
 		const auto invalidChar = std::find_if_not(path.cbegin(), end, isValidPathChar);
 
 		if(end != invalidChar) {
-			qWarning() << "path" << path << "contains the invalid character" << *invalidChar;
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: path \"" << qPrintable(path) << "\" contains the invalid character " << *invalidChar << "\n";
 			return false;
 		}
 
-		return QDir(rootPath).mkpath(path);
+		std::cout << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: creating path \"" << qPrintable(path) << "\" in \"" << qPrintable(rootPath) << "\"\n";
+
+		if(!QDir(rootPath).mkpath(path)) {
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: failed to create path \"" << qPrintable(path) << "\" in \"" << qPrintable(rootPath) << "\"\n";
+			return false;
+		}
+
+		return true;
 	}
 
 
@@ -352,7 +370,7 @@ namespace Qonvince {
 		Application * app(qonvinceApp);
 
 		if(app->m_settings.singleInstance()) {
-			if(!Detail::runChecker.tryToRun()) {
+			if(!SingleInstanceGuard{QStringLiteral("blarglefangledungle")}.tryToRun()) {
 				std::cerr << "Qonvince is already running.\n";
 				return 0;
 			}
@@ -363,7 +381,7 @@ namespace Qonvince {
 		auto argsEnd = args.cend();
 
 		if(argsEnd != std::find_if(args.cbegin(), argsEnd, [](const auto & arg) {
-				return "-m" == arg || "--minimised" == arg;
+				return QStringLiteral("-m") == arg || QStringLiteral("--minimised") == arg;
 			})) {
 			forceStartMinimised = true;
 		}
@@ -380,10 +398,10 @@ namespace Qonvince {
 				QCA::SecureArray pw = dlg.password().toUtf8();
 
 				if(pw.isEmpty()) {
-					qWarning() << "passphrase is empty";
+					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: passphrase is empty\n";
 				}
 				else if(8 > pw.size()) {
-					qWarning() << "passphrase is too short";
+					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: passphrase is too short\n";
 				}
 				else {
 					qonvinceApp->m_cryptPassphrase = pw;
@@ -395,7 +413,7 @@ namespace Qonvince {
 					}
 
 					qonvinceApp->m_cryptPassphrase.clear();
-					qWarning() << "failed to read code settings - likely incorrect passphrase";
+					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: failed to read code settings - likely incorrect passphrase\n";
 				}
 
 				// we can only get here if the passphrase was not correct
@@ -469,12 +487,12 @@ namespace Qonvince {
 	bool Application::readApplicationSettings() {
 		QSettings settings;
 
-		settings.beginGroup("mainwindow");
+		settings.beginGroup(QStringLiteral("mainwindow"));
 		m_mainWindow.readSettings(settings);
 		settings.endGroup();
 
 		m_otpList.clear();
-		settings.beginGroup("application");
+		settings.beginGroup(QStringLiteral("application"));
 		m_settings.read(settings);
 
 		return true;
@@ -492,24 +510,31 @@ namespace Qonvince {
 		// effectively become inaccessible. if the passphrase is correct, or someone
 		// manages to trick this check, the passphrase must still correctly decrypt the
 		// seeds. in other words, bypassing this check does not grant access to seeds
-		if(settings.contains("crypt_check")) {
-			QCA::SecureArray value = QCA::hexToArray(settings.value("crypt_check").toString());
-			QCA::Cipher cipher("aes256", QCA::Cipher::CBC, QCA::Cipher::DefaultPadding, QCA::Decode, QCA::SymmetricKey(m_cryptPassphrase), QCA::InitializationVector(value.toByteArray().left(16)));
+		if(settings.contains(QStringLiteral("crypt_check"))) {
+			if(!QCA::isSupported("aes256-cbc")) {
+				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: AES256 is not supported\n";
+				showNotification(tr("AES256 encryption is required to keep your OTP seeds safe. This encryption algorithm is not available, therefore your settings cannot be read."));
+				return false;
+			}
+
+			QCA::SecureArray value = QCA::hexToArray(settings.value(QStringLiteral("crypt_check")).toString());
+
+			QCA::Cipher cipher(QStringLiteral("aes256"), QCA::Cipher::CBC, QCA::Cipher::DefaultPadding, QCA::Decode, QCA::SymmetricKey(m_cryptPassphrase), QCA::InitializationVector(value.toByteArray().left(16)));
 			cipher.process(value.toByteArray().mid(16));
 
 			if(!cipher.ok()) {
-				qDebug() << "decryption failure - incorrect passphrase";
+				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: decryption failure - incorrect passphrase\n";
 				return false;
 			}
 		}
 
 		m_otpList.clear();
 
-		settings.beginGroup("codes");
-		int n = settings.value("code_count", 0).toInt();
+		settings.beginGroup(QStringLiteral("codes"));
+		int n = settings.value(QStringLiteral("code_count"), 0).toInt();
 
 		for(int i = 0; i < n; ++i) {
-			settings.beginGroup(QString("code-%1").arg(i));
+			settings.beginGroup(QStringLiteral("code-%1").arg(i));
 			std::unique_ptr<Otp> otp = Otp::fromSettings(settings, m_cryptPassphrase);
 
 			if(otp) {
@@ -517,7 +542,7 @@ namespace Qonvince {
 				addOtp(std::move(otp));
 			}
 			else {
-				qWarning() << "failed to read code" << i;
+				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: failed to read code" << i << "\n";
 			}
 
 			settings.endGroup();
@@ -527,51 +552,60 @@ namespace Qonvince {
 	}
 
 
-	void Application::writeSettings() const {
+	void Application::writeSettings() {
 		QSettings settings;
+		bool writeOtpDetails = QCA::isSupported("aes256-cbc");
 
-		// this "random" string in the settings will, when read, indicate whether the crypt key is correct
-		{
-			// use length of passphrase so that a truncated passphrase can never pass the check
-			int l = (2 * m_cryptPassphrase.size()) + (qrand() % 20);
-			QByteArray random(l, 0);
+		if(!writeOtpDetails) {
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: AES256 is not supported\n";
+			showNotification(tr("AES256 encryption is required to keep your OTP seeds safe. This encryption algorithm is not available, therefore your OTP settings cannot be saved."));
+		}
+		else {
+			// this "random" string in the settings will, when read, indicate whether the crypt key is correct
+			{
+				// use length of passphrase so that a truncated passphrase can never pass the check
+				int l = (2 * m_cryptPassphrase.size()) + (qrand() % 20);
+				QByteArray random(l, 0);
 
-			while(0 < l) {
-				l--;
-				random[l] = 'a' + (qrand() % 26);
+				while(0 < l) {
+					l--;
+					random[l] = 'a' + (qrand() % 26);
+				}
+
+				QCA::SymmetricKey key(m_cryptPassphrase);
+				QCA::InitializationVector initVec(16);
+				QCA::Cipher cipher(QStringLiteral("aes256"), QCA::Cipher::CBC, QCA::Cipher::DefaultPadding, QCA::Encode, key, initVec);
+				settings.setValue(QStringLiteral("crypt_check"), QCA::arrayToHex(initVec.toByteArray() + cipher.process(random).toByteArray()));
+
+				settings.beginGroup(QStringLiteral("codes"));
+				settings.remove(QStringLiteral(""));  // remove all settings in "codes" group to ensure file doesn't contain lingering old codes
+				settings.setValue(QStringLiteral("code_count"), static_cast<int>(m_otpList.size()));
+
+				auto i = 0;
+				for(const auto & otp : m_otpList) {
+					// TODO make this an assert
+					if(!otp) {
+						std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: OTP #" << i << "is null!\n";
+						++i;
+						continue;
+					}
+
+					settings.beginGroup(QStringLiteral("code-%1").arg(i));
+					otp->writeSettings(settings, m_cryptPassphrase);
+					settings.endGroup();
+					++i;
+				}
+
+				settings.endGroup();
 			}
-
-			QCA::SymmetricKey key(m_cryptPassphrase);
-			QCA::InitializationVector initVec(16);
-			QCA::Cipher cipher("aes256", QCA::Cipher::CBC, QCA::Cipher::DefaultPadding, QCA::Encode, key, initVec);
-			settings.setValue("crypt_check", QCA::arrayToHex(initVec.toByteArray() + cipher.process(random).toByteArray()));
 		}
 
-		auto n = m_otpList.size();
-
-		settings.beginGroup("application");
+		settings.beginGroup(QStringLiteral("application"));
 		m_settings.write(settings);
 		settings.endGroup();
 
-		settings.beginGroup("mainwindow");
+		settings.beginGroup(QStringLiteral("mainwindow"));
 		m_mainWindow.writeSettings(settings);
-		settings.endGroup();
-
-		settings.beginGroup("codes");
-		settings.setValue("code_count", static_cast<int>(n));
-
-		auto i = 0;
-		for(const auto & otp : m_otpList) {
-			if(!otp) {
-				qWarning() << "OTP #" << i << "is null!";
-				continue;
-			}
-
-			settings.beginGroup(QString("code-%1").arg(i));
-			otp->writeSettings(settings, m_cryptPassphrase);
-			settings.endGroup();
-		}
-
 		settings.endGroup();
 	}
 

@@ -17,39 +17,13 @@
  * along with Qonvince. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/** \file passwordwidget.cpp
-  * \author Darren Edale
-  * \date November 2016
-  *
-  * \brief Implementation of the PasswordWidget class.
-  */
-
-#include "src/passwordwidget.h"
-#include "ui_passwordwidget.h"
+#include <iostream>
+#include "algorithms.h"
 
 
-namespace Qonvince {
+int main(int argc, char * argv[]) {
+	(void) argc;
+	(void) argv;
 
-
-	PasswordWidget::PasswordWidget(QWidget * parent)
-	: QWidget(parent),
-	  m_ui{std::make_unique<Ui::PasswordWidget>()} {
-		m_ui->setupUi(this);
-		connect(m_ui->password, &QLineEdit::textEdited, this, &PasswordWidget::passwordChanged);
-	}
-
-
-	PasswordWidget::~PasswordWidget() = default;
-
-
-	QString PasswordWidget::password() const {
-		return m_ui->password->text();
-	}
-
-
-	void PasswordWidget::setPassword(const QString & pw) {
-		m_ui->password->setText(pw);
-	}
-
-
-}  // namespace Qonvince
+	return 0;
+}

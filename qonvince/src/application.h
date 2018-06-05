@@ -72,7 +72,7 @@ namespace Qonvince {
 		};
 
 		Application(int & argc, char ** argv);
-		virtual ~Application();
+		~Application() override;
 
 		static DesktopEnvironment desktopEnvironment();
 
@@ -140,8 +140,10 @@ namespace Qonvince {
 		void otpAdded(Otp *);
 		void otpAdded(int, Otp *);
 
-		// Otp object has been removed but not (yet) destroyed
-		void otpRemoved(Otp *);
+		// Otp object has been removed. if the slot is connected using a direct connection
+		// the Otp object has not yet been destroyed; if it is used in a queued connection
+		// it has been destroyed and MUST NOT BE DEREFERENCED
+		//		void otpRemoved(Otp *);
 		void otpRemoved(int);
 
 		void otpChanged(Otp *);
@@ -154,7 +156,7 @@ namespace Qonvince {
 		void readQrCodeFrom(const QString & fileName);
 		bool readApplicationSettings();
 		bool readCodeSettings();
-		void writeSettings() const;
+		void writeSettings();
 		void showAboutDialogue();
 		void showSettingsWidget();
 		void clearClipboard();
@@ -165,8 +167,9 @@ namespace Qonvince {
 
 	private:
 		using DisplayPluginFactory = PluginFactory<LibQonvince::OtpDisplayPlugin>;
-		static bool ensureDirectory(const QStandardPaths::StandardLocation & location, const QString & path);
+		static bool ensureDirectory(QStandardPaths::StandardLocation location, const QString & path);
 
+		QCA::Initializer m_qcaInitializer;
 		Settings m_settings;
 		MainWindow m_mainWindow;
 		QSystemTrayIcon m_trayIcon;

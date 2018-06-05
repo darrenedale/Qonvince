@@ -30,7 +30,7 @@ namespace {
 	}
 }  // namespace
 
-#define LIBQONVINCE_SL_DLOPEN(path) LoadLibrary(static_cast<LPCWSTR>(stringToWString(path).c_str()))
+#define LIBQONVINCE_SL_DLOPEN(path) LoadLibraryW(static_cast<LPCWSTR>(stringToWString(path).c_str()))
 #define LIBQONVINCE_SL_DLSYM(lib, sym) GetProcAddress((lib), (sym))
 #define LIBQONVINCE_SL_DLCLOSE(lib) FreeLibrary((lib))
 #define LIBQONVINCE_SL_DLERROR ""

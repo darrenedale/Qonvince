@@ -5,3 +5,6 @@ include(../test_common.pri)
 #    src/algorithms.cpp \
 
 # HEADERS  += \
+
+SOURCES += \
+    src/algorithms.cpp

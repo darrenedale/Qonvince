@@ -67,13 +67,13 @@ namespace Qonvince {
 		std::unique_ptr<Otp> createOtp() const;
 
 	private:
-		Otp::CodeType m_type;
 		QString m_name;
 		QString m_issuer;
 		QByteArray m_seed;
 		int m_interval;
 		int m_counter;
 		int m_digits;
+		Otp::CodeType m_type;
 		time_t m_baselineTime;
 	};
 

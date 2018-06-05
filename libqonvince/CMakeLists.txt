@@ -23,9 +23,14 @@ set_target_properties(libqonvince_static PROPERTIES
 	PROJECT_LABEL "LibQonvince (Static)"
 )
 
-# TODO -ldl is only required on unix-like OS
-target_link_libraries(libqonvince_shared dl Qt5::Core)
-target_link_libraries(libqonvince_static dl Qt5::Core)
-
-install(TARGETS libqonvince_shared LIBRARY DESTINATION usr/lib COMPONENT libraries)
-install(TARGETS libqonvince_static ARCHIVE DESTINATION usr/lib COMPONENT libraries)
+if(WIN32)
+	target_link_libraries(libqonvince_shared Qt5::Core)
+	target_link_libraries(libqonvince_static Qt5::Core)
+	install(TARGETS libqonvince_shared RUNTIME DESTINATION "." LIBRARY DESTINATION "." COMPONENT libraries)
+	install(TARGETS libqonvince_static ARCHIVE DESTINATION "." COMPONENT libraries)
+else()
+	target_link_libraries(libqonvince_shared Qt5::Core)
+	target_link_libraries(libqonvince_static Qt5::Core)
+	install(TARGETS libqonvince_shared LIBRARY DESTINATION usr/lib COMPONENT libraries)
+	install(TARGETS libqonvince_static ARCHIVE DESTINATION usr/lib COMPONENT libraries)
+endif()

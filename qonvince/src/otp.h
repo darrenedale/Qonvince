@@ -22,7 +22,6 @@
 
 #include <memory>
 
-#include <QDebug>
 #include <QString>
 #include <QByteArray>
 #include <QStringList>
@@ -65,11 +64,11 @@ namespace Qonvince {
 			Base32
 		};
 
-		explicit Otp(const CodeType & type = CodeType::Totp, QObject * parent = nullptr);
-		Otp(const CodeType & type, const QString & issuer, const QString & name, const QByteArray & seed, const SeedType & seedType = SeedType::Plain, QObject * parent = nullptr);
-		Otp(const CodeType & type, const QString & name, const QByteArray & seed, const SeedType & seedType = SeedType::Plain, QObject * parent = nullptr);
-		Otp(const CodeType & type, const QByteArray & seed, const SeedType & seedType = SeedType::Plain, QObject * parent = nullptr);
-		virtual ~Otp();
+		explicit Otp(CodeType type = CodeType::Totp, QObject * parent = nullptr);
+		Otp(CodeType type, const QString & issuer, const QString & name, const QByteArray & seed, SeedType seedType = SeedType::Plain, QObject * parent = nullptr);
+		Otp(CodeType type, const QString & name, const QByteArray & seed, SeedType seedType = SeedType::Plain, QObject * parent = nullptr);
+		Otp(CodeType type, const QByteArray & seed, SeedType seedType = SeedType::Plain, QObject * parent = nullptr);
+		~Otp() override;
 
 		static std::unique_ptr<Otp> fromSettings(const QSettings & settings, const QCA::SecureArray & cryptKey);
 
@@ -89,7 +88,7 @@ namespace Qonvince {
 			return m_icon;
 		}
 
-		QByteArray seed(const SeedType & seedType = SeedType::Plain) const;
+		QByteArray seed(SeedType seedType = SeedType::Plain) const;
 
 		inline int interval() const {
 			return m_interval;
@@ -180,15 +179,15 @@ namespace Qonvince {
 		void newCodeGenerated(QString);
 
 	protected:
-		virtual void timerEvent(QTimerEvent *);
+		void timerEvent(QTimerEvent *) override;
 
 	public Q_SLOTS:
 		void setType(Otp::CodeType);
 		void setName(const QString &);
 		void setIssuer(const QString &);
 		void setIcon(const QIcon &);
-		bool setSeed(const QByteArray &, const SeedType & = SeedType::Plain);
-		void setInterval(const int &);
+		bool setSeed(const QByteArray &, SeedType = SeedType::Plain);
+		void setInterval(int);
 
 		bool setDisplayPluginName(const QString & pluginName);
 
@@ -238,7 +237,7 @@ namespace Qonvince {
 			setBaselineTime(time.toUTC().toMSecsSinceEpoch() / 1000);
 		}
 
-		void setBaselineTime(const qint64 &);
+		void setBaselineTime(qint64);
 		void resynchroniseRefreshTimer();
 		void refreshCode();
 
@@ -246,13 +245,11 @@ namespace Qonvince {
 		void internalRefreshCode();
 
 	protected:
-		static QString totp(const QByteArray & seed, LibQonvince::OtpDisplayPlugin * plugin, time_t base = 0, int interval = 30);
-		static QString hotp(const QByteArray & seed, LibQonvince::OtpDisplayPlugin * plugin, quint64 counter);
+		static QByteArray totp(const QByteArray & seed, time_t base = 0, int interval = 30);
+		static QByteArray hotp(const QByteArray & seed, uint64_t counter);
 		static QByteArray hmac(const QByteArray & key, const QByteArray & message);
 
 	private:
-		// TODO consider reordering members to fix alignment issues
-		CodeType m_type;
 		QString m_issuer;
 		QString m_name;
 		QIcon m_icon;
@@ -261,18 +258,18 @@ namespace Qonvince {
 		// icon so that it persists between invokations of Qonvince
 		QString m_iconFileName;
 
+		QString m_displayPluginName;
 		mutable Base32 m_seed;
-		bool m_revealOnDemand;
 		quint64 m_counter;
 		QString m_currentCode;
-		int m_interval;
 		qint64 m_baselineTime;
+		int m_interval;
+		CodeType m_type;
+		std::unique_ptr<QBasicTimer> m_refreshTimer;
+		bool m_revealOnDemand;
 		bool m_isRevealed;
 
-		std::unique_ptr<QBasicTimer> m_refreshTimer;
 		bool m_resync;
-
-		QString m_displayPluginName;
 	};
 
 }  // namespace Qonvince

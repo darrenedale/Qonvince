@@ -23,7 +23,6 @@
 #include <cerrno>
 
 #include <QtGlobal>
-#include <QDebug>
 
 
 namespace Qonvince {
@@ -62,7 +61,7 @@ namespace Qonvince {
 		static EncodeFunction QRcode_encodeString = nullptr;
 		static FreeFunction QRcode_free = nullptr;
 
-		QrCode ret = {false, 0, {}};
+		QrCode ret = {{}, 0, false};
 
 		if(nullptr == QRcode_encodeString) {
 			Symbol sym;
@@ -82,7 +81,7 @@ namespace Qonvince {
 		}
 
 		// (data, version = 1, level = 0 (lowest), mode = 2 (8-bit mode), caseSensitive = 1 )
-		QRcodeData * qr = QRcode_encodeString(data.toStdString().c_str(), 1, Zero, Two, 1);
+		QRcodeData * qr = QRcode_encodeString(data.toUtf8().constData(), 1, Zero, Two, 1);
 
 		if(!qr) {
 			return ret;

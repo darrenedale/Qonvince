@@ -44,27 +44,20 @@ namespace Qonvince {
 		// these connections ensure that the model emits the appropriate
 		// signals when this occurs
 		// the model itself is read-only
-		m_appConnections.push_back(connect(qonvinceApp, qOverload<int, Otp *>(&Application::otpAdded), [this](int index) {
+		connect(qonvinceApp, qOverload<int, Otp *>(&Application::otpAdded), this, [this](int index) {
 			beginInsertRows({}, index, index);
 			endInsertRows();
-		}));
+		});
 
-		m_appConnections.push_back(connect(qonvinceApp, qOverload<int>(&Application::otpRemoved), [this](int index) {
+		connect(qonvinceApp, qOverload<int>(&Application::otpRemoved), this, [this](int index) {
 			beginRemoveRows({}, index, index);
 			endRemoveRows();
-		}));
+		});
 
-		m_appConnections.push_back(connect(qonvinceApp, qOverload<int>(&Application::otpChanged), [this](int otpIndex) {
+		connect(qonvinceApp, qOverload<int>(&Application::otpChanged), this, [this](int otpIndex) {
 			const auto itemIndex = index(otpIndex, 0);
 			Q_EMIT dataChanged(itemIndex, itemIndex);
-		}));
-	}
-
-
-	OtpListModel::~OtpListModel() {
-		for(const auto & connection : m_appConnections) {
-			disconnect(connection);
-		};
+		});
 	}
 
 
@@ -89,7 +82,7 @@ namespace Qonvince {
 				return data(index, LabelRole);
 
 			case Qt::DisplayRole:
-				return static_cast<QString>(data(index, LabelRole).toString() % QStringLiteral(" ") % data(index, CodeRole).toString());
+				return static_cast<QString>(data(index, LabelRole).toString() % ' ' % data(index, CodeRole).toString());
 
 			case OtpRole: {
 				QVariant ret;
@@ -110,13 +103,13 @@ namespace Qonvince {
 				switch(qonvinceApp->settings().codeLabelDisplayStyle()) {
 					case Settings::CodeLabelDisplayStyle::IssuerOnly:
 						return otp->issuer();
-						
+
 					case Settings::CodeLabelDisplayStyle::NameOnly:
 						return otp->name();
-						
+
 					case Settings::CodeLabelDisplayStyle::IssuerAndName: {
-						auto issuer = otp->issuer();
-						auto name = otp->name();
+						const auto & issuer = otp->issuer();
+						const auto & name = otp->name();
 
 						if(issuer.isEmpty()) {
 							return name;
@@ -163,4 +156,6 @@ namespace Qonvince {
 	int OtpListModel::rowCount(const QModelIndex &) const {
 		return qonvinceApp->otpCount();
 	}
+
+
 }  // namespace Qonvince

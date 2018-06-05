@@ -5,6 +5,8 @@
 
 #include "plugininfo.h"
 
+class QByteArray;
+
 #define LIBQONVINCE_OTPDISPLAYPLUGIN_PLUGIN_API_VERSION 1
 #define LIBQONVINCE_OTPDISPLAYPLUGIN_PLUGIN_TYPE "OtpDisplayPlugin"
 
@@ -14,6 +16,12 @@ namespace LibQonvince {
 	public:
 		static const QString PlugnTypeName;
 		static constexpr const int ApiVersion = LIBQONVINCE_OTPDISPLAYPLUGIN_PLUGIN_API_VERSION;
+
+		OtpDisplayPlugin() = default;
+		OtpDisplayPlugin(const OtpDisplayPlugin &) = delete;
+		OtpDisplayPlugin(OtpDisplayPlugin &&) = delete;
+		OtpDisplayPlugin & operator=(const OtpDisplayPlugin &) = delete;
+		OtpDisplayPlugin & operator=(OtpDisplayPlugin &&) = delete;
 
 		virtual ~OtpDisplayPlugin();
 
@@ -32,7 +40,7 @@ namespace LibQonvince {
 	using OtpDisplayPluginInstanceFunction = OtpDisplayPlugin * (*) ();
 	}
 
-#define LIBQONVINCE_ANALYSIS_OTPDISPLAYPLUGIN            \
+#define LIBQONVINCE_OTPDISPLAYPLUGIN                     \
 public:                                                  \
 	virtual const QString & name() const override;        \
 	virtual const QString & displayName() const override; \

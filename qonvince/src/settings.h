@@ -191,15 +191,15 @@ namespace Qonvince {
 		}
 
 	private:
+		CodeLabelDisplayStyle m_codeLabelDisplayStyle;
+		int m_clipboardClearInterval;
+		int m_revealTimeout;
 		bool m_singleInstance;
 		bool m_quitOnMainWindowClosed;
 		bool m_startMinimised;
 		bool m_copyCodeOnClick;
 		bool m_hideOnCodeCopyClick;
 		bool m_clearClipboardAfterInterval;
-		int m_clipboardClearInterval;
-		CodeLabelDisplayStyle m_codeLabelDisplayStyle;
-		int m_revealTimeout;
 	};
 }  // namespace Qonvince
 

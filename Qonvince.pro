@@ -2,7 +2,8 @@ TEMPLATE = subdirs
 
 SUBDIRS = libqonvince \
           qonvince \
-          test \
+          plugins \
+#          test \
 
 CONFIG += ordered
 

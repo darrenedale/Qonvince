@@ -215,19 +215,23 @@ namespace LibQonvince {
 				std::fill_n(std::back_inserter(m_plain), 5 - remainder, 0);
 			}
 
-			auto paddedLen = len + (5 - remainder);
+			unsigned int paddedLen = len + (5 - remainder);
 			unsigned int pos = 0;
 
 			while(pos < paddedLen) {
-				uint64_t bits = 0x00 | ((uint64_t(m_plain[pos])) << 32) |
-									 ((uint64_t(m_plain[pos + 1])) << 24) |
-									 ((uint64_t(m_plain[pos + 2])) << 16) |
-									 ((uint64_t(m_plain[pos + 3])) << 8) |
-									 ((uint64_t(m_plain[pos + 4])));
-				std::array<ByteT, 8> out;
+				uint64_t bits = 0x00 | ((static_cast<uint64_t>(m_plain[pos])) << 32) |
+									 ((static_cast<uint64_t>(m_plain[pos + 1])) << 24) |
+									 ((static_cast<uint64_t>(m_plain[pos + 2])) << 16) |
+									 ((static_cast<uint64_t>(m_plain[pos + 3])) << 8) |
+									 ((static_cast<uint64_t>(m_plain[pos + 4])));
 
-				for(int i = 7; i >= 0; --i) {
-					out[static_cast<std::size_t>(i)] = Dictionary[bits & 0x1f];
+				// TODO do dict lookup directly into m_encoded rather than via out
+				std::array<ByteT, 8> out;
+				auto * bytePtr = std::addressof(out.back());
+
+				for(typename decltype(out)::size_type i = 0; i < out.size(); ++i) {
+					*bytePtr = Dictionary[bits & 0x1f];
+					--bytePtr;
 					bits = bits >> 5;
 				}
 

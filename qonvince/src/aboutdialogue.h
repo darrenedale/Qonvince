@@ -32,12 +32,12 @@ namespace Qonvince {
 
 	class AboutDialogue
 	: public QDialog {
-			// Q_OBJECT macro technically only necessary if signals/slots/properties defined
-			// Q_OBJECT
+		// technically only necessary if signals/slots/properties defined
+		// Q_OBJECT
 
 	public:
 		explicit AboutDialogue(QWidget * parent = nullptr);
-		~AboutDialogue();
+		~AboutDialogue() override;
 
 	private:
 		std::unique_ptr<Ui::AboutDialogue> m_ui;

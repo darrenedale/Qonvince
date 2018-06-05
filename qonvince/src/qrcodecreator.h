@@ -54,8 +54,8 @@ namespace Qonvince {
 		void paint(QPainter & painter, const QSize & size, const QColor & fg = DefaultForeground, const QColor & bg = DefaultBackground);
 
 	private:
-		QString m_data;
 		static LibQrEncode s_libQrEncode;
+		QString m_data;
 	};
 
 }  // namespace Qonvince

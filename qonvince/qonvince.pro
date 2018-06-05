@@ -1,12 +1,9 @@
 QT       += core widgets
-
-lessThan(QT_MAJOR_VERSION, 5) {
-    error("Qt version 5 is required")
-}
-
 TARGET = qonvince
 TEMPLATE = app
 CONFIG += c++14
+
+include(../common.pri)
 
 WITH_NETWORK_ACCESS {
     QT += network
@@ -16,45 +13,28 @@ else {
     DEFINES -= WITH_NETWORK_ACCESS
 }
 
-*-g++ {
-    QMAKE_CXXFLAGS_RELEASE += -O3
+include(../libqonvince.pri)
+
+LIBS += -lqca-qt5 -lqonvince
+
+win32:CONFIG(release, debug|release) {
+    LIBS += -L$$OUT_PWD/../libqonvince/release/ -lqonvince
 }
-
-*-clang {
-    QMAKE_CXXFLAGS_RELEASE += -O3
-}
-
-*-msvc* {
-    QMAKE_CXXFLAGS_RELEASE += /O3
-}
-
-
-
-INCLUDEPATH += $$PWD/../libqonvince
-DEPENDPATH += $$PWD/../libqonvince
-
-win32 {
-    LIBS += -lqca-qt5 -L$$OUT_PWD/../libqonvince/release/ -lqonvince
+else:win32:CONFIG(debug, debug|release) {
+    LIBS += -L$$OUT_PWD/../libqonvince/debug/ -lqonvince
 }
 
 unix {
-    LIBS += -ldl \
-            -L/usr/lib/x86_64-linux-gnu/ \
-            -lqca-qt5
+    LIBS += -L$$OUT_PWD/../libqonvince/ \
+            -ldl \
+            -L/usr/lib/x86_64-linux-gnu/
 
     INCLUDEPATH += /usr/include/Qca-qt5
-    DEPENDPATH += /usr/include/Qca-qt5
 }
 
 macx {
     TARGET = Qonvince
 }
-
-win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../libqonvince/release/ -lqonvince
-else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../libqonvince/debug/ -lqonvince
-else:unix: LIBS += -L$$OUT_PWD/../libqonvince/ -lqonvince
-
-INCLUDEPATH += ../libqonvince/src
 
 SOURCES +=\
 	src/passwordwidget.cpp \
@@ -105,6 +85,7 @@ HEADERS  += \
 	src/qtstdhash.h \
 	src/settings.h \
 	src/settingswidget.h \
+    src/qtendianextra.h
 
 FORMS += \
  	ui/aboutdialogue.ui \

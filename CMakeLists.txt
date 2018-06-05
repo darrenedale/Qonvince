@@ -7,7 +7,7 @@ set(CMAKE_INSTALL_PREFIX "/usr")
 add_subdirectory(qonvince)
 add_subdirectory(libqonvince)
 add_subdirectory(plugins)
-#add_subdirectory(tests)
+add_subdirectory(test)
 
 # cpack config
 include(InstallRequiredSystemLibraries)
@@ -59,12 +59,12 @@ set(CPACK_PACKAGE_INSTALL_DIRECTORY "Qonvince ${CPACK_PACKAGE_VERSION_MAJOR}.${C
 
 
 if(WIN32 AND NOT UNIX)
-  set(CPACK_GENERATOR "${CPACK_GENERATOR} NSIS")
+  set(CPACK_GENERATOR NSIS)
   # There is a bug in NSI that does not handle full unix paths properly. Make
   # sure there is at least one set of four (4) backlasshes.
   set(CPACK_PACKAGE_ICON "${CMAKE_CURRENT_SOURCE_DIR}/dist\\\\application_icon_32.png")
   set(CPACK_NSIS_INSTALLED_ICON_NAME "bin\\\\Qonvince.exe")
-  set(CPACK_NSIS_DISPLAY_NAME "${CPACK_PACKAGE_INSTALL_DIRECTORY} An OTP code generator")
+  set(CPACK_NSIS_DISPLAY_NAME "${CPACK_COMPONENT_APPLICATION_DISPLAY_NAME} An OTP code generator")
   set(CPACK_NSIS_HELP_LINK "http:\\\\\\\\www.my-project-home-page.org")
   set(CPACK_NSIS_URL_INFO_ABOUT "http:\\\\\\\\www.my-personal-home-page.com")
   set(CPACK_NSIS_CONTACT "me@my-personal-home-page.com")

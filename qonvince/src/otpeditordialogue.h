@@ -41,7 +41,7 @@ namespace Qonvince {
 	public:
 		explicit OtpEditorDialogue(QWidget * = nullptr);
 		explicit OtpEditorDialogue(Otp *, QWidget * = nullptr);
-		~OtpEditorDialogue();
+		~OtpEditorDialogue() override;
 
 		OtpEditor * editor();
 		Otp * otp();

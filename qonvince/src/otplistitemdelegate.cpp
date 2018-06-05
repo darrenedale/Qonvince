@@ -61,8 +61,8 @@ namespace Qonvince {
 		painter->setRenderHint(QPainter::Antialiasing, true);
 		painter->translate(option.rect.topLeft());
 		QRect itemRect({0, 0}, option.rect.size());
-		int height = itemRect.height();
-		int timerRectSize = static_cast<int>(height * Detail::OtpListItemDelegate::CountdownSizeRatio);
+		auto height = itemRect.height();
+		auto timerRectSize = static_cast<int>(height * Detail::OtpListItemDelegate::CountdownSizeRatio);
 		QRect iconRect({Detail::OtpListItemDelegate::SpacingSize, Detail::OtpListItemDelegate::SpacingSize}, Detail::OtpListItemDelegate::OtpIconSize);
 		QRectF timerRect({0.5 + itemRect.right() - timerRectSize - actionIconAreaWidth(), 0.5 + ((height - timerRectSize) / 2.0)}, QSize(timerRectSize, timerRectSize));
 		QRect codeRect({Detail::OtpListItemDelegate::OtpIconExtent + (2 * Detail::OtpListItemDelegate::SpacingSize), 0}, QPoint(static_cast<int>(timerRect.left()) - Detail::OtpListItemDelegate::SpacingSize - Detail::OtpListItemDelegate::SpacingSize, height - 1));

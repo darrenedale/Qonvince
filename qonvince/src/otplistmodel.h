@@ -42,14 +42,10 @@ namespace Qonvince {
 		static constexpr const int IsRevealedRole = Qt::UserRole + 13;
 
 		OtpListModel();
-		~OtpListModel();
 
-		QVariant headerData(int, Qt::Orientation, int) const override;
-		QVariant data(const QModelIndex &, int role) const override;
-		int rowCount(const QModelIndex &) const override;
-
-	private:
-		std::vector<QMetaObject::Connection> m_appConnections;
+		QVariant headerData(int section, Qt::Orientation orientation, int role) const override;
+		QVariant data(const QModelIndex & idx, int role) const override;
+		int rowCount(const QModelIndex & parent) const override;
 	};
 
 }  // namespace Qonvince

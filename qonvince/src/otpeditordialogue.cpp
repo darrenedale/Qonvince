@@ -26,14 +26,6 @@
 #include "otpeditordialogue.h"
 #include "ui_otpeditordialogue.h"
 
-#include <QString>
-#include <QFileDialog>
-#include <QMessageBox>
-
-#include "application.h"
-#include "otpqrcodereader.h"
-#include "qrcodecreator.h"
-
 
 namespace Qonvince {
 

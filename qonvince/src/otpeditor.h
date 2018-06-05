@@ -44,7 +44,7 @@ namespace Qonvince {
 	public:
 		explicit OtpEditor(QWidget * = nullptr);
 		explicit OtpEditor(Otp *, QWidget * = nullptr);
-		virtual ~OtpEditor();
+		~OtpEditor() override;
 
 		QString name() const;
 		QString issuer() const;
@@ -60,7 +60,7 @@ namespace Qonvince {
 
 		void setName(const QString &);
 		void setIssuer(const QString &);
-		void setType(const Otp::CodeType &);
+		void setType(Otp::CodeType);
 		void setRevealOnDemand(bool);
 
 		void chooseIcon();
@@ -71,8 +71,8 @@ namespace Qonvince {
 		bool createBarcode(const QString &);
 
 	protected:
-		virtual void dragEnterEvent(QDragEnterEvent *);
-		virtual void dropEvent(QDropEvent *);
+		void dragEnterEvent(QDragEnterEvent *) override;
+		void dropEvent(QDropEvent *) override;
 
 	Q_SIGNALS:
 		void typeChanged(Otp::CodeType);

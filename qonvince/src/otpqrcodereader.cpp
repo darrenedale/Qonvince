@@ -26,7 +26,6 @@
 
 #include "otpqrcodereader.h"
 
-#include <QDebug>
 #include <QRegExp>
 #include <QRegularExpression>
 
@@ -43,7 +42,7 @@ namespace Qonvince {
 
 	bool OtpQrCodeReader::decode() {
 		/* otpauth://{type}/{issuer}:{name}?secret={secret}[&issuer={issuer}][&counter={counter}][&digits={digits}][&algorithm={algorithm}][&period={period}] */
-		static QRegularExpression urlRegex("^otpauth://([^/]+)/(([^:]+):)?([^?]+)\\?(.*)$");
+		static QRegularExpression urlRegex(QStringLiteral("^otpauth://([^/]+)/(([^:]+):)?([^?]+)\\?(.*)$"));
 
 		if(!QrCodeReader::decode()) {
 			return false;
@@ -53,17 +52,17 @@ namespace Qonvince {
 		auto urlMatch = urlRegex.match(code);
 
 		if(!urlMatch.hasMatch()) {
-			qDebug() << "code" << code << "does not match required pattern" << urlRegex.pattern();
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: code \"" << qPrintable(code) << "\" does not match required pattern \"" << urlRegex.pattern() << "\"\n";
 			return false;
 		}
 
 		auto typeString = urlMatch.captured(1).toLower();
 
-		if("totp" != typeString && "hotp" != typeString) {
+		if(QStringLiteral("totp") != typeString && QStringLiteral("hotp") != typeString) {
 			return false;
 		}
 
-		Otp::CodeType type = (typeString == "hotp" ? Otp::CodeType::Hotp : Otp::CodeType::Totp);
+		Otp::CodeType type = (QStringLiteral("hotp") == typeString ? Otp::CodeType::Hotp : Otp::CodeType::Totp);
 		QString issuer = QString::fromUtf8(QByteArray::fromPercentEncoding(urlMatch.captured(3).toUtf8()));
 		QString name = QString::fromUtf8(QByteArray::fromPercentEncoding(urlMatch.captured(4).toUtf8()));
 		QString seed;
@@ -71,11 +70,13 @@ namespace Qonvince {
 		int counter = 0;
 		int period = 30;
 
-		for(const auto & param : urlMatch.captured(5).split("&")) {
+		const auto params = urlMatch.captured(5).split('&');
+
+		for(const auto & param : params) {
 			auto equalsPos = param.indexOf('=');
 
 			if(-1 == equalsPos) {
-				std::cerr << "invalid parameter in URL: \"" << param << "\"\n";
+				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << R"(]: invalid parameter ")" << param << "\" in URL\n";
 				continue;
 			}
 
@@ -87,7 +88,7 @@ namespace Qonvince {
 			}
 			else if(0 == paramKey.compare(QStringLiteral("issuer"), Qt::CaseInsensitive)) {
 				if(!issuer.isEmpty() && paramValue != issuer) {
-					qWarning() << "\"issuer\" parameter" << paramKey << "does not agree with issuer part of URI" << issuer << ". ignoring parameter";
+					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << R"(]: "issuer" parameter ")" << qPrintable(paramKey.toString()) << R"(" does not agree with issuer part of URI ")" << qPrintable(issuer) << "\". ignoring parameter\n";
 				}
 				else {
 					issuer = QString::fromUtf8(QByteArray::fromPercentEncoding(paramValue.toUtf8()));
@@ -101,7 +102,7 @@ namespace Qonvince {
 					counter = myCounter;
 				}
 				else {
-					qWarning() << "invalid \"counter\" parameter:" << paramValue;
+					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << R"(]: invalid "counter" parameter:)" << paramValue;
 				}
 			}
 			else if(0 == paramKey.compare(QStringLiteral("digits"), Qt::CaseInsensitive)) {
@@ -111,7 +112,7 @@ namespace Qonvince {
 					digits = myDigits;
 				}
 				else {
-					qWarning() << "invalid \"digits\" parameter:" << paramValue;
+					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << R"(]: invalid "digits" parameter:)" << paramValue;
 				}
 			}
 			else if(0 == paramKey.compare(QStringLiteral("period"), Qt::CaseInsensitive)) {
@@ -121,16 +122,16 @@ namespace Qonvince {
 					period = myPeriod;
 				}
 				else {
-					qWarning() << "invalid \"period\" parameter:" << paramValue;
+					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << R"(]: invalid "period" parameter:)" << paramValue;
 				}
 			}
 			else if(0 == paramKey.compare(QStringLiteral("algorithm"), Qt::CaseInsensitive)) {
-				qWarning() << "\"algorithm\" parameter found but not yet supported. algorithm is" << paramValue << "; only SHA1 supported";
+				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << R"(]: "algorithm" parameter found but not yet supported. algorithm is ")" << paramValue << "\"; only SHA1 supported\n";
 			}
 		}
 
 		if(seed.isEmpty()) {
-			qCritical() << "no seed found in OTPAUTH:// URL";
+			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: no seed found in OTPAUTH:// URL\n";
 			return false;
 		}
 

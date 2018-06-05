@@ -34,42 +34,41 @@ namespace Qonvince {
 
 	class SettingsWidget
 	: public QWidget {
-			Q_OBJECT
+		Q_OBJECT
 
-		public:
-			explicit SettingsWidget(Settings &, QWidget * = nullptr);
-			~SettingsWidget();
+	public:
+		explicit SettingsWidget(Settings &, QWidget * = nullptr);
+		~SettingsWidget() override;
 
-			bool singleInstance() const;
-			bool quitOnMainWindowClose() const;
-			bool startMinimised() const;
-			bool copyCodeOnClick() const;
-			bool hideOnCodeCopyClick() const;
-			bool clearClipboardAfterInterval() const;
-			int clipboardClearInterval() const;
-			Settings::CodeLabelDisplayStyle codeLabelDisplayStyle() const;
-			int codeRevealTimeout() const;
+		bool singleInstance() const;
+		bool quitOnMainWindowClose() const;
+		bool startMinimised() const;
+		bool copyCodeOnClick() const;
+		bool hideOnCodeCopyClick() const;
+		bool clearClipboardAfterInterval() const;
+		int clipboardClearInterval() const;
+		Settings::CodeLabelDisplayStyle codeLabelDisplayStyle() const;
+		int codeRevealTimeout() const;
 
-		public Q_SLOTS:
-			void setSingleInstance(bool close);
-			void setQuitOnMainWindowClose(bool close);
-			void setStartMinimised(bool minimised);
-			void setCopyCodeOnClick(bool copy);
-			void setHideOnCodeCopyClick(bool hide);
-			void setClearClipboardAfterInterval(bool clear);
-			void setClipboardClearInterval(int interval);
-			void setCodeLabelDisplayStyle(Settings::CodeLabelDisplayStyle style);
-			void setCodeRevealTimeout(int timeout);
+	public Q_SLOTS:
+		void setSingleInstance(bool close);
+		void setQuitOnMainWindowClose(bool close);
+		void setStartMinimised(bool minimised);
+		void setCopyCodeOnClick(bool copy);
+		void setHideOnCodeCopyClick(bool hide);
+		void setClearClipboardAfterInterval(bool clear);
+		void setClipboardClearInterval(int interval);
+		void setCodeLabelDisplayStyle(Settings::CodeLabelDisplayStyle style);
+		void setCodeRevealTimeout(int timeout);
 
-		private Q_SLOTS:
-			void resyncWithSettings();
-			void onDisplayStyleWidgetChanged();
+	private Q_SLOTS:
+		void resyncWithSettings();
+		void onDisplayStyleWidgetChanged();
 
-		private:
-
-			std::unique_ptr<Ui::SettingsWidget> m_ui;
-			Settings & m_settings;
+	private:
+		std::unique_ptr<Ui::SettingsWidget> m_ui;
+		Settings & m_settings;
 	};
-}
+}  // namespace Qonvince
 
-#endif // QONVINCE_SETTINGSWIDGET_H
+#endif  // QONVINCE_SETTINGSWIDGET_H

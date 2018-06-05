@@ -28,7 +28,6 @@
 
 #include "otplistview.h"
 
-#include <QDebug>
 #include <QListView>
 #include <QApplication>
 #include <QMenu>
@@ -87,21 +86,22 @@ namespace Qonvince {
 		QListView::setModel(m_model.get());
 		QListView::setItemDelegate(m_delegate.get());
 
-		m_itemContextMenu.addAction(QIcon::fromTheme("document-edit"), tr("Edit"), this, &OtpListView::onEditActionTriggered);
+		m_itemContextMenu.addAction(QIcon::fromTheme(QStringLiteral("document-edit")), tr("Edit"), this, &OtpListView::onEditActionTriggered);
 		m_itemContextMenu.addAction(tr("Remove icon"), this, &OtpListView::onRemoveIconActionTriggered);
-		m_itemContextMenu.addAction(QIcon::fromTheme("edit-copy"), tr("Copy"), this, &OtpListView::onCopyActionTriggered);
-		m_itemContextMenu.addAction(QIcon::fromTheme("view-refresh", QIcon(":/icons/codeactions/refresh")), tr("Refresh now"), this, &OtpListView::onRefreshActionTriggered);
-		m_itemContextMenu.addAction(QIcon::fromTheme("list-remove", QIcon(":/icons/codeactions/remove")), tr("Remove"), this, &OtpListView::onRemoveActionTriggered);
+		m_itemContextMenu.addAction(QIcon::fromTheme(QStringLiteral("edit-copy")), tr("Copy"), this, &OtpListView::onCopyActionTriggered);
+		m_itemContextMenu.addAction(QIcon::fromTheme(QStringLiteral("view-refresh"), QIcon(QStringLiteral(":/icons/codeactions/refresh"))), tr("Refresh now"), this, &OtpListView::onRefreshActionTriggered);
+		m_itemContextMenu.addAction(QIcon::fromTheme(QStringLiteral("list-remove"), QIcon(QStringLiteral(":/icons/codeactions/remove"))), tr("Remove"), this, &OtpListView::onRemoveActionTriggered);
 
 		m_doubleClickWaitTimer.setInterval(qonvinceApp->styleHints()->mouseDoubleClickInterval());
 		m_doubleClickWaitTimer.setSingleShot(true);
 
+		// re: -Wclazy-connect-3arg-lambda, emmitter can't outlive captured this
 		connect(&m_doubleClickWaitTimer, &QTimer::timeout, [this]() {
 			if(m_receivedDoubleClickEvent) {
 				m_receivedDoubleClickEvent = false;
 			}
 			else {
-				QMouseEvent ev(QMouseEvent::MouseButtonRelease, mapFromGlobal(QCursor::pos()), Qt::LeftButton, Qt::LeftButton, 0);
+				QMouseEvent ev(QMouseEvent::MouseButtonRelease, mapFromGlobal(QCursor::pos()), Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
 				mouseClickEvent(&ev);
 			}
 
@@ -513,11 +513,31 @@ namespace Qonvince {
 		auto * otp = m_actionItemIndex.data(OtpListModel::OtpRole).value<Otp *>();
 
 		if(!otp) {
+			std::cerr << __PRETTY_FUNCTION__ << " (" << __LINE__ << "): remove triggered on invalid Otp\n";
 			return;
 		}
 
-		if(QMessageBox::Yes == QMessageBox::question(this, tr("%1: Remove code").arg(qApp->applicationName()), tr("Are you sure you wish to remove this code?"), QMessageBox::Yes | QMessageBox::No)) {
-			qonvinceApp->removeOtp(otp);
+		QString label;
+
+		switch(qonvinceApp->settings().codeLabelDisplayStyle()) {
+			case Settings::IssuerAndName:
+				label = otp->issuer() % ": " % otp->name();
+				break;
+
+			case Settings::NameOnly:
+				label = otp->name();
+				break;
+
+			case Settings::IssuerOnly:
+				label = otp->issuer();
+				break;
+		}
+
+		if(QMessageBox::Yes == QMessageBox::question(this, tr("%1: Remove %2").arg(qApp->applicationName(), label), tr("Are you sure you wish to remove %1?").arg(label), QMessageBox::Yes | QMessageBox::No)) {
+			if(!qonvinceApp->removeOtp(otp)) {
+				std::cerr << __PRETTY_FUNCTION__ << " (" << __LINE__ << "): failed to remove Otp \"" << label << "\"\n";
+			}
+
 			return;
 		}
 	}

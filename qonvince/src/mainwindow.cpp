@@ -19,6 +19,10 @@
 
 /// \file mainwindow.cpp
 /// \brief Implementation of the MainWindow class.
+///
+/// \todo Don't include markup in notifications on Win10
+/// \todo Removal of code appears to cause problems - subsequent loads contain
+/// incorrect set of codes
 
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
@@ -66,8 +70,8 @@ namespace Qonvince {
 			setAcceptDrops(true);
 		}
 
-		m_ui->addCode->setIcon(QIcon::fromTheme("list-add", QIcon(":/icons/mainwindow/add")));
-		m_ui->settings->setIcon(QIcon::fromTheme("configure-shortcuts", QIcon(":/icons/mainwindow/settings")));
+		m_ui->addCode->setIcon(QIcon::fromTheme(QStringLiteral("list-add"), QIcon(QStringLiteral(":/icons/mainwindow/add"))));
+		m_ui->settings->setIcon(QIcon::fromTheme(QStringLiteral("configure-shortcuts"), QIcon(QStringLiteral(":/icons/mainwindow/settings"))));
 
 		connect(m_ui->addCode, &QPushButton::clicked, this, &MainWindow::onAddOtpClicked);
 		connect(m_ui->settings, &QPushButton::clicked, this, &MainWindow::onSettingsClicked);
@@ -94,7 +98,10 @@ namespace Qonvince {
 		}
 
 		if(((Qt::CopyAction | Qt::MoveAction) & ev->proposedAction()) && ev->mimeData()->hasUrls()) {
-			for(const auto & url : ev->mimeData()->urls()) {
+			// prevent deep copy of QList
+			const auto & urls = ev->mimeData()->urls();
+
+			for(const auto & url : urls) {
 				if(url.isLocalFile()) {
 					ev->acceptProposedAction();
 					return;
@@ -109,7 +116,10 @@ namespace Qonvince {
 			return;
 		}
 
-		for(const auto & url : ev->mimeData()->urls()) {
+		// prevent deep copy of QList
+		const auto & urls = ev->mimeData()->urls();
+
+		for(const auto & url : urls) {
 			if(url.isLocalFile()) {
 				qonvinceApp->readQrCodeFrom(url.toLocalFile());
 			}
@@ -125,7 +135,7 @@ namespace Qonvince {
 
 	void MainWindow::refreshTooltip() {
 		// looks a bit odd, but should make translation simpler - no HTML required
-		QString tt = QStringLiteral("<html><body><p>%1</p>%2%3</body></html>").arg(tr("Double-click an entry to edit its details."), (qonvinceApp->settings().copyCodeOnClick() ? QStringLiteral("<p>%1</p>").arg(tr("Click an entry to copy its current code to the clipboard.")) : ""), (OtpQrCodeReader::isAvailable() ? QStringLiteral("<p>%1</p>").arg(tr("Drop a QR code image on this window to decode it.")) : ""));
+		QString tt = QStringLiteral("<html><body><p>%1</p>%2%3</body></html>").arg(tr("Double-click an entry to edit its details."), (qonvinceApp->settings().copyCodeOnClick() ? QStringLiteral("<p>%1</p>").arg(tr("Click an entry to copy its current code to the clipboard.")) : QStringLiteral("")), (OtpQrCodeReader::isAvailable() ? QStringLiteral("<p>%1</p>").arg(tr("Drop a QR code image on this window to decode it.")) : QStringLiteral("")));
 
 		setToolTip(tt);
 		m_ui->otpList->setToolTip(tt);
@@ -210,8 +220,8 @@ namespace Qonvince {
 
 
 	void MainWindow::readSettings(const QSettings & settings) {
-		QPoint pos(settings.value("position").toPoint());
-		QSize size(settings.value("size").toSize());
+		QPoint pos(settings.value(QStringLiteral("position")).toPoint());
+		QSize size(settings.value(QStringLiteral("size")).toSize());
 
 		if(!pos.isNull()) {
 			move(pos);
@@ -224,8 +234,8 @@ namespace Qonvince {
 
 
 	void MainWindow::writeSettings(QSettings & settings) const {
-		settings.setValue("position", pos());
-		settings.setValue("size", size());
+		settings.setValue(QStringLiteral("position"), pos());
+		settings.setValue(QStringLiteral("size"), size());
 	}
 
 

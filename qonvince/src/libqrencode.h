@@ -58,9 +58,9 @@ namespace Qonvince {
 	class LibQrEncode {
 	public:
 		struct QrCode {
-			bool isValid;
-			int size;
 			QByteArray data;
+			int size;
+			bool isValid;
 		};
 
 		LibQrEncode();

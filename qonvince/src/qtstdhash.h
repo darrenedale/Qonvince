@@ -20,26 +20,23 @@
 #ifndef QTSTDHASH_H
 #define QTSTDHASH_H
 
-#include <functional>
 #include <QString>
 
 namespace Qonvince {
-	namespace Detail {
-		template<class QtClass>
-		struct QtHash {
-			typedef std::size_t result_type;
-			typedef QtClass argument_type;
+	template<class QtClass>
+	struct QtHash {
+		using result_type = std::size_t;
+		using argument_type = QtClass;
 
-			result_type operator()(const argument_type & arg) const {
-				return static_cast<std::size_t>(qHash(arg));
-			}
-		};
-	}  // namespace Detail
+		result_type operator()(const argument_type & arg) const {
+			return static_cast<result_type>(qHash(arg));
+		}
+	};
 }  // namespace Qonvince
 
 namespace std {
 	template<>
-	struct hash<QString> : public Qonvince::Detail::QtHash<QString> {};
+	struct hash<QString> : public Qonvince::QtHash<QString> {};
 }  // namespace std
 
 #endif  // QTSTDHASH_H
