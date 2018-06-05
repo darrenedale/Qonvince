@@ -21,8 +21,6 @@
 /// \brief Implementation of the MainWindow class.
 ///
 /// \todo Don't include markup in notifications on Win10
-/// \todo Removal of code appears to cause problems - subsequent loads contain
-/// incorrect set of codes
 
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
@@ -56,6 +54,7 @@
 #include "otplistitemdelegate.h"
 #include "otpqrcodereader.h"
 #include "otpeditordialogue.h"
+#include "functions.h"
 
 
 namespace Qonvince {
@@ -175,23 +174,7 @@ namespace Qonvince {
 
 			if(settings.hideOnCodeCopyClick()) {
 				// notify so it doesn't look like the application closed
-				QString label;
-
-				switch(settings.codeLabelDisplayStyle()) {
-					case Settings::IssuerAndName:
-						label = otp->issuer() % ": " % otp->name();
-						break;
-
-					case Settings::IssuerOnly:
-						label = otp->issuer();
-						break;
-
-					case Settings::NameOnly:
-						label = otp->name();
-						break;
-				}
-
-				qonvinceApp->showNotification(tr("The OTP code for <b>%1</b> was copied to the clipboard.").arg(label), 3000);
+				qonvinceApp->showNotification(tr("The OTP code for <b>%1</b> was copied to the clipboard.").arg(otpLabel(otp)), 3000);
 				hide();
 			}
 		}

@@ -32,6 +32,7 @@
 #include "application.h"
 #include "otp.h"
 #include "settings.h"
+#include "functions.h"
 
 
 namespace Qonvince {
@@ -100,29 +101,7 @@ namespace Qonvince {
 				return otp->issuer();
 
 			case LabelRole:
-				switch(qonvinceApp->settings().codeLabelDisplayStyle()) {
-					case Settings::CodeLabelDisplayStyle::IssuerOnly:
-						return otp->issuer();
-
-					case Settings::CodeLabelDisplayStyle::NameOnly:
-						return otp->name();
-
-					case Settings::CodeLabelDisplayStyle::IssuerAndName: {
-						const auto & issuer = otp->issuer();
-						const auto & name = otp->name();
-
-						if(issuer.isEmpty()) {
-							return name;
-						}
-						else if(name.isEmpty()) {
-							return issuer;
-						}
-						else {
-							return {issuer % QStringLiteral(": ") % name};
-						}
-					}
-				}
-				break;
+				return otpLabel(otp);
 
 			case CodeRole:
 				return otp->code();

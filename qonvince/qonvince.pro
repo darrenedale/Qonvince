@@ -1,7 +1,7 @@
 QT       += core widgets
 TARGET = qonvince
 TEMPLATE = app
-CONFIG += c++14
+CONFIG += c++1z
 
 include(../common.pri)
 
@@ -85,7 +85,8 @@ HEADERS  += \
 	src/qtstdhash.h \
 	src/settings.h \
 	src/settingswidget.h \
-    src/qtendianextra.h
+    src/qtendianextra.h \
+    src/functions.h
 
 FORMS += \
  	ui/aboutdialogue.ui \

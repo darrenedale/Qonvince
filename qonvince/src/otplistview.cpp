@@ -48,6 +48,7 @@
 #include "otplistmodel.h"
 #include "otpqrcodereader.h"
 #include "qtiostream.h"
+#include "functions.h"
 
 
 namespace Qonvince {
@@ -517,21 +518,7 @@ namespace Qonvince {
 			return;
 		}
 
-		QString label;
-
-		switch(qonvinceApp->settings().codeLabelDisplayStyle()) {
-			case Settings::IssuerAndName:
-				label = otp->issuer() % ": " % otp->name();
-				break;
-
-			case Settings::NameOnly:
-				label = otp->name();
-				break;
-
-			case Settings::IssuerOnly:
-				label = otp->issuer();
-				break;
-		}
+		QString label = otpLabel(otp);
 
 		if(QMessageBox::Yes == QMessageBox::question(this, tr("%1: Remove %2").arg(qApp->applicationName(), label), tr("Are you sure you wish to remove %1?").arg(label), QMessageBox::Yes | QMessageBox::No)) {
 			if(!qonvinceApp->removeOtp(otp)) {

@@ -43,6 +43,7 @@
 #include "application.h"
 #include "otpdisplayplugin.h"
 #include "qtendianextra.h"
+#include "qtiostream.h"
 
 
 namespace Qonvince {
@@ -151,7 +152,7 @@ namespace Qonvince {
 				QString path = QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation) % "/codes/icons/" % m_iconFileName;
 
 				if(QFile::exists(path) && !QFile::remove(path)) {
-					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: failed to remove old icon file for " << qPrintable(issuer()) << ":" << qPrintable(name()) << " from \"" << qPrintable(path) << "\"\n";
+					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: failed to remove old icon file for " << issuer() << ":" << name() << " from \"" << path << "\"\n";
 				}
 			}
 
@@ -163,13 +164,13 @@ namespace Qonvince {
 			}
 
 			if(!Application::ensureDataDirectory(QStringLiteral("codes/icons"))) {
-				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: the data directory \"" << qPrintable(QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation)) << "/codes/icons\" does not exist and could not be created\n";
+				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: the data directory \"" << QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation) << "/codes/icons\" does not exist and could not be created\n";
 			}
 			else {
 				QString path = QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation) % "/codes/icons/" % m_iconFileName;
 
 				if(!m_icon.pixmap(64).save(path, "PNG")) {
-					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: failed to save icon for " << qPrintable(issuer()) << ":" << qPrintable(name()) << " to \"" << qPrintable(path) << "\"\n";
+					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: failed to save icon for " << issuer() << ":" << name() << " to \"" << path << "\"\n";
 				}
 			}
 		}

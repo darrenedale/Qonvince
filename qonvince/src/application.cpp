@@ -158,7 +158,7 @@ namespace Qonvince {
 		setOrganizationDomain(QStringLiteral("equituk.net"));
 		setApplicationName(QStringLiteral("Qonvince"));
 		setApplicationDisplayName(QStringLiteral("Qonvince"));
-		setApplicationVersion(QStringLiteral("1.8.0"));
+		setApplicationVersion(QStringLiteral("1.8.1"));
 		setQuitOnLastWindowClosed(false);
 		QSettings::setDefaultFormat(QSettings::IniFormat);
 

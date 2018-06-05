@@ -40,6 +40,8 @@
 #include "otpqrcodereader.h"
 #include "qrcodecreator.h"
 #include "otpdisplayplugin.h"
+#include "qtiostream.h"
+#include "functions.h"
 
 
 namespace Qonvince {
@@ -121,7 +123,7 @@ namespace Qonvince {
 		std::cerr << "deleting editor for code @ 0x" << (static_cast<void *>(m_otp)) << " - ";
 
 		if(m_otp) {
-			std::cerr << qPrintable(m_otp->issuer()) << ":" << qPrintable(m_otp->name()) << "\n";
+			std::cerr << m_otp->issuer() << ":" << m_otp->name() << "\n";
 		}
 		else {
 			std::cerr << "{Untitled}\n";
@@ -222,35 +224,8 @@ namespace Qonvince {
 
 	void OtpEditor::updateWindowTitle() {
 		if(m_otp) {
-			QString name(m_otp->name());
-			QString issuer(m_otp->issuer());
-			QString title;
-
-			switch(qonvinceApp->settings().codeLabelDisplayStyle()) {
-				case Settings::NameOnly:
-					title = name;
-					break;
-
-				case Settings::IssuerOnly:
-					title = issuer;
-					break;
-
-				case Settings::IssuerAndName:
-					if(!name.isEmpty()) {
-						if(!issuer.isEmpty()) {
-							title = issuer % ":" % name;
-						}
-						else {
-							title = name;
-						}
-					}
-					else {
-						title = issuer;
-					}
-					break;
-			}
-
-			setWindowTitle(title.isEmpty() ? tr("Untitled") : title);
+			QString title = otpLabel(m_otp);
+			setWindowTitle(title.isEmpty() ? tr("Untitled") : otpLabel(m_otp));
 		}
 		else {
 			setWindowTitle(tr("No code"));
@@ -401,7 +376,7 @@ namespace Qonvince {
 			case Settings::IssuerAndName:
 				if(!name.isEmpty()) {
 					if(!issuer.isEmpty()) {
-						heading = issuer % ":" % name;
+						heading = issuer % ": " % name;
 					}
 					else {
 						heading = name;
