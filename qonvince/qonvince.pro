@@ -58,6 +58,7 @@ SOURCES +=\
 	src/qtiostream.cpp \
 	src/otpdisplaypluginchooser.cpp \
 	src/otplistmodel.cpp \
+    src/functions.cpp
 
 HEADERS  += \
 	src/aboutdialogue.h \

@@ -16,15 +16,39 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef QONVINCE_FUNCTIONS_H
-#define QONVINCE_FUNCTIONS_H
 
-#include <QString>
+#include "functions.h"
+
+#include <QStringBuilder>
+
+#include "application.h"
+#include "settings.h"
+#include "otp.h"
+
 
 namespace Qonvince {
-	class Otp;
 
-	QString otpLabel(Otp * otp);
+	QString otpLabel(Otp * otp) {
+		switch(qonvinceApp->settings().codeLabelDisplayStyle()) {
+			case Settings::NameOnly:
+				return otp->name();
+
+			case Settings::IssuerOnly:
+				return otp->issuer();
+
+			case Settings::IssuerAndName:
+				if(const auto & name = otp->name(); !name.isEmpty()) {
+					if(const auto & issuer = otp->issuer(); !issuer.isEmpty()) {
+						return issuer % QStringLiteral(": ") % name;
+					}
+
+					return name;
+				}
+
+				return otp->issuer();
+		}
+
+		return QStringLiteral("");
+	}
+
 }  // namespace Qonvince
-
-#endif  // QONVINCE_FUNCTIONS_H

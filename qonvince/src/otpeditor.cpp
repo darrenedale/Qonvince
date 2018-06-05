@@ -91,15 +91,17 @@ namespace Qonvince {
 			Q_EMIT seedChanged(m_ui->seedEdit->text());
 		});
 
-		connect(&(qonvinceApp->settings()), qOverload<Settings::CodeLabelDisplayStyle>(&Settings::codeLabelDisplayStyleChanged), [this]() {
-			updateHeading();
-			updateWindowTitle();
-		});
-
 		connect(m_ui->baseTimeEdit, &QDateTimeEdit::editingFinished, [this]() {
 			QDateTime dt(m_ui->baseTimeEdit->dateTime());
 			Q_EMIT baseTimeChanged(dt);
 			Q_EMIT baseTimeChangedInSeconds(dt.toMSecsSinceEpoch());
+		});
+
+		// this one needs a context, however, otherwise the settings will continue to call the
+		// lambda after this editor has been removed
+		connect(&(qonvinceApp->settings()), qOverload<Settings::CodeLabelDisplayStyle>(&Settings::codeLabelDisplayStyleChanged), this, [this]() {
+			updateHeading();
+			updateWindowTitle();
 		});
 
 		if(!OtpQrCodeReader::isAvailable()) {
