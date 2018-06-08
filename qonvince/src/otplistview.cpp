@@ -97,7 +97,7 @@ namespace Qonvince {
 		m_doubleClickWaitTimer.setInterval(qonvinceApp->styleHints()->mouseDoubleClickInterval());
 		m_doubleClickWaitTimer.setSingleShot(true);
 
-		// re: -Wclazy-connect-3arg-lambda, emmitter can't outlive captured this
+		// re: -Wclazy-connect-3arg-lambda, emmitter can't outlive captured `this`
 		connect(&m_doubleClickWaitTimer, &QTimer::timeout, [this]() {
 			if(m_receivedDoubleClickEvent) {
 				m_receivedDoubleClickEvent = false;
@@ -111,6 +111,7 @@ namespace Qonvince {
 		});
 
 		connect(&(qonvinceApp->settings()), qOverload<CodeLabelDisplayStyle>(&Settings::codeLabelDisplayStyleChanged), this, qOverload<>(&OtpListView::update));
+
 		synchroniseTickTimer();
 	}
 
@@ -293,7 +294,9 @@ namespace Qonvince {
 				return;
 			}
 
-			QApplication::clipboard()->setText(otpIndex.data(OtpListModel::CodeRole).toString());
+			auto * otp = otpIndex.data(OtpListModel::OtpRole).value<Otp *>();
+			Q_ASSERT_X(otp, __PRETTY_FUNCTION__, "copy keyboard shortcut used on item that has no OTP object associated");
+			qonvinceApp->copyOtpToClipboard(otp);
 		}
 	}
 
@@ -426,17 +429,15 @@ namespace Qonvince {
 
 
 	void OtpListView::onCopyActionTriggered() {
+		std::cout << __PRETTY_FUNCTION__ << "[" << __LINE__ << "]: entered\n"
+					 << std::flush;
 		if(!m_actionItemIndex.isValid()) {
 			return;
 		}
 
 		auto * otp = m_actionItemIndex.data(OtpListModel::OtpRole).value<Otp *>();
-
-		if(!otp) {
-			return;
-		}
-
-		QApplication::clipboard()->setText(otp->code());
+		Q_ASSERT_X(otp, __PRETTY_FUNCTION__, "copy triggered on invalid Otp");
+		qonvinceApp->copyOtpToClipboard(otp);
 	}
 
 
@@ -478,10 +479,7 @@ namespace Qonvince {
 		}
 
 		auto * otp = m_actionItemIndex.data(OtpListModel::OtpRole).value<Otp *>();
-
-		if(!otp) {
-			return;
-		}
+		Q_ASSERT_X(otp, __PRETTY_FUNCTION__, "reveal triggered on invalid Otp");
 
 		if(otp->codeIsVisible()) {
 			return;
@@ -498,11 +496,7 @@ namespace Qonvince {
 		}
 
 		auto * otp = m_actionItemIndex.data(OtpListModel::OtpRole).value<Otp *>();
-
-		if(!otp) {
-			return;
-		}
-
+		Q_ASSERT_X(otp, __PRETTY_FUNCTION__, "refresh triggered on invalid Otp");
 		otp->refreshCode();
 	}
 
@@ -513,20 +507,13 @@ namespace Qonvince {
 		}
 
 		auto * otp = m_actionItemIndex.data(OtpListModel::OtpRole).value<Otp *>();
-
-		if(!otp) {
-			std::cerr << __PRETTY_FUNCTION__ << " (" << __LINE__ << "): remove triggered on invalid Otp\n";
-			return;
-		}
-
+		Q_ASSERT_X(otp, __PRETTY_FUNCTION__, "remove triggered on invalid Otp");
 		QString label = otpLabel(otp);
 
 		if(QMessageBox::Yes == QMessageBox::question(this, tr("%1: Remove %2").arg(qApp->applicationName(), label), tr("Are you sure you wish to remove %1?").arg(label), QMessageBox::Yes | QMessageBox::No)) {
 			if(!qonvinceApp->removeOtp(otp)) {
 				std::cerr << __PRETTY_FUNCTION__ << " (" << __LINE__ << "): failed to remove Otp \"" << label << "\"\n";
 			}
-
-			return;
 		}
 	}
 

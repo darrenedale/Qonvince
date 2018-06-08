@@ -6,7 +6,7 @@ lessThan(QT_MAJOR_VERSION, 5) {
 }
 
 TARGET = qonvince
-CONFIG += c++14
+CONFIG += c++14 shared_and_static build_all
 
 *-g++ {
     QMAKE_CXXFLAGS_RELEASE += -O3

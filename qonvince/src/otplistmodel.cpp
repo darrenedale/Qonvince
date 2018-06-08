@@ -85,11 +85,8 @@ namespace Qonvince {
 			case Qt::DisplayRole:
 				return static_cast<QString>(data(index, LabelRole).toString() % ' ' % data(index, CodeRole).toString());
 
-			case OtpRole: {
-				QVariant ret;
-				ret.setValue<Otp *>(otp);
-				return ret;
-			}
+			case OtpRole:
+				return QVariant::fromValue(otp);
 
 			case TypeRole:
 				return static_cast<int>(otp->type());

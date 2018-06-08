@@ -135,6 +135,8 @@ namespace Qonvince {
 			return m_displayPluginFactory.loadedPlugins();
 		}
 
+		void copyOtpToClipboard(Otp *);
+
 		static int exec();
 
 	Q_SIGNALS:
@@ -160,7 +162,7 @@ namespace Qonvince {
 		void writeSettings();
 		void showAboutDialogue();
 		void showSettingsWidget();
-		void clearClipboard();
+		void clearOtpFromClipboard();
 
 	private Q_SLOTS:
 		void onTrayIconActivated(QSystemTrayIcon::ActivationReason reason);

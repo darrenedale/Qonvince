@@ -72,11 +72,37 @@ namespace Qonvince {
 		m_ui->addCode->setIcon(QIcon::fromTheme(QStringLiteral("list-add"), QIcon(QStringLiteral(":/icons/mainwindow/add"))));
 		m_ui->settings->setIcon(QIcon::fromTheme(QStringLiteral("configure-shortcuts"), QIcon(QStringLiteral(":/icons/mainwindow/settings"))));
 
-		connect(m_ui->addCode, &QPushButton::clicked, this, &MainWindow::onAddOtpClicked);
-		connect(m_ui->settings, &QPushButton::clicked, this, &MainWindow::onSettingsClicked);
-		connect(m_ui->otpList, &OtpListView::codeClicked, this, &MainWindow::onOtpClicked);
-		connect(m_ui->otpList, &OtpListView::codeDoubleClicked, this, &MainWindow::onOtpDoubleClicked);
-		connect(m_ui->otpList, &OtpListView::editCodeRequested, this, &MainWindow::onEditOtpRequested);
+		// re: clazy warning, sender can't outlive captured `this`
+		connect(m_ui->addCode, &QPushButton::clicked, [this]() {
+			auto otp = std::make_unique<Otp>(OtpType::Totp);
+			createOtpEditor(otp.get());
+			qonvinceApp->addOtp(std::move(otp));
+		});
+
+		connect(m_ui->settings, &QPushButton::clicked, qonvinceApp, &Application::showSettingsWidget);
+
+		// re: clazy warning, sender can't outlive captured `this`
+		connect(m_ui->otpList, &OtpListView::codeClicked, [this](Otp * otp) {
+			Q_ASSERT_X(otp, __PRETTY_FUNCTION__, "null OTP object");
+			const Settings & settings = qonvinceApp->settings();
+
+			if(settings.copyCodeOnClick()) {
+				qonvinceApp->copyOtpToClipboard(otp);
+
+				if(settings.hideOnCodeCopyClick()) {
+					// notify so it doesn't look like the application closed
+					qonvinceApp->showNotification(tr("The OTP code for <b>%1</b> was copied to the clipboard.").arg(otpLabel(otp)), 3000);
+					hide();
+				}
+			}
+		});
+
+		// re: clazy warning, sender can't outlive captured `this`
+		connect(m_ui->otpList, &OtpListView::codeDoubleClicked, [this](Otp * otp) {
+			createOtpEditor(otp);
+		});
+
+		connect(m_ui->otpList, &OtpListView::editCodeRequested, this, &MainWindow::createOtpEditor);
 
 		connect(&(qonvinceApp->settings()), qOverload<bool>(&Settings::copyCodeOnClickChanged), this, &MainWindow::refreshTooltip);
 	}
@@ -141,43 +167,11 @@ namespace Qonvince {
 	}
 
 
-	void MainWindow::onAddOtpClicked() {
-		auto otp = std::make_unique<Otp>(OtpType::Totp);
-		onEditOtpRequested(otp.get());
-		qonvinceApp->addOtp(std::move(otp));
-	}
-
-
-	void MainWindow::onSettingsClicked() {
-		qonvinceApp->showSettingsWidget();
-	}
-
-
-	void MainWindow::onEditOtpRequested(Otp * otp) {
+	void MainWindow::createOtpEditor(Otp * otp) {
 		Q_ASSERT_X(otp, __PRETTY_FUNCTION__, "null OTP object");
 		auto * editor = new OtpEditorDialogue(otp, this);
 		editor->setAttribute(Qt::WA_DeleteOnClose, true);
 		editor->show();
-	}
-
-
-	void MainWindow::onOtpClicked(Otp * otp) {
-		Q_ASSERT_X(otp, __PRETTY_FUNCTION__, "null OTP object");
-		const Settings & settings = qonvinceApp->settings();
-
-		if(settings.copyCodeOnClick()) {
-			QApplication::clipboard()->setText(otp->code());
-
-			if(settings.clearClipboardAfterInterval() && 0 < settings.clipboardClearInterval()) {
-				QTimer::singleShot(1000 * settings.clipboardClearInterval(), qonvinceApp, &Application::clearClipboard);
-			}
-
-			if(settings.hideOnCodeCopyClick()) {
-				// notify so it doesn't look like the application closed
-				qonvinceApp->showNotification(tr("The OTP code for <b>%1</b> was copied to the clipboard.").arg(otpLabel(otp)), 3000);
-				hide();
-			}
-		}
 	}
 
 

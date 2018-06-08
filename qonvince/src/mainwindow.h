@@ -45,7 +45,6 @@ namespace Qonvince {
 
 	class MainWindow
 	: public QMainWindow {
-
 		Q_OBJECT
 
 	public:
@@ -59,22 +58,13 @@ namespace Qonvince {
 		void closing();
 
 	protected:
-		virtual void closeEvent(QCloseEvent *) override;
-		virtual void dragEnterEvent(QDragEnterEvent *) override;
-		virtual void dropEvent(QDropEvent *) override;
+		void closeEvent(QCloseEvent *) override;
+		void dragEnterEvent(QDragEnterEvent *) override;
+		void dropEvent(QDropEvent *) override;
 
-	private Q_SLOTS:
-		// TODO these could all be lambdas to reduce header footprint
+	private:
 		void refreshTooltip();
-		void onAddOtpClicked();
-		void onSettingsClicked();
-
-		inline void onOtpDoubleClicked(Otp * otp) {
-			onEditOtpRequested(otp);
-		}
-
-		void onEditOtpRequested(Otp *);
-		void onOtpClicked(Otp *);
+		void createOtpEditor(Otp *);
 
 	private:
 		std::unique_ptr<Ui::MainWindow> m_ui;

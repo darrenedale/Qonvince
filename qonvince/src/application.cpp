@@ -28,6 +28,8 @@
 /// - close code editor
 /// - exit
 /// - should segfault
+/// \todo in clipboard handling, only clear the code if it's definitely the one
+/// we pasted to it
 
 #include "application.h"
 
@@ -320,6 +322,16 @@ namespace Qonvince {
 		std::cout << __PRETTY_FUNCTION__ << " (" << __LINE__ << "): emitting otpRemoved(" << index << ")\n";
 		Q_EMIT otpRemoved(index);
 		return true;
+	}
+
+
+	void Application::copyOtpToClipboard(Otp * otp) {
+		Q_ASSERT_X(otp, __PRETTY_FUNCTION__, "can't copy code for null OTP");
+		clipboard()->setText(otp->code());
+
+		if(settings().clearClipboardAfterInterval() && 0 < settings().clipboardClearInterval()) {
+			QTimer::singleShot(1000 * settings().clipboardClearInterval(), this, &Application::clearOtpFromClipboard);
+		}
 	}
 
 
@@ -641,8 +653,11 @@ namespace Qonvince {
 	}
 
 
-	void Application::clearClipboard() {
-		clipboard()->clear();
+	void Application::clearOtpFromClipboard() {
+		auto * clip = clipboard();
+		clip->clear();
+		// clear() doesn't actually clear the content sometimes (KDE5, Manjaro, Qt5.11)
+		clip->setText(QStringLiteral(""));
 	}
 
 

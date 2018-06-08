@@ -3,7 +3,7 @@ BASEDIR=$(dirname "$(readlink -f makepkgs.sh)")
 cd "${BASEDIR}"
 
 PKG_VERSION=1.8.1
-PKG_RELEASE=2
+PKG_RELEASE=3
 
 echo Building package libqonvince ...
 cd "${BASEDIR}"/libqonvince
