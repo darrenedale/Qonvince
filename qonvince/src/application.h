@@ -31,7 +31,7 @@
 #include <QObject>
 #include <QStandardPaths>
 
-#include <Qca-qt5/QtCrypto/QtCrypto>
+#include <QtCrypto>
 
 #include "types.h"
 #include "otp.h"

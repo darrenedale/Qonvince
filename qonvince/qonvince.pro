@@ -29,6 +29,7 @@ unix {
             -ldl \
             -L/usr/lib/x86_64-linux-gnu/
 
+    INCLUDEPATH += /usr/include/qt
     INCLUDEPATH += /usr/include/Qca-qt5
 }
 
