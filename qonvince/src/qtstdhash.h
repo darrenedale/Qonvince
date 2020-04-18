@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 - 2017 Darren Edale
+ * Copyright 2015 - 2020 Darren Edale
  *
  * This file is part of Qonvince.
  *
@@ -20,6 +20,8 @@
 #ifndef QTSTDHASH_H
 #define QTSTDHASH_H
 
+// QT 5.14 introduced its own specialisations of std::hash for Qt string-like types
+#ifndef QT_SPECIALIZE_STD_HASH_TO_CALL_QHASH_BY_CREF
 #include <QString>
 
 namespace Qonvince {
@@ -38,5 +40,6 @@ namespace std {
 	template<>
 	struct hash<QString> : public Qonvince::QtHash<QString> {};
 }  // namespace std
+#endif
 
 #endif  // QTSTDHASH_H
