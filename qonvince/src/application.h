@@ -173,7 +173,10 @@ namespace Qonvince {
 
 	private:
 		using DisplayPluginFactory = PluginFactory<LibQonvince::OtpDisplayPlugin>;
+
 		static bool ensureDirectory(QStandardPaths::StandardLocation location, const QString & path);
+        void processCommandLineArguments();
+        void loadPlugins();
 
 		QCA::Initializer m_qcaInitializer;
 		Settings m_settings;
@@ -189,6 +192,8 @@ namespace Qonvince {
 		DisplayPluginFactory m_displayPluginFactory;
 
 		QCA::SecureArray m_cryptPassphrase;
+
+        void setUpTrayIcon();
     };
 
 }  // namespace Qonvince
