@@ -1,28 +1,22 @@
 cmake_minimum_required(VERSION 3.1)
 
-set(CMAKE_INCLUDE_CURRENT_DIR ON)
+find_package(Qt5Core)
 
-find_package(Qt5 5.7 REQUIRED COMPONENTS Core)
+add_library(sixdigits_display_plugin SHARED src/sixdigits.cpp)
 
-add_library(sixdigits SHARED src/sixdigits.cpp)
-
-set_target_properties(sixdigits PROPERTIES
-        OUTPUT_NAME sixdigits
-        PREFIX ""
-        SUFFIX ".displayplugin"
-        AUTORCC ON
+set_target_properties(sixdigits_display_plugin PROPERTIES
 	CXX_STANDARD 14
-	CXX_STANDARD_REQUIRED ON
-	CXX_EXTENSIONS OFF
+	PREFIX ""
+	SUFFIX ".displayplugin"
+	OUTPUT_NAME "sixdigits"
+	LIBRARY_OUTPUT_DIRECTORY ".."
 	)
 
-add_dependencies(sixdigits libqonvince_shared)
-target_include_directories(sixdigits PUBLIC ${CMAKE_CURRENT_LIST_DIR}/../../../../libqonvince/src)
-
-target_link_libraries(sixdigits Qt5::Core libqonvince_shared)
+target_include_directories(sixdigits_display_plugin PUBLIC ${CMAKE_CURRENT_LIST_DIR}/../../../libqonvince/src)
+target_link_libraries(sixdigits_display_plugin PUBLIC libqonvince_shared Qt5::Core)
 
 if(WIN32)
-    install(TARGETS sixdigits RUNTIME DESTINATION usr/share/Equit/Qonvince/plugins/otpdisplay COMPONENT qonvince-displayplugins)
+	install(TARGETS sixdigits_display_plugin RUNTIME DESTINATION usr/share/Equit/Qonvince/plugins/otpdisplay COMPONENT extradisplayplugins OPTIONAL)
 else()
-    install(TARGETS sixdigits LIBRARY DESTINATION usr/local/share/Equit/Qonvince/plugins/otpdisplay COMPONENT qonvince-displayplugins)
+	install(TARGETS sixdigits_display_plugin LIBRARY DESTINATION usr/share/Equit/Qonvince/plugins/otpdisplay COMPONENT extradisplayplugins OPTIONAL)
 endif()
