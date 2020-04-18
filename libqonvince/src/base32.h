@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 - 2017 Darren Edale
+ * Copyright 2015 - 2020 Darren Edale
  *
  * This file is part of Qonvince.
  *
@@ -119,9 +119,6 @@ namespace LibQonvince {
 
 			if(0 < remainder) {
 				std::fill_n(std::back_inserter(ba), 8 - remainder, '=');
-				//		for(int i = 8 - (ba.size() % 8); i >= 0; --i) {
-				//			ba.push_back('=');
-				//		}
 			}
 
 			int j;
@@ -144,7 +141,7 @@ namespace LibQonvince {
 						return;
 					}
 
-					out <<= 5;
+					out <<= 5u;
 					out |= (std::distance(DictBegin, pos) & 0x1f);
 				}
 
@@ -158,22 +155,22 @@ namespace LibQonvince {
 
 					case 7:
 						outByteCount = 4;
-						out <<= 5;
+						out <<= 5u;
 						break;
 
 					case 5:
 						outByteCount = 3;
-						out <<= 15;
+						out <<= 15u;
 						break;
 
 					case 4:
 						outByteCount = 2;
-						out <<= 20;
+						out <<= 20u;
 						break;
 
 					case 2:
 						outByteCount = 1;
-						out <<= 30;
+						out <<= 30u;
 						break;
 
 					default:
@@ -184,17 +181,14 @@ namespace LibQonvince {
 				}
 
 				std::array<ByteT, 5> outBytes;
-				outBytes[4] = static_cast<ByteT>(out & 0xff);
-				outBytes[3] = static_cast<ByteT>((out >> 8) & 0xff);
-				outBytes[2] = static_cast<ByteT>((out >> 16) & 0xff);
-				outBytes[1] = static_cast<ByteT>((out >> 24) & 0xff);
-				outBytes[0] = static_cast<ByteT>((out >> 32) & 0xff);
+				outBytes[4] = static_cast<ByteT>(out & 0xffu);
+				outBytes[3] = static_cast<std::make_unsigned_t<ByteT>>((out >> 8u) & 0xffu);
+				outBytes[2] = static_cast<ByteT>((out >> 16u) & 0xffu);
+				outBytes[1] = static_cast<ByteT>((out >> 24u) & 0xffu);
+				outBytes[0] = static_cast<ByteT>((out >> 32u) & 0xffu);
 
 				const auto begin = outBytes.cbegin();
 				std::copy(begin, begin + outByteCount, std::back_inserter(m_plain));
-				//			for(ByteArrayT::size_type i = 0; i < outByteCount; ++i) {
-				//				m_plain.push_back(outBytes[i]);
-				//			}
 			}
 
 			m_isValid = true;
@@ -219,20 +213,20 @@ namespace LibQonvince {
 			unsigned int pos = 0;
 
 			while(pos < paddedLen) {
-				uint64_t bits = 0x00 | ((static_cast<uint64_t>(m_plain[pos])) << 32) |
-									 ((static_cast<uint64_t>(m_plain[pos + 1])) << 24) |
-									 ((static_cast<uint64_t>(m_plain[pos + 2])) << 16) |
-									 ((static_cast<uint64_t>(m_plain[pos + 3])) << 8) |
-									 ((static_cast<uint64_t>(m_plain[pos + 4])));
+				uint64_t bits = 0x00u | (static_cast<uint64_t>(m_plain[pos]) << 32u) |
+									 (static_cast<uint64_t>(m_plain[pos + 1]) << 24u) |
+									 (static_cast<uint64_t>(m_plain[pos + 2]) << 16u) |
+									 (static_cast<uint64_t>(m_plain[pos + 3]) << 8u) |
+									 (static_cast<uint64_t>(m_plain[pos + 4]));
 
 				// TODO do dict lookup directly into m_encoded rather than via out
 				std::array<ByteT, 8> out;
 				auto * bytePtr = std::addressof(out.back());
 
 				for(typename decltype(out)::size_type i = 0; i < out.size(); ++i) {
-					*bytePtr = Dictionary[bits & 0x1f];
+					*bytePtr = Dictionary[bits & 0x1fu];
 					--bytePtr;
-					bits = bits >> 5;
+					bits = bits >> 5u;
 				}
 
 				std::copy(out.cbegin(), out.cend(), std::back_inserter(m_encoded));
@@ -268,9 +262,16 @@ namespace LibQonvince {
 		}
 
 		using DictionaryT = std::array<char, 32>;
-		static const DictionaryT Dictionary;
-		static const DictionaryT::const_iterator DictBegin;
-		static const DictionaryT::const_iterator DictEnd;
+		static constexpr const DictionaryT Dictionary = {{
+           'A', 'B', 'C', 'D', 'E', 'F',
+           'G', 'H', 'I', 'J', 'K', 'L',
+           'M', 'N', 'O', 'P', 'Q', 'R',
+           'S', 'T', 'U', 'V', 'W', 'X',
+           'Y', 'Z', '2', '3', '4', '5',
+           '6', '7'
+        }};
+		static constexpr const DictionaryT::const_iterator DictBegin = Dictionary.cbegin();
+		static constexpr const DictionaryT::const_iterator DictEnd = Dictionary.cend();
 
 		mutable bool m_isValid;
 
@@ -288,15 +289,6 @@ namespace LibQonvince {
 		/** The Base32-encoded data. */
 		mutable ByteArrayT m_encoded;
 	};
-
-	template<class ByteArrayT, typename ByteT>
-	const typename Base32<ByteArrayT, ByteT>::DictionaryT Base32<ByteArrayT, ByteT>::Dictionary = {{'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', '2', '3', '4', '5', '6', '7'}};
-
-	template<class ByteArrayT, typename ByteT>
-	const typename Base32<ByteArrayT, ByteT>::DictionaryT::const_iterator Base32<ByteArrayT, ByteT>::DictBegin = Dictionary.cbegin();
-
-	template<class ByteArrayT, typename ByteT>
-	const typename Base32<ByteArrayT, ByteT>::DictionaryT::const_iterator Base32<ByteArrayT, ByteT>::DictEnd = Dictionary.cend();
 
 }  // namespace LibQonvince
 
