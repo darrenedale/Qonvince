@@ -2,6 +2,7 @@
 #define QONVINCE_PLUGINFACTORY_H
 
 #include <memory>
+#include <utility>
 #include <vector>
 #include <unordered_map>
 #include <string>
@@ -35,8 +36,8 @@ namespace Qonvince {
 	public:
 		using PathList = std::vector<QString>;
 
-		explicit PluginFactory(const QString & suffix = QStringLiteral(QONVINCE_PLUGINFACTORY_DEFAULT_SUFFIX))
-		: m_suffix(suffix) {
+		explicit PluginFactory(QString suffix = QStringLiteral(QONVINCE_PLUGINFACTORY_DEFAULT_SUFFIX))
+		: m_suffix(std::move(suffix)) {
 		}
 
 		explicit PluginFactory(const PathList & searchPaths, const QString & suffix = QStringLiteral(QONVINCE_PLUGINFACTORY_DEFAULT_SUFFIX))
@@ -48,11 +49,10 @@ namespace Qonvince {
 		PluginFactory(PluginFactory && other) = delete;
 
 		~PluginFactory() {
-			// plugin destructors *must* be called before libraries that contain them are
-			// closed. default destructor would be fine as long as m_openLibs and
-			// m_loadedPlugins are delcared in the correct order. in case the order is
-			// changed, we implement a custom destructor to enforce the order in which
-			// plugin and lib destructors are called
+			// plugin destructors *must* be called before libraries that contain them are closed. default destructor
+			// would be fine as long as m_openLibs and m_loadedPlugins are delcared in the correct order. in case the
+			// order is changed, we implement a custom destructor to enforce the order in which plugin and lib
+			// destructors are called
 			m_loadedPlugins.clear();
 			m_openLibs.clear();
 		}
@@ -142,24 +142,24 @@ namespace Qonvince {
 			auto lib = SharedLibrary(path.toStdString());
 
 			if(!lib.isOpen()) {
-				std::cerr << __PRETTY_FUNCTION__ << " (" << __FILE__ << " [" << __LINE__ << "]: failed to open plugin file \"" << path << "\" (\"" << lib.lastError() << "\")\n";
+				std::cerr << __PRETTY_FUNCTION__ << " (" << __FILE__ << " [" << __LINE__ << "]): failed to open plugin file \"" << path << "\" (\"" << lib.lastError() << "\")\n";
 				return false;
 			}
 
 			if(!lib.hasSymbol("pluginInfo")) {
-				std::cerr << __PRETTY_FUNCTION__ << " (" << __FILE__ << " [" << __LINE__ << "]: plugin \"" << path << "\" does not provide a PluginInfo data structure\n";
+				std::cerr << __PRETTY_FUNCTION__ << " (" << __FILE__ << " [" << __LINE__ << "]): plugin \"" << path << "\" does not provide a PluginInfo data structure\n";
 				return false;
 			}
 
 			SharedLibrary::Symbol symbol = nullptr;
 
 			if(!lib.symbol("pluginInfo", &symbol)) {
-				std::cerr << __PRETTY_FUNCTION__ << " (" << __FILE__ << " [" << __LINE__ << "]: the plugin information could not be fetched from the plugin \"" << path << "\"\n";
+				std::cerr << __PRETTY_FUNCTION__ << " (" << __FILE__ << " [" << __LINE__ << "]): the plugin information could not be fetched from the plugin \"" << path << "\"\n";
 				return false;
 			}
 
 			if(!symbol) {
-				std::cerr << __PRETTY_FUNCTION__ << " (" << __FILE__ << " [" << __LINE__ << "]: the plugin information fetched from the plugin \"" << path << "\" was null\n";
+				std::cerr << __PRETTY_FUNCTION__ << " (" << __FILE__ << " [" << __LINE__ << "]): the plugin information fetched from the plugin \"" << path << "\" was null\n";
 				return false;
 			}
 
@@ -175,27 +175,27 @@ namespace Qonvince {
 			std::cout << "Description: " << qPrintable(info->description) << "\n\n";
 #endif
 			if(0 != info->pluginType.compare(PluginType::PlugnTypeName)) {
-				std::cerr << __PRETTY_FUNCTION__ << " (" << __FILE__ << " [" << __LINE__ << "]: the plugin \"" << path << "\" is not a(n) " << PluginType::PlugnTypeName << "\n";
+				std::cerr << __PRETTY_FUNCTION__ << " (" << __FILE__ << " [" << __LINE__ << "]): the plugin \"" << path << "\" is not a(n) " << PluginType::PlugnTypeName << "\n";
 				return false;
 			}
 
 			if(PluginType::ApiVersion != info->apiVersion) {
-				std::cerr << __PRETTY_FUNCTION__ << " (" << __FILE__ << " [" << __LINE__ << "]: the plugin \"" << path << "\" has an incorrect API version (it has v" << info->apiVersion << ", expecting v" << PluginType::ApiVersion << ")\n";
+				std::cerr << __PRETTY_FUNCTION__ << " (" << __FILE__ << " [" << __LINE__ << "]): the plugin \"" << path << "\" has an incorrect API version (it has v" << info->apiVersion << ", expecting v" << PluginType::ApiVersion << ")\n";
 				return false;
 			}
 
 			if(!lib.hasSymbol("createInstance")) {
-				std::cerr << __PRETTY_FUNCTION__ << " (" << __FILE__ << " [" << __LINE__ << "]: plugin \"" << path << "\" does not provide an createInstance() function\n";
+				std::cerr << __PRETTY_FUNCTION__ << " (" << __FILE__ << " [" << __LINE__ << "]): plugin \"" << path << "\" does not provide an createInstance() function\n";
 				return false;
 			}
 
 			if(!lib.symbol("createInstance", &symbol)) {
-				std::cerr << __PRETTY_FUNCTION__ << " (" << __FILE__ << " [" << __LINE__ << "]: the createInstance() function could not be fetched from the plugin \"" << path << "\"\n";
+				std::cerr << __PRETTY_FUNCTION__ << " (" << __FILE__ << " [" << __LINE__ << "]): the createInstance() function could not be fetched from the plugin \"" << path << "\"\n";
 				return false;
 			}
 
 			if(!symbol) {
-				std::cerr << __PRETTY_FUNCTION__ << " (" << __FILE__ << " [" << __LINE__ << "]: the createInstance() function in the plugin \"" << path << "\" is null\n";
+				std::cerr << __PRETTY_FUNCTION__ << " (" << __FILE__ << " [" << __LINE__ << "]): the createInstance() function in the plugin \"" << path << "\" is null\n";
 				return false;
 			}
 
@@ -203,16 +203,16 @@ namespace Qonvince {
 			std::unique_ptr<PluginType> plugin(instanceFn());
 
 			if(!plugin) {
-				std::cerr << __PRETTY_FUNCTION__ << " (" << __FILE__ << " [" << __LINE__ << "]: the createInstance() function in the plugin \"" << path << "\" did not provide a plugin instnace\n";
+				std::cerr << __PRETTY_FUNCTION__ << " (" << __FILE__ << " [" << __LINE__ << "]): the createInstance() function in the plugin \"" << path << "\" did not provide a plugin instance\n";
 				return false;
 			}
 
 			if(m_loadedPlugins.cend() != m_loadedPlugins.find(plugin->name())) {
-				std::cerr << __PRETTY_FUNCTION__ << " (" << __FILE__ << " [" << __LINE__ << "]: the plugin loaded from the file \"" << path << "\" has a name (\"" << plugin->name() << "\") that is identical to another pluging that is already loaded and therefore cannot be used.\n";
+				std::cerr << __PRETTY_FUNCTION__ << " (" << __FILE__ << " [" << __LINE__ << "]): the plugin loaded from the file \"" << path << "\" has a name (\"" << plugin->name() << "\") that is identical to another plugin that is already loaded and therefore cannot be used.\n";
 				return false;
 			}
 
-			std::cout << __PRETTY_FUNCTION__ << " (" << __FILE__ << " [" << __LINE__ << ") : successfully loaded anlyais plugin \"" << plugin->name() << "\" from \"" << path << "\"\n";
+			std::cout << __PRETTY_FUNCTION__ << " (" << __FILE__ << " [" << __LINE__ << "]) : successfully loaded plugin \"" << plugin->name() << "\" from \"" << path << "\"\n";
 			m_openLibs.push_back(std::move(lib));
 			m_loadedPlugins.insert(std::make_pair(plugin->name(), std::move(plugin)));
 			return true;
@@ -223,12 +223,12 @@ namespace Qonvince {
 			QFileInfo pluginPathInfo(path);
 
 			if(!pluginPathInfo.exists()) {
-				std::cerr << __PRETTY_FUNCTION__ << " (" << __FILE__ << " [" << __LINE__ << "]: path \"" << path << "\" does not exist or is not readable.\n";
+				std::cerr << __PRETTY_FUNCTION__ << " (" << __FILE__ << " [" << __LINE__ << "]): path \"" << path << "\" does not exist or is not readable.\n";
 				return;
 			}
 
 			if(!pluginPathInfo.isDir()) {
-				std::cerr << __PRETTY_FUNCTION__ << " (" << __FILE__ << " [" << __LINE__ << "]: path \"" << path << "\" is not a directory.\n";
+				std::cerr << __PRETTY_FUNCTION__ << " (" << __FILE__ << " [" << __LINE__ << "]): path \"" << path << "\" is not a directory.\n";
 				return;
 			}
 
@@ -244,7 +244,7 @@ namespace Qonvince {
 				auto pluginPathLen = pluginPath.size();
 
 				if(pluginPathLen <= suffixSize || !pluginPath.endsWith(m_suffix)) {
-					std::cerr << __PRETTY_FUNCTION__ << " (" << __FILE__ << " [" << __LINE__ << "]: file \"" << pluginPath << "\" does not have suffix \"" << m_suffix << "\"\n";
+					std::cerr << __PRETTY_FUNCTION__ << " (" << __FILE__ << " [" << __LINE__ << "]): file \"" << pluginPath << "\" does not have suffix \"" << m_suffix << "\"\n";
 					continue;
 				}
 
@@ -254,8 +254,8 @@ namespace Qonvince {
 
 
 		struct SearchPathsEntry {
-			SearchPathsEntry(const QString & newPath, bool newSearched)
-			: path(newPath),
+			SearchPathsEntry(QString newPath, bool newSearched)
+			: path(std::move(newPath)),
 			  searched(newSearched) {
 			}
 

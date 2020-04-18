@@ -21,5 +21,6 @@
 
 
 int main(int argc, char * argv[]) {
-	return Qonvince::Application(argc, argv).exec();
+	Qonvince::Application app(argc, argv);
+	Qonvince::Application::exec();
 }
