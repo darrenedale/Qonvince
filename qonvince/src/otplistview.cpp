@@ -1,20 +1,16 @@
 /*
- * Copyright 2015 - 2017 Darren Edale
+ * Copyright 2015 - 2020 Darren Edale
  *
  * This file is part of Qonvince.
  *
- * Qonvince is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * Qonvince is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  *
- * Qonvince is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
+ * Qonvince is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+ * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with Qonvince. If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU General Public License along with Qonvince. If not, see
+ * <http://www.gnu.org/licenses/>.
  */
 
 /** \file otplistview.cpp
@@ -22,9 +18,7 @@
   * \date November 2016
   *
   * \brief Implementation of the OtpListView class.
-  *
-  * \todo use unobtrusive notification for OTP removal confirmation
-  */
+x  */
 
 #include "otplistview.h"
 
@@ -52,20 +46,17 @@
 #include "otpqrcodereader.h"
 
 
+namespace Qonvince::Detail::OtpListView {
+    static constexpr const int SpacingSize = 4;
+    static constexpr const int BackgroundTextSize = 20;
+    static constexpr const int BackgroundTextVerticalOffset = 40;
+    static constexpr const int ActionIconExtent = 22;
+    static constexpr const QSize ActionIconSize = {ActionIconExtent, ActionIconExtent};
+    static constexpr const int ActionIconHoverRectRounding = 3;
+}  // namespace OtpListView
+
+
 namespace Qonvince {
-
-	namespace Detail {
-		namespace OtpListView {
-			static constexpr const int SpacingSize = 4;
-			static constexpr const int BackgroundTextSize = 20;
-			static constexpr const int BackgroundTextVerticalOffset = 40;
-			static constexpr const int ActionIconExtent = 22;
-			static constexpr const QSize ActionIconSize = {ActionIconExtent, ActionIconExtent};
-			static constexpr const int ActionIconHoverRectRounding = 3;
-		}  // namespace OtpListView
-	}		// namespace Detail
-
-
 	OtpListView::OtpListView(QWidget * parent)
 	: QListView(parent),
 	  m_tickTimerIsResynchronising(false),
@@ -104,7 +95,7 @@ namespace Qonvince {
 			}
 			else {
 				QMouseEvent ev(QMouseEvent::MouseButtonRelease, mapFromGlobal(QCursor::pos()), Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
-				mouseClickEvent(&ev);
+                OtpListView::mouseClickEvent(&ev);
 			}
 
 			m_mousePressItemIndex = {};
@@ -137,12 +128,11 @@ namespace Qonvince {
 
 		m_tickTimerIsResynchronising = true;
 
-		// sync just after a 1sec boundary so that the timer doesn't tick down
-		// to 0 before the code objects generate their new code and emit their
-		// signals - effectively this gives the codes a 0.05s window to run the
-		// code to actually generate the new code */
-		// TODO could we obviate the need for this by synchronising both this
-		// and the code objects to a global sync timer at application start?
+		// sync just after a 1sec boundary so that the timer doesn't tick down to 0 before the code objects generate
+		// their new code and emit their signals - effectively this gives the codes a 0.05s window to run the code to
+		// actually generate the new code
+		// TODO could we obviate the need for this by synchronising both this and the code objects to a global sync
+		//  timer at application start?
 		m_tickTimerId = startTimer(50 + (QDateTime::currentMSecsSinceEpoch() % 1000), Qt::PreciseTimer);
 	}
 
@@ -323,7 +313,6 @@ namespace Qonvince {
 		}
 
 		QListView::mousePressEvent(ev);
-		return;
 	}
 
 
@@ -362,7 +351,6 @@ namespace Qonvince {
 		}
 
 		QListView::mouseReleaseEvent(ev);
-		return;
 	}
 
 
@@ -510,7 +498,7 @@ namespace Qonvince {
 		Q_ASSERT_X(otp, __PRETTY_FUNCTION__, "remove triggered on invalid Otp");
 		QString label = otpLabel(otp);
 
-		if(QMessageBox::Yes == QMessageBox::question(this, tr("%1: Remove %2").arg(qApp->applicationName(), label), tr("Are you sure you wish to remove %1?").arg(label), QMessageBox::Yes | QMessageBox::No)) {
+		if(QMessageBox::Yes == QMessageBox::question(this, tr("%1: Remove %2").arg(qonvinceApp->applicationName(), label), tr("Are you sure you wish to remove %1?").arg(label), QMessageBox::Yes | QMessageBox::No)) {
 			if(!qonvinceApp->removeOtp(otp)) {
 				std::cerr << __PRETTY_FUNCTION__ << " (" << __LINE__ << "): failed to remove Otp \"" << label << "\"\n";
 			}

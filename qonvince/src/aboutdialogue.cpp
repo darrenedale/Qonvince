@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 - 2017 Darren Edale
+ * Copyright 2015 - 2020 Darren Edale
  *
  * This file is part of Qonvince.
  *
@@ -22,20 +22,15 @@
 
 #include "application.h"
 
+using namespace Qonvince;
 
-namespace Qonvince {
+AboutDialogue::AboutDialogue(QWidget * parent)
+:	QDialog(parent),
+	m_ui(std::make_unique<Ui::AboutDialogue>())
+{
+	m_ui->setupUi(this);
+	m_ui->aboutText->setText(m_ui->aboutText->text().arg(Application::applicationDisplayName(), Application::applicationVersion()));
+	adjustSize();
+}
 
-
-	AboutDialogue::AboutDialogue(QWidget * parent)
-	: QDialog(parent),
-	  m_ui(std::make_unique<Ui::AboutDialogue>()) {
-		m_ui->setupUi(this);
-		m_ui->aboutText->setText(m_ui->aboutText->text().arg(Application::applicationDisplayName(), Application::applicationVersion()));
-		adjustSize();
-	}
-
-
-	AboutDialogue::~AboutDialogue() = default;
-
-
-}  // namespace Qonvince
+AboutDialogue::~AboutDialogue() = default;

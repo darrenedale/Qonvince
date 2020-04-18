@@ -19,13 +19,12 @@
 
 #include "functions.h"
 
-#include <QStringBuilder>
+#include <QtCore/QStringBuilder>
 
 #include "types.h"
 #include "application.h"
 #include "settings.h"
 #include "otp.h"
-
 
 namespace Qonvince {
 

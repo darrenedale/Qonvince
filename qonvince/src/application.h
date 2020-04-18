@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 - 2017 Darren Edale
+ * Copyright 2015 - 2020 Darren Edale
  *
  * This file is part of Qonvince.
  *
@@ -24,12 +24,14 @@
 #include <unordered_map>
 #include <vector>
 
-#include <QApplication>
-#include <QString>
-#include <QSystemTrayIcon>
-#include <QMenu>
-#include <QObject>
-#include <QStandardPaths>
+#include <QtCore/QString>
+#include <QtCore/QObject>
+#include <QtCore/QStandardPaths>
+#include <QtCore/QTimer>
+#include <QtDBus/QDBusInterface>
+#include <QtWidgets/QApplication>
+#include <QtWidgets/QSystemTrayIcon>
+#include <QtWidgets/QMenu>
 
 #include <Qca-qt5/QtCrypto/QtCrypto>
 
@@ -43,8 +45,6 @@
 #include "otpdisplayplugin.h"
 #include "pluginfactory.h"
 #include "qtstdhash.h"
-
-class QAction;
 
 #define qonvinceApp (Qonvince::Application::qonvince())
 
@@ -72,7 +72,7 @@ namespace Qonvince {
 		//			WindowsPhone,
 		//		};
 
-		Application(int & argc, char ** argv);
+		Application(int &, char **);
 		~Application() override;
 
 		static DesktopEnvironment desktopEnvironment();
@@ -155,6 +155,9 @@ namespace Qonvince {
 	public Q_SLOTS:
 		void showNotification(const QString & title, const QString & message, int timeout = 10000);
 		void showNotification(const QString & message, int timeout = 10000);
+
+		// TODO requires DBus interface to listen for response call
+//		void askQuestion(const QString & question, const QStringList & options, int timeout = 10000);
 		void readQrCode();
 		void readQrCodeFrom(const QString & fileName);
 		bool readApplicationSettings();
@@ -177,13 +180,16 @@ namespace Qonvince {
 		MainWindow m_mainWindow;
 		QSystemTrayIcon m_trayIcon;
 		QMenu m_trayIconMenu;
+		QTimer m_clipboardClearTimer;
+		QString m_clipboardContent;
+		QDBusInterface m_notificationsInterface;
 		QMetaObject::Connection m_quitOnMainWindowClosedConnection;
 		std::vector<std::unique_ptr<Otp>> m_otpList;
 
 		DisplayPluginFactory m_displayPluginFactory;
 
 		QCA::SecureArray m_cryptPassphrase;
-	};
+    };
 
 }  // namespace Qonvince
 

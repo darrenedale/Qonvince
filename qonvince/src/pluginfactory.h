@@ -266,7 +266,7 @@ namespace Qonvince {
 		std::vector<SearchPathsEntry> m_searchPaths;
 		const QString m_suffix;
 		std::vector<SharedLibrary> m_openLibs;
-		std::unordered_map<QString, std::unique_ptr<PluginType>, QtHash<QString>> m_loadedPlugins;
+		std::unordered_map<QString, std::unique_ptr<PluginType>> m_loadedPlugins;
 	};
 
 }  // namespace Qonvince

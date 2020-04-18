@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 - 2017 Darren Edale
+ * Copyright 2015 - 2020 Darren Edale
  *
  * This file is part of Qonvince.
  *
@@ -20,7 +20,7 @@
 #ifndef QONVINCE_ALGORITHMS_H
 #define QONVINCE_ALGORITHMS_H
 
-#include <QHash>
+#include <QtCore/QHash>
 
 namespace Qonvince {
 

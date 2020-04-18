@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 - 2017 Darren Edale
+ * Copyright 2015 - 2020 Darren Edale
  *
  * This file is part of Qonvince.
  *
@@ -22,7 +22,7 @@
 
 #include <memory>
 
-#include <QDialog>
+#include <QtWidgets/QDialog>
 
 namespace Qonvince {
 
@@ -31,12 +31,12 @@ namespace Qonvince {
 	}
 
 	class AboutDialogue
-	: public QDialog {
+	:	public QDialog {
 		// technically only necessary if signals/slots/properties defined
 		// Q_OBJECT
 
 	public:
-		explicit AboutDialogue(QWidget * parent = nullptr);
+		explicit AboutDialogue(QWidget * = nullptr);
 		~AboutDialogue() override;
 
 	private:

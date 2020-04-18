@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 - 2017 Darren Edale
+ * Copyright 2015 - 2020 Darren Edale
  *
  * This file is part of Qonvince.
  *
@@ -28,106 +28,97 @@
 
 #include "application.h"
 
+using namespace Qonvince;
 
-namespace Qonvince {
+namespace Qonvince::Detail::IconSelectButton {
+	static constexpr const int Padding = 8;
+}
 
+IconSelectButton::IconSelectButton(QWidget * parent)
+:	IconSelectButton(QIcon(), parent)
+{
+}
 
-namespace Detail {
-	namespace IconSelectButton {
-		static constexpr const int Padding = 8;
+IconSelectButton::IconSelectButton(const QIcon & ic, QWidget * parent)
+:	QWidget(parent),
+	m_ui(std::make_unique<Ui::IconSelectButton>()),
+	m_icon(std::move(ic)),
+	m_iconPath()
+{
+	m_ui->setupUi(this);
+	m_ui->chooseIcon->setIcon(m_icon);
+	m_ui->clear->setVisible(!m_icon.isNull());
+}
+
+IconSelectButton::IconSelectButton(const QString & path, QWidget * parent)
+:	IconSelectButton(QIcon(path), parent)
+{
+	m_iconPath = path;
+}
+
+IconSelectButton::~IconSelectButton() = default;
+
+QSize IconSelectButton::sizeHint() const
+{
+	static const auto padding = QSize(Detail::IconSelectButton::Padding, Detail::IconSelectButton::Padding);
+	return m_ui->chooseIcon->iconSize() + padding;
+}
+
+void IconSelectButton::clear()
+{
+	m_icon = {};
+	m_iconPath.clear();
+	m_ui->chooseIcon->setIcon({});
+	m_ui->clear->setVisible(false);
+	Q_EMIT cleared();
+}
+
+void IconSelectButton::chooseIcon()
+{
+	QString fileName = QFileDialog::getOpenFileName(this, tr("%1 - Choose Icon").arg(QApplication::applicationDisplayName()), (m_iconPath.isEmpty() ? QDir::homePath() : m_iconPath));
+
+	if(fileName.isEmpty()) {
+		return;
+	}
+
+	if(!setIcon(fileName)) {
+		qonvinceApp->showNotification(tr("An error was encountered when loading the icon file \"%1\".").arg(fileName));
+		return;
 	}
 }
 
-	IconSelectButton::IconSelectButton(QWidget * parent)
-	: QWidget(parent),
-	  m_ui(std::make_unique<Ui::IconSelectButton>()),
-	  m_icon(),
-	  m_iconPath() {
-		m_ui->setupUi(this);
-		m_ui->clear->setVisible(false);
+void IconSelectButton::setIcon(const QIcon & ic)
+{
+	m_iconPath.clear();
+	m_icon = ic;
+	m_ui->chooseIcon->setIcon(ic);
+	m_ui->clear->setVisible(!m_icon.isNull());
+	Q_EMIT iconChanged(ic);
+}
+
+bool IconSelectButton::setIcon(const QString & fileName)
+{
+	QIcon ic(fileName);
+
+	if(ic.isNull()) {
+		return false;
 	}
 
+	m_icon = ic;
+	m_iconPath = fileName;
+	m_ui->chooseIcon->setIcon(m_icon);
+	m_ui->clear->setVisible(!m_icon.isNull());
+	Q_EMIT iconChanged(m_icon);
+	Q_EMIT iconChanged(m_iconPath);
+	return true;
+}
 
-	IconSelectButton::IconSelectButton(const QIcon & ic, QWidget * parent)
-	: IconSelectButton{parent} {
-		m_icon = ic;
-		m_ui->chooseIcon->setIcon(m_icon);
-		m_ui->clear->setVisible(!m_icon.isNull());
-	}
+void IconSelectButton::setIconSize(const QSize & size)
+{
+	m_ui->chooseIcon->setIconSize(size);
+}
 
-
-	IconSelectButton::IconSelectButton(const QString & path, QWidget * parent)
-	: IconSelectButton{QIcon{path}, parent} {
-		m_iconPath = path;
-	}
-
-
-	IconSelectButton::~IconSelectButton() = default;
-
-
-	QSize IconSelectButton::sizeHint() const {
-		static const auto padding = QSize(Detail::IconSelectButton::Padding, Detail::IconSelectButton::Padding);
-		return m_ui->chooseIcon->iconSize() + padding;
-	}
-
-
-	void IconSelectButton::clear() {
-		m_icon = {};
-		m_iconPath.clear();
-		m_ui->chooseIcon->setIcon({});
-		m_ui->clear->setVisible(false);
-		Q_EMIT cleared();
-	}
-
-
-	void IconSelectButton::chooseIcon() {
-		QString fileName = QFileDialog::getOpenFileName(this, tr("%1 - Choose Icon").arg(QApplication::applicationDisplayName()), (m_iconPath.isEmpty() ? QDir::homePath() : m_iconPath));
-
-		if(fileName.isEmpty()) {
-			return;
-		}
-
-		if(!setIcon(fileName)) {
-			qonvinceApp->showNotification(tr("An error was encountered when loading the icon file \"%1\".").arg(fileName));
-			return;
-		}
-	}
-
-
-	void IconSelectButton::setIcon(const QIcon & ic) {
-		m_iconPath.clear();
-		m_icon = ic;
-		m_ui->chooseIcon->setIcon(ic);
-		m_ui->clear->setVisible(!m_icon.isNull());
-		Q_EMIT iconChanged(ic);
-	}
-
-
-	bool IconSelectButton::setIcon(const QString & fileName) {
-		QIcon ic(fileName);
-
-		if(ic.isNull()) {
-			return false;
-		}
-
-		m_icon = ic;
-		m_iconPath = fileName;
-		m_ui->chooseIcon->setIcon(m_icon);
-		m_ui->clear->setVisible(!m_icon.isNull());
-		Q_EMIT iconChanged(m_icon);
-		Q_EMIT iconChanged(m_iconPath);
-		return true;
-	}
-
-
-	void IconSelectButton::setIconSize(const QSize & size) {
-		m_ui->chooseIcon->setIconSize(size);
-	}
-
-
-	void IconSelectButton::resizeEvent(QResizeEvent *) {
-		m_ui->clear->move(m_ui->chooseIcon->width() - m_ui->clear->width(), m_ui->clear->y());
-	}
-
-
-}  // namespace Qonvince
+void IconSelectButton::resizeEvent(QResizeEvent *)
+{
+	m_ui->clear->move(m_ui->chooseIcon->width() - m_ui->clear->width(), m_ui->clear->y());
+}
