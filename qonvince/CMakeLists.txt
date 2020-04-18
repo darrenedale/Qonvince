@@ -10,11 +10,11 @@ option(WITH_DBUS_NOTIFICATIONS "use org.freedesktop.Notifications DBus service f
 find_package(Qt5 5.7 REQUIRED COMPONENTS Core Widgets DBus)
 find_package(QCA REQUIRED)
 
-set(QONVICE_QT_LIBS Qt5::Core Qt5::Widgets)
+set(QONVICE_QT_LIBS Qt5::Core Qt5::Widgets Qt5::DBus)
 
 if(WITH_NETWORK_ACCESS)
 	find_package(Qt5 5.7 COMPONENTS Network)
-	set(QONVICE_QT_LIBS ${QONVICE_QT_LIBS} Qt5::Network Qt5::DBus)
+	set(QONVICE_QT_LIBS ${QONVICE_QT_LIBS} Qt5::Network)
 endif(WITH_NETWORK_ACCESS)
 
 add_executable(qonvince
@@ -54,7 +54,7 @@ set_target_properties(qonvince PROPERTIES
 
 add_dependencies(qonvince libqonvince_shared)
 target_compile_features(qonvince PRIVATE cxx_std_17)
-target_include_directories(qonvince PUBLIC "${CMAKE_CURRENT_LIST_DIR}/../libqonvince/src")
+target_include_directories(qonvince PUBLIC "${CMAKE_CURRENT_LIST_DIR}/../libqonvince/src" "${QCA_INCLUDE_DIR}")
 target_link_libraries(qonvince ${QONVICE_QT_LIBS} ${QCA_LIBRARY} dl libqonvince_shared)
 
 set(QONVINCE_ICON_INSTALL_DIR "usr/share/icons/hicolor")
