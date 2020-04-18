@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 - 2017 Darren Edale
+ * Copyright 2015 - 2020 Darren Edale
  *
  * This file is part of Qonvince.
  *
@@ -28,8 +28,6 @@
 /// - close code editor
 /// - exit
 /// - should segfault
-/// \todo in clipboard handling, only clear the code if it's definitely the one
-/// we pasted to it
 
 #include "application.h"
 
@@ -52,6 +50,11 @@
 #include <QStandardPaths>
 #include <QSharedMemory>
 #include <QSystemSemaphore>
+#include <QtDBus/QDBusPendingReply>
+
+#if defined(WITH_DBUS_NOTIFICATIONS)
+#include <QtDBus/QDBusReply>
+#endif
 
 #include "mainwindow.h"
 #include "passworddialogue.h"
@@ -149,13 +152,16 @@ namespace Qonvince {
 		};
 	}  // namespace
 
-
 	Application::Application(int & argc, char ** argv)
-	: QApplication(argc, argv),
-	  m_settings(),
-	  m_trayIcon(QIcon::fromTheme(QStringLiteral("qonvince"), QIcon(QStringLiteral(":/icons/systray")))),
-	  m_trayIconMenu(tr("Qonvince")),
-	  m_displayPluginFactory(QStringLiteral(".displayplugin")) {
+	:	QApplication(argc, argv),
+		m_settings(),
+		m_trayIcon(QIcon::fromTheme(QStringLiteral("qonvince"), QIcon(QStringLiteral(":/icons/systray")))),
+		m_trayIconMenu(tr("Qonvince")),
+        m_clipboardClearTimer(),
+        m_clipboardContent(),
+        m_notificationsInterface(QStringLiteral("org.freedesktop.Notifications"), QStringLiteral("/org/freedesktop/Notifications"), QStringLiteral("org.freedesktop.Notifications")),
+		m_displayPluginFactory(QStringLiteral(".displayplugin"))
+	{
 		setOrganizationName(QStringLiteral("Equit"));
 		setOrganizationDomain(QStringLiteral("equituk.net"));
 		setApplicationName(QStringLiteral("Qonvince"));
@@ -203,17 +209,18 @@ namespace Qonvince {
 
 		m_trayIcon.setContextMenu(&m_trayIconMenu);
 
+		m_clipboardClearTimer.setSingleShot(true);
+
 		readApplicationSettings();
 		onSettingsChanged();
 
 		connect(&m_trayIcon, &QSystemTrayIcon::activated, this, &Application::onTrayIconActivated);
+        connect(&m_clipboardClearTimer, &QTimer::timeout, this, &Application::clearOtpFromClipboard);
 		connect(&m_settings, &Settings::changed, this, &Application::onSettingsChanged);
 		connect(this, &Application::aboutToQuit, this, &Application::writeSettings);
 	}
 
-
 	Application::~Application() = default;
-
 
 	DesktopEnvironment Application::desktopEnvironment() {
 		static DesktopEnvironment ret = DesktopEnvironment::Unknown;
@@ -258,7 +265,6 @@ namespace Qonvince {
 		return ret;
 	}
 
-
 	int Application::addOtp(std::unique_ptr<Otp> && otp) {
 		if(!otp || contains(m_otpList, otp)) {
 			return -1;
@@ -289,7 +295,6 @@ namespace Qonvince {
 		return index;
 	}
 
-
 	bool Application::removeOtp(int index) {
 		if(0 > index || m_otpList.size() <= static_cast<std::size_t>(index)) {
 			return false;
@@ -297,7 +302,6 @@ namespace Qonvince {
 
 		return removeOtp(m_otpList[static_cast<std::size_t>(index)].get());
 	}
-
 
 	bool Application::removeOtp(Otp * otp) {
 		auto begin = m_otpList.begin();
@@ -324,16 +328,20 @@ namespace Qonvince {
 		return true;
 	}
 
-
 	void Application::copyOtpToClipboard(Otp * otp) {
 		Q_ASSERT_X(otp, __PRETTY_FUNCTION__, "can't copy code for null OTP");
-		clipboard()->setText(otp->code());
+
+        if (m_clipboardClearTimer.isActive()) {
+            m_clipboardClearTimer.stop();
+        }
+
+		m_clipboardContent = otp->code();
+		clipboard()->setText(m_clipboardContent);
 
 		if(settings().clearClipboardAfterInterval() && 0 < settings().clipboardClearInterval()) {
-			QTimer::singleShot(1000 * settings().clipboardClearInterval(), this, &Application::clearOtpFromClipboard);
+		    m_clipboardClearTimer.start(1000 * settings().clipboardClearInterval());
 		}
 	}
-
 
 	bool Application::ensureDirectory(QStandardPaths::StandardLocation location, const QString & path) {
 		QString rootPath = QStandardPaths::writableLocation(location);
@@ -376,7 +384,6 @@ namespace Qonvince {
 
 		return true;
 	}
-
 
 	int Application::exec() {
 		Application * app(qonvinceApp);
@@ -453,26 +460,37 @@ namespace Qonvince {
 		return QApplication::exec();
 	}
 
-
 	void Application::showNotification(const QString & title, const QString & message, int timeout) {
-		if(!QSystemTrayIcon::supportsMessages()) {
+#if defined(WITH_DBUS_NOTIFICATIONS)
+	    if (m_notificationsInterface.isValid()) {
+	         QDBusPendingReply reply = m_notificationsInterface.asyncCall(
+	            QLatin1String("Notify"),
+	            applicationDisplayName(),                   // app_name
+	            0,                                          // replaces_id
+                QLatin1String("qonvince"),               // app_icon
+	            title,                                      // summary
+	            message,                                    // body
+                QStringList(),                              // actions
+                QVariantMap(),                              // hints
+                timeout                                     // timeout
+            );
+
+	        if (reply.isValid()) {
+	            return;
+	        }
+	    }
+#endif
+
+	    if (QSystemTrayIcon::supportsMessages()) {
+			m_trayIcon.showMessage(title, message, QSystemTrayIcon::Information, timeout);
+		} else {
 			QMessageBox::information(&m_mainWindow, title, message, QMessageBox::StandardButtons(QMessageBox::Ok));
 		}
-		else {
-			m_trayIcon.showMessage(title, message, QSystemTrayIcon::Information, timeout);
-		}
 	}
 
-
-	void Application::showNotification(const QString & message, int timeout) {
-		if(!QSystemTrayIcon::supportsMessages()) {
-			QMessageBox::information(&m_mainWindow, tr("%1 message").arg(applicationName()), message, QMessageBox::StandardButtons(QMessageBox::Ok));
-		}
-		else {
-			m_trayIcon.showMessage(tr("%1 message").arg(applicationName()), message, QSystemTrayIcon::Information, timeout);
-		}
-	}
-
+    void Application::showNotification(const QString & message, int timeout) {
+	    showNotification(tr("%1 message").arg(applicationDisplayName()), message, timeout);
+    }
 
 	void Application::readQrCode() {
 		QString fileName = QFileDialog::getOpenFileName(&m_mainWindow, tr("Open QR code image"));
@@ -484,7 +502,6 @@ namespace Qonvince {
 		readQrCodeFrom(fileName);
 	}
 
-
 	void Application::readQrCodeFrom(const QString & fileName) {
 		OtpQrCodeReader reader(fileName);
 
@@ -495,7 +512,6 @@ namespace Qonvince {
 
 		addOtp(reader.createOtp());
 	}
-
 
 	bool Application::readApplicationSettings() {
 		QSettings settings;
@@ -510,7 +526,6 @@ namespace Qonvince {
 
 		return true;
 	}
-
 
 	bool Application::readCodeSettings() {
 		QSettings settings;
@@ -564,7 +579,6 @@ namespace Qonvince {
 		return true;
 	}
 
-
 	void Application::writeSettings() {
 		QSettings settings;
 		bool writeOtpDetails = QCA::isSupported("aes256-cbc");
@@ -616,7 +630,6 @@ namespace Qonvince {
 		settings.endGroup();
 	}
 
-
 	void Application::onTrayIconActivated(QSystemTrayIcon::ActivationReason reason) {
 		if(QSystemTrayIcon::Trigger == reason) {
 			if(m_mainWindow.isHidden() || !m_mainWindow.isActiveWindow()) {
@@ -630,7 +643,6 @@ namespace Qonvince {
 		}
 	}
 
-
 	void Application::onSettingsChanged() {
 		if(m_settings.quitOnMainWindowClosed()) {
 			if(!m_quitOnMainWindowClosedConnection) {
@@ -643,7 +655,6 @@ namespace Qonvince {
 		}
 	}
 
-
 	void Application::showAboutDialogue() {
 		static AboutDialogue aboutDialogue;
 
@@ -652,14 +663,15 @@ namespace Qonvince {
 		aboutDialogue.activateWindow();
 	}
 
-
 	void Application::clearOtpFromClipboard() {
 		auto * clip = clipboard();
-		clip->clear();
-		// clear() doesn't actually clear the content sometimes (KDE5, Manjaro, Qt5.11)
-		clip->setText(QStringLiteral(""));
-	}
 
+		if (!m_clipboardContent.isEmpty() && m_clipboardContent == clip->text()) {
+            clip->clear();
+            // clear() doesn't actually clear the content sometimes (KDE5, Manjaro, Qt5.11)
+            clip->setText(QStringLiteral());
+        }
+	}
 
 	void Application::showSettingsWidget() {
 		static SettingsWidget settingsWidget(m_settings);
@@ -667,6 +679,5 @@ namespace Qonvince {
 		settingsWidget.activateWindow();
 		settingsWidget.raise();
 	}
-
 
 }  // namespace Qonvince
