@@ -138,7 +138,9 @@ namespace Qonvince {
 		m_type = type;
 		m_issuer = issuer;
 		m_name = name;
-		m_seed = seed.toUtf8();
+
+        // TODO google uses (used?) lower-case and whitespace, so convert and strip spaces
+        m_seed = seed.toUpper().toUtf8();
 		m_counter = counter;
 		m_interval = period;
 		m_digits = digits;

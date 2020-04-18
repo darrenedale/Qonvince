@@ -2,12 +2,14 @@ cmake_minimum_required(VERSION 3.1)
 
 project(Qonvince VERSION 1.8.0 DESCRIPTION "An OTP code generator" LANGUAGES CXX)
 
+add_compile_options("-fno-sized-deallocation")
+
 set(CMAKE_INSTALL_PREFIX "/usr")
 
 add_subdirectory(qonvince)
 add_subdirectory(libqonvince)
 add_subdirectory(plugins)
-add_subdirectory(test)
+#add_subdirectory(test)
 
 # cpack config
 include(InstallRequiredSystemLibraries)

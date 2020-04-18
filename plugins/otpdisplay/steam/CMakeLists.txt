@@ -16,7 +16,7 @@ target_include_directories(steam_display_plugin PUBLIC ${CMAKE_CURRENT_LIST_DIR}
 target_link_libraries(steam_display_plugin PUBLIC libqonvince_shared Qt5::Core)
 
 if(WIN32)
-	install(TARGETS steam_display_plugin RUNTIME DESTINATION usr/share/Equit/Qonvince/plugins/otpdisplay COMPONENT extradisplayplugins OPTIONAL)
+        install(TARGETS steam_display_plugin RUNTIME DESTINATION usr/share/Equit/Qonvince/plugins/otpdisplay COMPONENT qonvince-displayplugins-extra OPTIONAL)
 else()
-	install(TARGETS steam_display_plugin LIBRARY DESTINATION usr/share/Equit/Qonvince/plugins/otpdisplay COMPONENT extradisplayplugins OPTIONAL)
+        install(TARGETS steam_display_plugin LIBRARY DESTINATION usr/local/share/Equit/Qonvince/plugins/otpdisplay COMPONENT qonvince-displayplugins-extra OPTIONAL)
 endif()

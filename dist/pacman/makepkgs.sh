@@ -20,7 +20,7 @@ cp *.pkg.tar.xz "${BASEDIR}"/
 
 echo Building package qonvince ...
 cd "${BASEDIR}"/qonvince
-. "${BASEDIR}"/makepkg.sh --pkg-version $PKG_VERSION --pkg-release $PKG_RELEASE --pkg-depends "glibc libqonvince qt5-base qca-qt5 zbar" --pkg-makedepends "cmake qt5-tools"
+. "${BASEDIR}"/makepkg.sh --pkg-version $PKG_VERSION --pkg-release $PKG_RELEASE --pkg-depends "glibc libqonvince-git qt5-base qca-qt5 zbar" --pkg-makedepends "cmake qt5-tools"
 
 if [ 0 -eq $? ]; then
     echo "OK"
@@ -33,7 +33,7 @@ cp *.pkg.tar.xz "${BASEDIR}"/
 
 echo Building package qonvince-displayplugins ...
 cd "${BASEDIR}"/qonvince-displayplugins
-. "${BASEDIR}"/makepkg.sh --pkg-version $PKG_VERSION --pkg-release $PKG_RELEASE --pkg-depends "libqonvince qt5-base" --pkg-makedepends "cmake qt5-tools"
+. "${BASEDIR}"/makepkg.sh --pkg-version $PKG_VERSION --pkg-release $PKG_RELEASE --pkg-depends "libqonvince-git qt5-base" --pkg-makedepends "cmake qt5-tools"
 
 if [ 0 -eq $? ]; then
     echo "OK"
@@ -46,7 +46,7 @@ cp *.pkg.tar.xz "${BASEDIR}"/
 
 echo Building package qonvince-displayplugins-extra ...
 cd "${BASEDIR}"/qonvince-displayplugins-extra
-. "${BASEDIR}"/makepkg.sh --pkg-version $PKG_VERSION --pkg-release $PKG_RELEASE --pkg-depends "libqonvince qt5-base" --pkg-makedepends "cmake qt5-tools"
+. "${BASEDIR}"/makepkg.sh --pkg-version $PKG_VERSION --pkg-release $PKG_RELEASE --pkg-depends "libqonvince-git qt5-base" --pkg-makedepends "cmake qt5-tools"
 
 if [ 0 -eq $? ]; then
     echo "OK"

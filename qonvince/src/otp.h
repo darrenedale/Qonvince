@@ -27,7 +27,7 @@
 #include <QStringList>
 #include <QDateTime>
 #include <QIcon>
-#include <Qca-qt5/QtCrypto/QtCrypto>
+#include <QtCrypto>
 
 #include "types.h"
 #include "base32.h"

@@ -38,7 +38,7 @@
 #include <QStandardPaths>
 #include <QtEndian>
 
-#include <Qca-qt5/QtCrypto/QtCrypto>
+#include <QtCrypto>
 
 #include "application.h"
 #include "otpdisplayplugin.h"

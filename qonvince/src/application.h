@@ -33,7 +33,7 @@
 #include <QtWidgets/QSystemTrayIcon>
 #include <QtWidgets/QMenu>
 
-#include <Qca-qt5/QtCrypto/QtCrypto>
+#include <QtCrypto>
 
 #include "types.h"
 #include "otp.h"
