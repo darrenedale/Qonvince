@@ -76,7 +76,7 @@ namespace Qonvince {
 
 		// no need to fix -Wclazy-connect-3arg-lambda for these: emitter can't outlive
 		// captured this
-		connect(m_ui->codeTypeGroup, qOverload<int, bool>(&QButtonGroup::buttonToggled), [this](int id, bool checked) {
+		connect(m_ui->codeTypeGroup, qOverload<int, bool>(&QButtonGroup::idToggled), [this](int id, bool checked) {
 			if(!checked) {
 				return;
 			}

@@ -24,11 +24,10 @@
   * \todo look for optimisations in hmac(), totp() and hotp()
   */
 #include "otp.h"
-
 #include <ctime>
 #include <cmath>
 #include <utility>
-
+#include <random>
 #include <QStringBuilder>
 #include <QFile>
 #include <QDateTime>
@@ -37,9 +36,7 @@
 #include <QCryptographicHash>
 #include <QStandardPaths>
 #include <QtEndian>
-
 #include <QtCrypto>
-
 #include "application.h"
 #include "otpdisplayplugin.h"
 #include "qtiostream.h"
@@ -130,7 +127,6 @@ namespace Qonvince {
 		}
 	}
 
-
 	void Otp::setIssuer(const QString & issuer) {
 		if(issuer != m_issuer) {
 			QString old = m_issuer;
@@ -159,7 +155,7 @@ namespace Qonvince {
 		}
 		else {
 			if(m_iconFileName.isEmpty()) {
-				m_iconFileName = QCryptographicHash::hash((name() % issuer() % QString::number(qrand() % 1000)).toUtf8(), QCryptographicHash::Sha1).toHex();
+				m_iconFileName = QCryptographicHash::hash((name() % issuer() % QString::number(std::random_device()() % 1000)).toUtf8(), QCryptographicHash::Sha1).toHex();
 			}
 
 			if(!Application::ensureDataDirectory(QStringLiteral("codes/icons"))) {

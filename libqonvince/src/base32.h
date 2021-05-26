@@ -53,7 +53,8 @@ namespace LibQonvince {
 			return true;
 		}
 
-		bool setEncoded(const ByteArrayT & base32) {
+		bool setEncoded(const ByteArrayT & base32)
+		{
 			bool stillTrimmingTrailingEquals = true;
 
 			for(auto i = static_cast<int>(base32.size()) - 1; 0 <= i; --i) {
@@ -69,7 +70,7 @@ namespace LibQonvince {
 				}
 
 				if(DictEnd == std::find(DictBegin, DictEnd, ch)) {
-					std::cerr << "invalid base32 character found at byte position " << i << "\n";
+					std::cerr << "invalid base32 character '" << ch << "' found at byte position " << i << "\n";
 					m_isValid = false;
 					return false;
 				}

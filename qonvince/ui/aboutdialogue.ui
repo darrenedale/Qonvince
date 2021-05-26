@@ -59,7 +59,7 @@
    <item>
     <widget class="QLabel" name="aboutText">
      <property name="text">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:16pt; font-weight:600;&quot;&gt;%1 &lt;/span&gt;&lt;span style=&quot; font-size:16pt;&quot;&gt;v%2&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:11pt; font-weight:600;&quot;&gt;Passcode generator for time-based and counter-based One Time Passcodes (OTP).&lt;/span&gt;&lt;/p&gt;&lt;p&gt;By Darren Edale, &lt;a href=&quot;https://www.equituk.net&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#2980b9;&quot;&gt;Équit&lt;/span&gt;&lt;/a&gt;, 2015-18.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:16pt; font-weight:600;&quot;&gt;%1 &lt;/span&gt;&lt;span style=&quot; font-size:16pt;&quot;&gt;v%2&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-size:11pt; font-weight:600;&quot;&gt;Passcode generator for time-based and counter-based One Time Passcodes (OTP).&lt;/span&gt;&lt;/p&gt;&lt;p&gt;By Darren Edale, &lt;a href=&quot;https://www.equituk.net&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#2980b9;&quot;&gt;Équit&lt;/span&gt;&lt;/a&gt;, 2015-21.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
      </property>
      <property name="textFormat">
       <enum>Qt::RichText</enum>

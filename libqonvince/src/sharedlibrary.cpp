@@ -14,7 +14,7 @@
 
 #if defined(_WIN32)
 
-#warning Building SharedLibrary class for Windows.
+#pragma message("Building SharedLibrary class for Windows.")
 
 #include <vector>
 #include <winbase.h>
@@ -37,7 +37,7 @@ namespace {
 
 #elif defined(__unix)
 
-#warning Building SharedLibrary class for Unix.
+#pragma message("Building SharedLibrary class for Unix.")
 
 #include <dlfcn.h>
 

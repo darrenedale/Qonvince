@@ -36,7 +36,7 @@
 #include <array>
 #include <iostream>
 #include <iterator>
-
+#include <random>
 #include <QString>
 #include <QStringBuilder>
 #include <QChar>
@@ -183,7 +183,7 @@ namespace Qonvince
         setOrganizationDomain(QStringLiteral("equituk.net"));
         setApplicationName(QStringLiteral("Qonvince"));
         setApplicationDisplayName(QStringLiteral("Qonvince"));
-        setApplicationVersion(QStringLiteral("1.8.1"));
+        setApplicationVersion(QStringLiteral("1.8.2"));
         setQuitOnLastWindowClosed(false);
         QSettings::setDefaultFormat(QSettings::IniFormat);
 
@@ -593,12 +593,12 @@ namespace Qonvince
             // this "random" string in the settings will, when read, indicate whether the crypt key is correct
             {
                 // use length of passphrase so that a truncated passphrase can never pass the check
-                int l = (2 * m_cryptPassphrase.size()) + (qrand() % 20);
+                int l = (2 * m_cryptPassphrase.size()) + (std::random_device()() % 20);
                 QByteArray random(l, 0);
 
                 while (0 < l) {
                     l--;
-                    random[l] = 'a' + (qrand() % 26);
+                    random[l] = 'a' + (std::random_device()() % 26);
                 }
 
                 QCA::SymmetricKey key(m_cryptPassphrase);
