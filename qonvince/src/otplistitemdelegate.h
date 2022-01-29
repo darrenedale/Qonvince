@@ -35,15 +35,18 @@ namespace Qonvince {
 		void paint(QPainter *, const QStyleOptionViewItem &, const QModelIndex &) const override;
 		QSize sizeHint(const QStyleOptionViewItem &, const QModelIndex &) const override;
 
-		inline const QColor & countdownWarningColour() const {
+		inline const QColor & countdownWarningColour() const
+		{
 			return m_countdownWarningColour;
 		}
 
-		inline const QColor & countdownCriticalColour() const {
+		inline const QColor & countdownCriticalColour() const
+		{
 			return m_countdownCriticalColour;
 		}
 
-		inline void setCountdownWarningColour(const QColor & colour) {
+		inline void setCountdownWarningColour(const QColor & colour)
+		{
 			if(colour.isValid()) {
 				m_countdownWarningColour = colour;
 				return;
@@ -53,7 +56,8 @@ namespace Qonvince {
 			m_countdownWarningColour = {-1, -1, -1};
 		}
 
-		inline void setCountdownCriticalColour(const QColor & colour) {
+		inline void setCountdownCriticalColour(const QColor & colour)
+		{
 			if(colour.isValid()) {
 				m_countdownCriticalColour = colour;
 				return;
@@ -63,11 +67,13 @@ namespace Qonvince {
 			m_countdownCriticalColour = {-1, -1, -1};
 		}
 
-		inline constexpr int actionIconAreaWidth() const {
+		inline constexpr int actionIconAreaWidth() const
+		{
 			return m_actionIconAreaWidth;
 		}
 
-		inline constexpr void setActionIconAreaWidth(int width) {
+		inline constexpr void setActionIconAreaWidth(int width)
+		{
 			m_actionIconAreaWidth = width;
 		}
 
