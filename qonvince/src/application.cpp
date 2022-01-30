@@ -49,6 +49,7 @@
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QCryptographicHash>
+#include <QScreen>
 #include <QStandardPaths>
 #include <QSharedMemory>
 #include <QSystemSemaphore>
@@ -752,7 +753,6 @@ namespace Qonvince
 
         m_trayIcon.setContextMenu(&m_trayIconMenu);
     }
-
 }  // namespace Qonvince
 
 #pragma clang diagnostic pop

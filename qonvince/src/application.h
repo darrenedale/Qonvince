@@ -32,6 +32,7 @@
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QSystemTrayIcon>
 #include <QtWidgets/QMenu>
+#include <QScreen>
 
 #include <QtCrypto>
 
@@ -48,29 +49,15 @@
 
 #define qonvinceApp (Qonvince::Application::qonvince())
 
-namespace Qonvince {
-
-	class MainWindow;
-	class SettingsWidget;
-	class AboutDialogue;
-
+namespace Qonvince
+{
 	class Application
 	: public QApplication {
 		Q_OBJECT
 
 	public:
-		//		enum class DesktopEnvironment {
-		//			Unknown,
-		//			Kde,
-		//			Gnome,
-		//			Unity,
-		//			Xfce,
-		//			Lxde,
-		//			WindowsDesktop,
-		//			MacOSx,
-		//			Android,
-		//			WindowsPhone,
-		//		};
+        // globally-accessible constant to assist with UI adaptation to screens with different DPIs
+        static constexpr const auto ReferencePixelDensity = 96;
 
 		Application(int &, char **);
 		~Application() override;
@@ -88,6 +75,16 @@ namespace Qonvince {
 		inline static Application * qonvince() {
 			return static_cast<Application *>(QApplication::instance());
 		}
+
+        template<typename ValueType>
+        ValueType referencePxToScreenPx(ValueType px, const QScreen * screen = nullptr)
+        {
+            if (!screen) {
+                screen = m_mainWindow.screen();
+            }
+
+            return (screen->physicalDotsPerInchY() / ReferencePixelDensity) * px;
+        }
 
 		inline Settings & settings() {
 			return m_settings;
