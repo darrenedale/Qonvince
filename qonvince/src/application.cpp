@@ -49,6 +49,7 @@
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QCryptographicHash>
+#include <QScreen>
 #include <QStandardPaths>
 #include <QSharedMemory>
 #include <QSystemSemaphore>
@@ -166,16 +167,16 @@ namespace Qonvince
     }  // namespace
 
     Application::Application(int & argc, char ** argv)
-            : QApplication(argc, argv),
-              m_settings(),
-              m_trayIcon(QIcon::fromTheme(QStringLiteral("qonvince"), QIcon(QStringLiteral(":/icons/systray")))),
-              m_trayIconMenu(tr("Qonvince")),
-              m_clipboardClearTimer(),
-              m_clipboardContent(),
-              m_notificationsInterface(QStringLiteral("org.freedesktop.Notifications"),
-                                       QStringLiteral("/org/freedesktop/Notifications"),
-                                       QStringLiteral("org.freedesktop.Notifications")),
-              m_displayPluginFactory(QStringLiteral(".displayplugin"))
+    : QApplication(argc, argv),
+      m_settings(),
+      m_trayIcon(QIcon::fromTheme(QStringLiteral("qonvince"), QIcon(QStringLiteral(":/icons/systray")))),
+      m_trayIconMenu(tr("Qonvince")),
+      m_clipboardClearTimer(),
+      m_clipboardContent(),
+      m_notificationsInterface(QStringLiteral("org.freedesktop.Notifications"),
+                               QStringLiteral("/org/freedesktop/Notifications"),
+                               QStringLiteral("org.freedesktop.Notifications")),
+      m_displayPluginFactory(QStringLiteral(".displayplugin"))
     {
         m_clipboardClearTimer.setSingleShot(true);
 
@@ -183,7 +184,7 @@ namespace Qonvince
         setOrganizationDomain(QStringLiteral("equituk.net"));
         setApplicationName(QStringLiteral("Qonvince"));
         setApplicationDisplayName(QStringLiteral("Qonvince"));
-        setApplicationVersion(QStringLiteral("1.8.2"));
+        setApplicationVersion(QStringLiteral("1.9.0"));
         setQuitOnLastWindowClosed(false);
         QSettings::setDefaultFormat(QSettings::IniFormat);
 
@@ -752,7 +753,6 @@ namespace Qonvince
 
         m_trayIcon.setContextMenu(&m_trayIconMenu);
     }
-
 }  // namespace Qonvince
 
 #pragma clang diagnostic pop

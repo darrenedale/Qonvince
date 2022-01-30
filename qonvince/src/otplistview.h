@@ -53,7 +53,8 @@ namespace Qonvince {
 		int hoveredOtpIndex() const;
 		Otp * hoveredOtp() const;
 
-		inline QString hoveredOtpCode() const {
+		inline QString hoveredOtpCode() const
+		{
 			auto * otp = hoveredOtp();
 
 			if(!otp) {
@@ -63,24 +64,23 @@ namespace Qonvince {
 			return otp->code();
 		}
 
-		inline int selectedOtpIndex() const {
+		inline int selectedOtpIndex() const
+		{
 			return hoveredOtpIndex();
 		}
 
-		inline Otp * selectedOtp() const {
+		inline Otp * selectedOtp() const
+		{
 			return hoveredOtp();
 		}
 
-		inline QString selectedOtpCode() const {
+		inline QString selectedOtpCode() const
+		{
 			return hoveredOtpCode();
 		}
 
-		constexpr inline int itemHeight() const {
-			return 40;
-		}
-
-		inline void setModel(QAbstractItemModel *) override {
-		}
+		inline void setModel(QAbstractItemModel *) override
+		{}
 
 		void setItemDelegate() = delete;
 
@@ -146,7 +146,8 @@ namespace Qonvince {
 		std::unique_ptr<OtpListModel> m_model;
 		std::unique_ptr<OtpListItemDelegate> m_delegate;
 
-		struct ActionButtonSpec {
+		struct ActionButtonSpec
+        {
 			QIcon icon;
 			QRect geometry;
 		};

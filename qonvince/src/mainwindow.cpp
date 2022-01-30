@@ -57,12 +57,12 @@
 #include "functions.h"
 
 
-namespace Qonvince {
-
-
-	MainWindow::MainWindow(QWidget * parent)
+namespace Qonvince
+{
+    MainWindow::MainWindow(QWidget * parent)
 	: QMainWindow(parent),
-	  m_ui(std::make_unique<Ui::MainWindow>()) {
+	  m_ui(std::make_unique<Ui::MainWindow>())
+	{
 		m_ui->setupUi(this);
 
 		if(OtpQrCodeReader::isAvailable()) {
@@ -107,17 +107,16 @@ namespace Qonvince {
 		connect(&(qonvinceApp->settings()), qOverload<bool>(&Settings::copyCodeOnClickChanged), this, &MainWindow::refreshTooltip);
 	}
 
-
 	MainWindow::~MainWindow() = default;
 
-
-	void MainWindow::closeEvent(QCloseEvent * ev) {
+	void MainWindow::closeEvent(QCloseEvent * ev)
+	{
 		ev->accept();
 		Q_EMIT closing();
 	}
 
-
-	void MainWindow::dragEnterEvent(QDragEnterEvent * ev) {
+	void MainWindow::dragEnterEvent(QDragEnterEvent * ev)
+	{
 		if(!OtpQrCodeReader::isAvailable()) {
 			return;
 		}
@@ -135,8 +134,8 @@ namespace Qonvince {
 		}
 	}
 
-
-	void MainWindow::dropEvent(QDropEvent * ev) {
+	void MainWindow::dropEvent(QDropEvent * ev)
+	{
 		if(!OtpQrCodeReader::isAvailable()) {
 			return;
 		}
@@ -157,8 +156,8 @@ namespace Qonvince {
 		}
 	}
 
-
-	void MainWindow::refreshTooltip() {
+	void MainWindow::refreshTooltip()
+	{
 		// looks a bit odd, but should make translation simpler - no HTML required
 		QString tt = QStringLiteral("<html><body><p>%1</p>%2%3</body></html>").arg(tr("Double-click an entry to edit its details."), (qonvinceApp->settings().copyCodeOnClick() ? QStringLiteral("<p>%1</p>").arg(tr("Click an entry to copy its current code to the clipboard.")) : QStringLiteral("")), (OtpQrCodeReader::isAvailable() ? QStringLiteral("<p>%1</p>").arg(tr("Drop a QR code image on this window to decode it.")) : QStringLiteral("")));
 
@@ -166,14 +165,13 @@ namespace Qonvince {
 		m_ui->otpList->setToolTip(tt);
 	}
 
-
-	void MainWindow::createOtpEditor(Otp * otp) {
+	void MainWindow::createOtpEditor(Otp * otp)
+	{
 		Q_ASSERT_X(otp, __PRETTY_FUNCTION__, "null OTP object");
 		auto * editor = new OtpEditorDialogue(otp, this);
 		editor->setAttribute(Qt::WA_DeleteOnClose, true);
 		editor->show();
 	}
-
 
 #if defined(WITH_NETWORK_ACCESS)
 	void MainWindow::onRemoteQrCodeImageDownloadFinished() {
@@ -195,8 +193,8 @@ namespace Qonvince {
 	}
 #endif
 
-
-	void MainWindow::readSettings(const QSettings & settings) {
+	void MainWindow::readSettings(const QSettings & settings)
+	{
 		QPoint pos(settings.value(QStringLiteral("position")).toPoint());
 		QSize size(settings.value(QStringLiteral("size")).toSize());
 
@@ -210,7 +208,8 @@ namespace Qonvince {
 	}
 
 
-	void MainWindow::writeSettings(QSettings & settings) const {
+	void MainWindow::writeSettings(QSettings & settings) const
+	{
 		settings.setValue(QStringLiteral("position"), pos());
 		settings.setValue(QStringLiteral("size"), size());
 	}

@@ -28,44 +28,57 @@
 
 #include <QPen>
 #include <QPainter>
+#include <QScreen>
+#include <optional>
 
 #include "otp.h"
 #include "otplistmodel.h"
 
+namespace
+{
+    /**
+     * All pixel-based measurements are the # of pixels at the reference PPI (see Application.h)
+     */
+    constexpr const auto SpacingSize = 4;
+    constexpr const auto OtpIconExtent = 32;
+    constexpr const auto ItemHeight = OtpIconExtent + (2 * SpacingSize);
+    constexpr const QSize OtpIconSize = {OtpIconExtent, OtpIconExtent};
+    constexpr const auto CountdownSizeRatio = 0.5L;  // ratio of counter size to item height
+    constexpr const auto CountdownWarningThreshold = 8;
+    constexpr const auto CountdownCriticalThreshold = 4;
+}
 
-namespace Qonvince {
-
-
-	namespace Detail {
-		namespace OtpListItemDelegate {
-			static constexpr const auto SpacingSize = 4;
-			static constexpr const auto OtpIconExtent = 32;
-			static constexpr const QSize OtpIconSize = {OtpIconExtent, OtpIconExtent};
-			static constexpr const auto CountdownSizeRatio = 0.5L;  // ratio of counter size to item height
-			static constexpr const auto CountdownWarningThreshold = 8;
-			static constexpr const auto CountdownCriticalThreshold = 4;
-		}  // namespace OtpListItemDelegate
-	}		// namespace Detail
-
-
+namespace Qonvince
+{
 	OtpListItemDelegate::OtpListItemDelegate()
 	: m_countdownWarningColour(-1, -1, -1),
 	  m_countdownCriticalColour(-1, -1, -1),
-	  m_actionIconAreaWidth(0) {
-	}
-
+	  m_actionIconAreaWidth(0)
+	{}
 
 	// TODO this code needs an efficiency review
-	void OtpListItemDelegate::paint(QPainter * painter, const QStyleOptionViewItem & option, const QModelIndex & index) const {
+	void OtpListItemDelegate::paint(QPainter * painter, const QStyleOptionViewItem & option, const QModelIndex & index) const
+	{
+	   auto screenScale = option.widget->screen()->physicalDotsPerInchY() / Qonvince::Application::ReferencePixelDensity;
+       auto * screen = option.widget->screen();
+	   auto spacing = qonvinceApp->referencePxToScreenPx(SpacingSize, screen);
 		painter->save();
 		painter->setRenderHint(QPainter::Antialiasing, true);
 		painter->translate(option.rect.topLeft());
+
+		// this should be the correct size for the screen pixel density since sizeHint(), where the option rect comes from, already accounts for that
 		QRect itemRect({0, 0}, option.rect.size());
 		auto height = itemRect.height();
-		auto timerRectSize = static_cast<int>(height * Detail::OtpListItemDelegate::CountdownSizeRatio);
-		QRect iconRect({Detail::OtpListItemDelegate::SpacingSize, Detail::OtpListItemDelegate::SpacingSize}, Detail::OtpListItemDelegate::OtpIconSize);
+		auto timerRectSize = static_cast<int>(height * CountdownSizeRatio);
+
+		QRect iconRect({spacing, spacing,}, qonvinceApp->referencePxToScreenPx(OtpIconSize, screen));
 		QRectF timerRect({0.5 + itemRect.right() - timerRectSize - actionIconAreaWidth(), 0.5 + ((height - timerRectSize) / 2.0)}, QSize(timerRectSize, timerRectSize));
-		QRect codeRect({Detail::OtpListItemDelegate::OtpIconExtent + (2 * Detail::OtpListItemDelegate::SpacingSize), 0}, QPoint(static_cast<int>(timerRect.left()) - Detail::OtpListItemDelegate::SpacingSize - Detail::OtpListItemDelegate::SpacingSize, height - 1));
+		QRect codeRect(
+		        {
+		            static_cast<int>(qonvinceApp->referencePxToScreenPx(OtpIconExtent + (2 * SpacingSize), screen)),
+		            0,
+		            },
+		            QPoint(static_cast<int>(timerRect.left()) - static_cast<int>(qonvinceApp->referencePxToScreenPx(SpacingSize + SpacingSize, screen)), height - 1));
 
 		QString codeString;
 
@@ -112,7 +125,7 @@ namespace Qonvince {
 			icon.paint(painter, iconRect);
 		}
 
-		if(Detail::OtpListItemDelegate::CountdownWarningThreshold >= countdown && OtpType::Totp == codeType) {
+		if(CountdownWarningThreshold >= countdown && OtpType::Totp == codeType) {
 			painter->setPen(itemPen.color().lighter(200 + (30 * (5 - countdown))));
 		}
 		else {
@@ -122,16 +135,16 @@ namespace Qonvince {
 		QFont nameFont = painter->font();
 		QFont codeFont = nameFont;
 		nameFont.setBold(false);
-		nameFont.setPixelSize(qMax(int(nameFont.pixelSize() * 1.2), height / 3));
+		nameFont.setPixelSize(qMax(static_cast<int>(nameFont.pixelSize() * 1.2), static_cast<int>(height / 3)));
 		codeFont.setBold(true);
 		codeFont.setPixelSize(height / 2);
 
-		QRect nameRect(Detail::OtpListItemDelegate::OtpIconExtent + (2 * Detail::OtpListItemDelegate::SpacingSize), 0, 0, height);
+		QRect nameRect(static_cast<int>(qonvinceApp->referencePxToScreenPx(OtpIconExtent + (2 * SpacingSize), screen)), 0, 0, height);
 
 		if(showCode) {
 			painter->setFont(codeFont);
 			painter->drawText(codeRect, Qt::AlignVCenter | Qt::TextSingleLine | Qt::AlignRight, codeString, &codeRect);
-			nameRect.setRight(codeRect.left() - (2 * Detail::OtpListItemDelegate::SpacingSize));
+			nameRect.setRight(codeRect.left() - spacing - spacing);
 		}
 		else {
 			nameRect.setRight(codeRect.right());
@@ -144,10 +157,10 @@ namespace Qonvince {
 			timerPen.setWidthF(0.5);
 			QBrush timerBrush(countdownColour);
 
-			if(Detail::OtpListItemDelegate::CountdownCriticalThreshold >= countdown && m_countdownCriticalColour.isValid()) {
+			if(CountdownCriticalThreshold >= countdown && m_countdownCriticalColour.isValid()) {
 				timerBrush.setColor(m_countdownCriticalColour);
 			}
-			else if(Detail::OtpListItemDelegate::CountdownWarningThreshold >= countdown && m_countdownWarningColour.isValid()) {
+			else if(CountdownWarningThreshold >= countdown && m_countdownWarningColour.isValid()) {
 				timerBrush.setColor(m_countdownWarningColour);
 			}
 
@@ -177,13 +190,12 @@ namespace Qonvince {
 	}
 
 
-	QSize OtpListItemDelegate::sizeHint(const QStyleOptionViewItem & option, const QModelIndex & index) const {
+	QSize OtpListItemDelegate::sizeHint(const QStyleOptionViewItem & option, const QModelIndex & index) const
+	{
 		if(0 != index.column()) {
 			return {};
 		}
 
-		return {option.rect.width(), 40};
+		return {option.rect.width(), static_cast<int>(option.widget->screen()->physicalDotsPerInchY() / Qonvince::Application::ReferencePixelDensity * ItemHeight)};
 	}
-
-
 }  // namespace Qonvince
