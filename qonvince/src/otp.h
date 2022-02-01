@@ -37,16 +37,19 @@ class QBasicTimer;
 class QTimerEvent;
 class QSettings;
 
-namespace LibQonvince {
+namespace LibQonvince
+{
 	class OtpDisplayPlugin;
 }
 
-namespace Qonvince {
+namespace Qonvince
+{
 
 	using Base32 = LibQonvince::Base32<QByteArray, char>;
 
 	class Otp
-	: public QObject {
+	: public QObject
+	{
 		Q_OBJECT
 
 	public:
@@ -54,7 +57,8 @@ namespace Qonvince {
 		static constexpr const int DefaultDigits = 6;
 		static const QDateTime DefaultBaselineTime;
 
-		enum class SeedType {
+		enum class SeedType
+		{
 			Plain = 0,
 			Base32
 		};
@@ -67,51 +71,62 @@ namespace Qonvince {
 
 		static std::unique_ptr<Otp> fromSettings(const QSettings & settings, const QCA::SecureArray & cryptKey);
 
-		inline const OtpType & type() const {
+		inline const OtpType & type() const
+		{
 			return m_type;
 		}
 
-		inline const QString & name() const {
+		inline const QString & name() const
+		{
 			return m_name;
 		}
 
-		inline const QString & issuer() const {
+		inline const QString & issuer() const
+		{
 			return m_issuer;
 		}
 
-		inline const QIcon & icon() const {
+		inline const QIcon & icon() const
+		{
 			return m_icon;
 		}
 
 		QByteArray seed(SeedType seedType = SeedType::Plain) const;
 
-		inline int interval() const {
+		inline int interval() const
+		{
 			return m_interval;
 		}
 
-		inline bool revealCodeOnDemand() const {
+		inline bool revealCodeOnDemand() const
+		{
 			return m_revealOnDemand;
 		}
 
-		inline bool codeIsVisible() const {
+		inline bool codeIsVisible() const
+		{
 			return !m_revealOnDemand || m_isRevealed;
 		}
 
 		// only for type = HOTP
-		quint64 counter() const {
+		quint64 counter() const
+		{
 			return m_counter;
 		}
 
 		// only for type = TOTP; *always* in UTC
-		inline const QDateTime baselineTime() const {
+		inline const QDateTime baselineTime() const
+		{
 			return QDateTime::fromMSecsSinceEpoch(m_baselineTime).toUTC();
 		}
 
-		inline qint64 baselineSecSinceEpoch() const {
+		inline qint64 baselineSecSinceEpoch() const
+		{
 			return m_baselineTime;
 		}
 
-		inline int timeSinceLastCode() const {
+		inline int timeSinceLastCode() const
+		{
 			int d(interval());
 
 			if(0 >= d) {
@@ -121,7 +136,8 @@ namespace Qonvince {
 			return ((QDateTime::currentDateTimeUtc().toMSecsSinceEpoch() / 1000) - baselineSecSinceEpoch()) % d;
 		}
 
-		inline int timeToNextCode() const {
+		inline int timeToNextCode() const
+		{
 			int d(interval());
 
 			if(0 >= d) {
@@ -133,7 +149,8 @@ namespace Qonvince {
 
 		const QString & code();
 
-		inline const QString & displayPluginName() const {
+		inline const QString & displayPluginName() const
+		{
 			return m_displayPluginName;
 		}
 
@@ -186,7 +203,8 @@ namespace Qonvince {
 
 		bool setDisplayPluginName(const QString & pluginName);
 
-		inline void setRevealOnDemand(bool onDemandOnly) {
+		inline void setRevealOnDemand(bool onDemandOnly)
+		{
 			if(onDemandOnly != m_revealOnDemand) {
 				m_revealOnDemand = onDemandOnly;
 				Q_EMIT revealOnDemandChanged(m_revealOnDemand);
@@ -194,7 +212,8 @@ namespace Qonvince {
 			}
 		}
 
-		inline void reveal() {
+		inline void reveal()
+		{
 			auto wasVisible = codeIsVisible();
 			m_isRevealed = true;
 
@@ -204,7 +223,8 @@ namespace Qonvince {
 			}
 		}
 
-		inline void hide() {
+		inline void hide()
+		{
 			auto wasVisible = codeIsVisible();
 			m_isRevealed = false;
 
@@ -214,7 +234,8 @@ namespace Qonvince {
 			}
 		}
 
-		inline void setCounter(quint64 c) {
+		inline void setCounter(quint64 c)
+		{
 			if(c != m_counter) {
 				qSwap(c, m_counter);
 				Q_EMIT counterChanged(c, m_counter);
@@ -223,12 +244,14 @@ namespace Qonvince {
 			}
 		}
 
-		inline void incrementCounter() {
+		inline void incrementCounter()
+		{
 			setCounter(m_counter + 1);
 		}
 
 		/* time is *always* converted to UTC */
-		inline void setBaselineTime(const QDateTime & time) {
+		inline void setBaselineTime(const QDateTime & time)
+		{
 			setBaselineTime(time.toUTC().toMSecsSinceEpoch() / 1000);
 		}
 
@@ -267,6 +290,6 @@ namespace Qonvince {
 		bool m_resync;
 	};
 
-}  // namespace Qonvince
+}	// namespace Qonvince
 
 #endif  // QONVINCE_OTP_H

@@ -19,16 +19,18 @@
 #include <vector>
 #include <winbase.h>
 
-namespace {
+namespace
+{
 	/* convert UTF8-encoded std::string to std::wstring */
-	inline std::wstring stringToWString(const std::string & str) {
+	inline std::wstring stringToWString(const std::string & str)
+	{
 		auto strLength = static_cast<int>(str.length()) + 1;
 		auto bufferSize = MultiByteToWideChar(CP_UTF8, 0, str.c_str(), strLength, nullptr, 0);
 		std::vector<wchar_t> buffer(static_cast<std::string::size_type>(bufferSize));
 		MultiByteToWideChar(CP_UTF8, 0, str.c_str(), strLength, buffer.data(), bufferSize);
 		return buffer.data();
 	}
-}  // namespace
+}	// namespace
 
 #define LIBQONVINCE_SL_DLOPEN(path) LoadLibraryW(static_cast<LPCWSTR>(stringToWString(path).c_str()))
 #define LIBQONVINCE_SL_DLSYM(lib, sym) GetProcAddress((lib), (sym))
@@ -60,7 +62,8 @@ namespace {
 #endif
 
 
-namespace LibQonvince {
+namespace LibQonvince
+{
 
 	/** \brief Create a new SharedLibrary and open it.
 	 *
@@ -74,7 +77,8 @@ namespace LibQonvince {
 	 * the platform (.so on *nix, .dll on windows).
 	 */
 	SharedLibrary::SharedLibrary(const std::string & path)
-	: m_lib(nullptr) {
+	: m_lib(nullptr)
+	{
 #ifndef NDEBUG
 		if(open(path)) {
 			std::cerr << "successfully opened \"" << path << "\"\n";
@@ -98,7 +102,8 @@ namespace LibQonvince {
 	 * it was open previously.
 	 */
 	SharedLibrary::SharedLibrary(SharedLibrary && other)
-	: m_lib(other.m_lib) {
+	: m_lib(other.m_lib)
+	{
 		other.m_lib = nullptr;
 	}
 
@@ -112,7 +117,8 @@ namespace LibQonvince {
 	 * object will act as if not open, regardless of whether it was open
 	 * previously.
 	 */
-	SharedLibrary & SharedLibrary::operator=(SharedLibrary && other) {
+	SharedLibrary & SharedLibrary::operator=(SharedLibrary && other)
+	{
 		std::swap(m_lib, other.m_lib);
 		return *this;
 	}
@@ -123,7 +129,8 @@ namespace LibQonvince {
 	 * The library is closed if it was open and resources used by it are
 	 * dispensed with.
 	 */
-	SharedLibrary::~SharedLibrary() {
+	SharedLibrary::~SharedLibrary()
+	{
 		close();
 	}
 
@@ -138,7 +145,8 @@ namespace LibQonvince {
 	 *
 	 * \return \b true if the library was opened, \b false otherwise.
 	 */
-	bool SharedLibrary::open(const std::string & path) {
+	bool SharedLibrary::open(const std::string & path)
+	{
 		close();
 		m_lib = LIBQONVINCE_SL_DLOPEN(path);
 		return isOpen();
@@ -153,7 +161,8 @@ namespace LibQonvince {
 	 *
 	 * \return \b true if the library was closed, \b false if not.
 	 */
-	bool SharedLibrary::close() {
+	bool SharedLibrary::close()
+	{
 		bool ret = true;
 
 		if(m_lib) {
@@ -174,7 +183,8 @@ namespace LibQonvince {
 	 * \return \b true if the library is open and contains a matching
 	 * symbol, \b false otherwise.
 	 */
-	bool SharedLibrary::hasSymbol(const std::string & sym) const {
+	bool SharedLibrary::hasSymbol(const std::string & sym) const
+	{
 		return (0 != LIBQONVINCE_SL_DLSYM(m_lib, sym.c_str()));
 	}
 
@@ -196,7 +206,8 @@ namespace LibQonvince {
 	 * \return \b true if the symbol was found and placed in the receiver,
 	 * \b false otherwise.
 	 */
-	bool SharedLibrary::symbol(const std::string & sym, Symbol * receiver) const {
+	bool SharedLibrary::symbol(const std::string & sym, Symbol * receiver) const
+	{
 		bool ret = false;
 		Symbol myReceiver;
 		myReceiver = LIBQONVINCE_SL_DLSYM(m_lib, sym.c_str());
@@ -219,12 +230,13 @@ namespace LibQonvince {
 	 *
 	 * \return The last error message.
 	 */
-	std::string SharedLibrary::lastError() const {
+	std::string SharedLibrary::lastError() const
+	{
 		return LIBQONVINCE_SL_DLERROR;
 	}
 
 
-};  // namespace LibQonvince
+};	 // namespace LibQonvince
 
 #undef LIBQONVINCE_SL_DLOPEN
 #undef LIBQONVINCE_SL_DLSYM
