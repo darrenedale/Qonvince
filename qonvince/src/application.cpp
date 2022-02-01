@@ -722,7 +722,9 @@ namespace Qonvince
 
 #ifndef NDEBUG
         // search in the build dir
-        m_displayPluginFactory.addSearchPath(QStringLiteral("../plugins/otpdisplay"));
+        m_displayPluginFactory.addSearchPath(QStringLiteral("../plugins/otpdisplay/integer/sixdigits"));
+        m_displayPluginFactory.addSearchPath(QStringLiteral("../plugins/otpdisplay/integer/eightdigits"));
+        m_displayPluginFactory.addSearchPath(QStringLiteral("../plugins/otpdisplay/steam"));
 #endif
 
         m_displayPluginFactory.loadAllPlugins();
