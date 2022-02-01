@@ -12,7 +12,7 @@ set_target_properties(sixdigits_display_plugin PROPERTIES
 	LIBRARY_OUTPUT_DIRECTORY ".."
 	)
 
-target_include_directories(sixdigits_display_plugin PUBLIC ${CMAKE_CURRENT_LIST_DIR}/../../../libqonvince/src)
+target_include_directories(sixdigits_display_plugin PUBLIC ${CMAKE_CURRENT_LIST_DIR}/../../../../libqonvince/src)
 target_link_libraries(sixdigits_display_plugin PUBLIC libqonvince_shared Qt5::Core)
 
 if(WIN32)
