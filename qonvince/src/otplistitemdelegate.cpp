@@ -59,8 +59,7 @@ namespace Qonvince
 	// TODO this code needs an efficiency review
 	void OtpListItemDelegate::paint(QPainter * painter, const QStyleOptionViewItem & option, const QModelIndex & index) const
 	{
-	   auto screenScale = option.widget->screen()->physicalDotsPerInchY() / Qonvince::Application::ReferencePixelDensity;
-       auto * screen = option.widget->screen();
+      auto * screen = option.widget->screen();
 	   auto spacing = qonvinceApp->referencePxToScreenPx(SpacingSize, screen);
 		painter->save();
 		painter->setRenderHint(QPainter::Antialiasing, true);
