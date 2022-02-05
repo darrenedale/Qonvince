@@ -39,9 +39,9 @@ namespace Qonvince {
 
 		public:
 			explicit IconSelectButton(QWidget * = nullptr);
-			explicit IconSelectButton(const QIcon &, QWidget * = nullptr);
+			explicit IconSelectButton(QIcon, QWidget * = nullptr);
 			explicit IconSelectButton(const QString &, QWidget * = nullptr);
-			~IconSelectButton();
+			~IconSelectButton() override;
 
 			inline const QIcon & icon() const {
 				return m_icon;
@@ -51,7 +51,7 @@ namespace Qonvince {
 				return m_iconPath;
 			}
 
-			virtual QSize sizeHint() const;
+			[[nodiscard]] QSize sizeHint() const override;
 
 		Q_SIGNALS:
 			void iconChanged(const QIcon &);
@@ -66,7 +66,10 @@ namespace Qonvince {
 			void setIconSize(const QSize & size);
 
 		protected:
-			virtual void resizeEvent(QResizeEvent *);
+			void resizeEvent(QResizeEvent *) override;
+            void dragEnterEvent(QDragEnterEvent *) override;
+            void dragLeaveEvent(QDragLeaveEvent *) override;
+            void dropEvent(QDropEvent *) override;
 
 		private:
 			std::unique_ptr<Ui::IconSelectButton> m_ui;
