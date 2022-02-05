@@ -7,14 +7,10 @@
  * \brief Implementation of the SharedLibrary class.
  */
 #include "sharedlibrary.h"
-
 #include <iostream>
 #include <string>
 
-
 #if defined(_WIN32)
-
-#pragma message("Building SharedLibrary class for Windows.")
 
 #include <vector>
 #include <winbase.h>
@@ -36,10 +32,9 @@ namespace
 #define LIBQONVINCE_SL_DLSYM(lib, sym) GetProcAddress((lib), (sym))
 #define LIBQONVINCE_SL_DLCLOSE(lib) FreeLibrary((lib))
 #define LIBQONVINCE_SL_DLERROR ""
+#define LIBQONVINCE_SL_NOSYMBOL NULL
 
 #elif defined(__unix)
-
-#pragma message("Building SharedLibrary class for Unix.")
 
 #include <dlfcn.h>
 
@@ -54,6 +49,7 @@ namespace
 #define LIBQONVINCE_SL_DLSYM(lib, sym) dlsym((lib), (sym))
 #define LIBQONVINCE_SL_DLCLOSE(lib) (0 == dlclose((lib)))
 #define LIBQONVINCE_SL_DLERROR dlerror()
+#define LIBQONVINCE_SL_NOSYMBOL nullptr
 
 #else
 
@@ -61,10 +57,8 @@ namespace
 
 #endif
 
-
 namespace LibQonvince
 {
-
 	/** \brief Create a new SharedLibrary and open it.
 	 *
 	 * \param path The library to open.
@@ -76,7 +70,7 @@ namespace LibQonvince
 	 * In either case, the path should include the appropriate suffix for
 	 * the platform (.so on *nix, .dll on windows).
 	 */
-	SharedLibrary::SharedLibrary(const std::string & path)
+	SharedLibrary::SharedLibrary(const std::string & path) noexcept
 	: m_lib(nullptr)
 	{
 #ifndef NDEBUG
@@ -91,7 +85,6 @@ namespace LibQonvince
 #endif
 	}
 
-
 	/**
 	 * \brief Move constructor.
 	 *
@@ -101,12 +94,11 @@ namespace LibQonvince
 	 * The moved-from object will act as if not open, regardless of whether
 	 * it was open previously.
 	 */
-	SharedLibrary::SharedLibrary(SharedLibrary && other)
+	SharedLibrary::SharedLibrary(SharedLibrary && other) noexcept
 	: m_lib(other.m_lib)
 	{
 		other.m_lib = nullptr;
 	}
-
 
 	/**
 	 * \brief Move constructor.
@@ -117,12 +109,11 @@ namespace LibQonvince
 	 * object will act as if not open, regardless of whether it was open
 	 * previously.
 	 */
-	SharedLibrary & SharedLibrary::operator=(SharedLibrary && other)
+	SharedLibrary & SharedLibrary::operator=(SharedLibrary && other) noexcept
 	{
 		std::swap(m_lib, other.m_lib);
 		return *this;
 	}
-
 
 	/** \brief Destructor.
 	 *
@@ -133,7 +124,6 @@ namespace LibQonvince
 	{
 		close();
 	}
-
 
 	/** \brief Open a shared library from a file on disk.
 	 *
@@ -151,7 +141,6 @@ namespace LibQonvince
 		m_lib = LIBQONVINCE_SL_DLOPEN(path);
 		return isOpen();
 	}
-
 
 	/** \brief Close the shared library.
 	 *
@@ -173,7 +162,6 @@ namespace LibQonvince
 		return ret;
 	}
 
-
 	/** \brief Check whether the library contains a named symbol.
 	 *
 	 * \param sym The symbol to check.
@@ -185,9 +173,8 @@ namespace LibQonvince
 	 */
 	bool SharedLibrary::hasSymbol(const std::string & sym) const
 	{
-		return (0 != LIBQONVINCE_SL_DLSYM(m_lib, sym.c_str()));
+		return (LIBQONVINCE_SL_NOSYMBOL != LIBQONVINCE_SL_DLSYM(m_lib, sym.c_str()));
 	}
-
 
 	/** \brief Retrieve a symbol from the library.
 	 *
@@ -220,7 +207,8 @@ namespace LibQonvince
 		return ret;
 	}
 
-
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "readability-convert-member-functions-to-static"
 	/** \brief Fetch a description of the last error.
 	 *
 	 * The returned string pointer is statically allocated and must not
@@ -234,9 +222,9 @@ namespace LibQonvince
 	{
 		return LIBQONVINCE_SL_DLERROR;
 	}
+#pragma clang diagnostic pop
 
-
-};	 // namespace LibQonvince
+}	 // namespace LibQonvince
 
 #undef LIBQONVINCE_SL_DLOPEN
 #undef LIBQONVINCE_SL_DLSYM
