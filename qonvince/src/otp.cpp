@@ -17,12 +17,13 @@
  * along with Qonvince. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/** \file otpcode.cpp
-  * \brief Implementation of the OtpCode class.
-  *
-  * \todo when waking from sleep, the refresh timer is off.
-  * \todo look for optimisations in hmac(), totp() and hotp()
-  */
+/**
+ * @file otpcode.cpp
+ * @brief Implementation of the OtpCode class.
+ *
+ * @todo when waking from sleep, the refresh timer is off.
+ * @todo look for optimisations in hmac(), totp() and hotp()
+ */
 #include "otp.h"
 #include <ctime>
 #include <cmath>
@@ -41,30 +42,27 @@
 #include "otpdisplayplugin.h"
 #include "qtiostream.h"
 
-
-namespace Qonvince {
-
-
+namespace Qonvince
+{
 	const QDateTime Otp::DefaultBaselineTime = QDateTime::fromMSecsSinceEpoch(0);
 	static constexpr const int InitializationVectorSize = 16;
 
-
-	Otp::Otp(OtpType type, QObject * parent)
-	: Otp{type, {}, {}, {}, SeedType::Plain, parent} {
+	Otp::Otp(OtpType type, QObject * parent) noexcept
+	: Otp{type, {}, {}, {}, SeedType::Plain, parent}
+	{
 	}
 
-
-	Otp::Otp(OtpType type, const QString & name, const QByteArray & seed, SeedType seedType, QObject * parent)
-	: Otp{type, {}, name, seed, seedType, parent} {
+	Otp::Otp(OtpType type, const QString & name, const QByteArray & seed, SeedType seedType, QObject * parent) noexcept
+	: Otp{type, {}, name, seed, seedType, parent}
+	{
 	}
 
-
-	Otp::Otp(OtpType type, const QByteArray & seed, SeedType seedType, QObject * parent)
-	: Otp{type, {}, {}, seed, seedType, parent} {
+	Otp::Otp(OtpType type, const QByteArray & seed, SeedType seedType, QObject * parent) noexcept
+	: Otp{type, {}, {}, seed, seedType, parent}
+	{
 	}
 
-
-	Otp::Otp(OtpType type, const QString & issuer, const QString & name, const QByteArray & seed, SeedType seedType, QObject * parent)
+	Otp::Otp(OtpType type, const QString & issuer, const QString & name, const QByteArray & seed, SeedType seedType, QObject * parent) noexcept
 	: QObject{parent},
 	  m_issuer{issuer},
 	  m_name{name},
@@ -76,7 +74,8 @@ namespace Qonvince {
 	  m_refreshTimer{std::make_unique<QBasicTimer>()},
 	  m_revealOnDemand{false},
 	  m_isRevealed{false},
-	  m_resync{false} {
+	  m_resync{false}
+	{
 		blockSignals(true);
 		setSeed(seed, seedType);
 		refreshCode();
@@ -84,22 +83,22 @@ namespace Qonvince {
 		blockSignals(false);
 	}
 
-
-	Otp::~Otp() {
+	Otp::~Otp()
+	{
 		m_refreshTimer->stop();
 		// TODO why is this here? base class should emit this should it not?
 		Q_EMIT destroyed(this);
 	}
 
-
-	void Otp::resynchroniseRefreshTimer() {
+	void Otp::resynchroniseRefreshTimer()
+	{
 		m_refreshTimer->stop();
 		m_resync = true;
 		m_refreshTimer->start(500 + (timeToNextCode() - 1) * 1000, this);
 	}
 
-
-	void Otp::setType(OtpType type) {
+	void Otp::setType(OtpType type)
+	{
 		if(type != m_type) {
 			qSwap(type, m_type);
 
@@ -116,8 +115,8 @@ namespace Qonvince {
 		}
 	}
 
-
-	void Otp::setName(const QString & name) {
+	void Otp::setName(const QString & name)
+	{
 		if(name != m_name) {
 			QString old = m_name;
 			m_name = name;
@@ -127,7 +126,8 @@ namespace Qonvince {
 		}
 	}
 
-	void Otp::setIssuer(const QString & issuer) {
+	void Otp::setIssuer(const QString & issuer)
+	{
 		if(issuer != m_issuer) {
 			QString old = m_issuer;
 			m_issuer = issuer;
@@ -137,8 +137,8 @@ namespace Qonvince {
 		}
 	}
 
-
-	void Otp::setIcon(const QIcon & icon) {
+	void Otp::setIcon(const QIcon & icon)
+	{
 		m_icon = icon;
 
 		if(m_icon.isNull()) {
@@ -174,8 +174,8 @@ namespace Qonvince {
 		Q_EMIT changed();
 	}
 
-
-	QByteArray Otp::seed(SeedType seedType) const {
+	QByteArray Otp::seed(SeedType seedType) const
+	{
 		if(SeedType::Base32 == seedType) {
 			return m_seed.encoded();
 		}
@@ -183,13 +183,13 @@ namespace Qonvince {
 		return m_seed.plain();
 	}
 
-
-	const QString & Otp::code() {
+	const QString & Otp::code()
+	{
 		return m_currentCode;
 	}
 
-
-	bool Otp::setSeed(const QByteArray & newSeed, SeedType seedType) {
+	bool Otp::setSeed(const QByteArray & newSeed, SeedType seedType)
+	{
 		QByteArray oldSeed;
 		QByteArray oldB32;
 
@@ -231,8 +231,8 @@ namespace Qonvince {
 		return true;
 	}
 
-
-	void Otp::setInterval(int duration) {
+	void Otp::setInterval(int duration)
+	{
 		if(duration != m_interval) {
 			int old = m_interval;
 			m_interval = duration;
@@ -243,8 +243,8 @@ namespace Qonvince {
 		}
 	}
 
-
-	bool Otp::setDisplayPluginName(const QString & pluginName) {
+	bool Otp::setDisplayPluginName(const QString & pluginName)
+	{
 		if(pluginName != m_displayPluginName) {
 			QString oldName = m_displayPluginName;
 			m_displayPluginName = pluginName;
@@ -258,8 +258,8 @@ namespace Qonvince {
 		return true;
 	}
 
-
-	void Otp::setBaselineTime(qint64 secSinceEpoch) {
+	void Otp::setBaselineTime(qint64 secSinceEpoch)
+	{
 		if(secSinceEpoch != m_baselineTime) {
 			m_baselineTime = secSinceEpoch;
 			refreshCode();
@@ -270,8 +270,8 @@ namespace Qonvince {
 		}
 	}
 
-
-	std::unique_ptr<Otp> Otp::fromSettings(const QSettings & settings, const QCA::SecureArray & cryptKey) {
+	std::unique_ptr<Otp> Otp::fromSettings(const QSettings & settings, const QCA::SecureArray & cryptKey)
+	{
 		//		static constexpr std::array<QChar, 6> s_validIconFileNameChars = {{'a', 'b', 'c', 'd', 'e', 'f'}};
 
 		auto ret = std::make_unique<Otp>("HOTP" == settings.value(QStringLiteral("type"), "TOTP").toString() ? OtpType::Hotp : OtpType::Totp);
@@ -365,8 +365,8 @@ namespace Qonvince {
 		return ret;
 	}
 
-
-	void Otp::writeSettings(QSettings & settings, const QCA::SecureArray & cryptKey) const {
+	void Otp::writeSettings(QSettings & settings, const QCA::SecureArray & cryptKey) const
+	{
 		settings.setValue(QStringLiteral("name"), name());
 		settings.setValue(QStringLiteral("issuer"), issuer());
 
@@ -405,16 +405,16 @@ namespace Qonvince {
 		settings.setValue(QStringLiteral("revealOnDemand"), revealCodeOnDemand());
 	}
 
-
-	void Otp::timerEvent(QTimerEvent * ev) {
+	void Otp::timerEvent(QTimerEvent * ev)
+	{
 		if(ev->timerId() == m_refreshTimer->timerId()) {
 			ev->accept();
 			internalRefreshCode();
 		}
 	}
 
-
-	void Otp::refreshCode() {
+	void Otp::refreshCode()
+	{
 		if(m_displayPluginName.isEmpty()) {
 			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: no display plugin\n";
 			m_currentCode.clear();
@@ -465,8 +465,8 @@ namespace Qonvince {
 		}
 	}
 
-
-	void Otp::internalRefreshCode() {
+	void Otp::internalRefreshCode()
+	{
 		refreshCode();
 
 		if(OtpType::Totp == m_type) {
@@ -490,21 +490,21 @@ namespace Qonvince {
 		}
 	}
 
-
-	QByteArray Otp::totp(const QByteArray & seed, time_t base, int interval) {
+	QByteArray Otp::totp(const QByteArray & seed, time_t base, int interval)
+	{
 		return hotp(seed, static_cast<uint64_t>(std::floor((QDateTime::currentDateTimeUtc().toTime_t() - base) / interval)));
 	}
 
-
-	QByteArray Otp::hotp(const QByteArray & seed, uint64_t counter) {
+	QByteArray Otp::hotp(const QByteArray & seed, uint64_t counter)
+	{
 		counter = qToBigEndian(static_cast<quint64>(counter));
 		auto * counterBytes = reinterpret_cast<char *>(&counter);
 		return hmac(seed, QByteArray(counterBytes, 8));
 	}
 
-
 	// hmac() is a candidate for optimisation - it is the most-called in-app fn
-	QByteArray Otp::hmac(const QByteArray & key, const QByteArray & message) {
+	QByteArray Otp::hmac(const QByteArray & key, const QByteArray & message)
+	{
 		// algorithm from wikipedia
 		static constexpr const int blockSize = 64;
 		QByteArray myKey = key;
@@ -529,6 +529,4 @@ namespace Qonvince {
 
 		return QCryptographicHash::hash(o_key_pad + QCryptographicHash::hash(i_key_pad + message, QCryptographicHash::Sha1), QCryptographicHash::Sha1);
 	}
-
-
-}  // namespace Qonvince
+}	// namespace Qonvince

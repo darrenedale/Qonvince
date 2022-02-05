@@ -22,17 +22,19 @@
 
 #include <QtCore/QHash>
 
-namespace Qonvince {
-
+namespace Qonvince
+{
 	// convenience algorithms to work with STL and QT containers transparently
 	template<class ContainerT, typename ValueT = typename ContainerT::value_type>
-	bool contains(const ContainerT & container, const ValueT & value) {
+	bool contains(const ContainerT & container, const ValueT & value)
+	{
 		const auto & end = container.cend();
 		return end != std::find(container.cbegin(), end, value);
 	}
 
 	template<class ContainerT, typename ValueT = typename ContainerT::value_type>
-	int removeAll(ContainerT & container, const ValueT & value) {
+	int removeAll(ContainerT & container, const ValueT & value)
+	{
 		const auto originalEnd = container.end();
 		const auto newEnd = std::remove(container.begin(), originalEnd, value);
 
@@ -45,6 +47,6 @@ namespace Qonvince {
 		return ret;
 	}
 
-}  // namespace Qonvince
+}	// namespace Qonvince
 
 #endif  // QONVINCE_ALGORITHMS_H

@@ -26,9 +26,10 @@
 #include "settings.h"
 #include "otp.h"
 
-namespace Qonvince {
-
-	QString otpLabel(Otp * otp) {
+namespace Qonvince
+{
+	QString otpLabel(Otp * otp)
+	{
 		switch(qonvinceApp->settings().codeLabelDisplayStyle()) {
 			case CodeLabelDisplayStyle::NameOnly:
 				return otp->name();
@@ -48,7 +49,6 @@ namespace Qonvince {
 				return otp->issuer();
 		}
 
-		return QStringLiteral("");
+		return QLatin1String("");
 	}
-
-}  // namespace Qonvince
+}	// namespace Qonvince

@@ -26,58 +26,61 @@
 #include <QString>
 #include <QIcon>
 
-namespace Qonvince {
-
-	namespace Ui {
+namespace Qonvince
+{
+	namespace Ui
+	{
 		class IconSelectButton;
 	}
 
 	class IconSelectButton
-	: public QWidget {
+	: public QWidget
+	{
+		Q_OBJECT
 
-			Q_OBJECT
+	public:
+		explicit IconSelectButton(QWidget * = nullptr);
+		explicit IconSelectButton(QIcon, QWidget * = nullptr);
+		explicit IconSelectButton(const QString &, QWidget * = nullptr);
+		~IconSelectButton() override;
 
-		public:
-			explicit IconSelectButton(QWidget * = nullptr);
-			explicit IconSelectButton(QIcon, QWidget * = nullptr);
-			explicit IconSelectButton(const QString &, QWidget * = nullptr);
-			~IconSelectButton() override;
+		[[nodiscard]] inline const QIcon & icon() const
+		{
+			return m_icon;
+		}
 
-			inline const QIcon & icon() const {
-				return m_icon;
-			}
+		[[nodiscard]] inline const QString & iconPath() const
+		{
+			return m_iconPath;
+		}
 
-			inline const QString & iconPath() const {
-				return m_iconPath;
-			}
+		[[nodiscard]] QSize sizeHint() const override;
 
-			[[nodiscard]] QSize sizeHint() const override;
+	Q_SIGNALS:
+		void iconChanged(const QIcon &);
+		void iconChanged(const QString &);
+		void cleared();
 
-		Q_SIGNALS:
-			void iconChanged(const QIcon &);
-			void iconChanged(const QString &);
-			void cleared();
+	public Q_SLOTS:
+		void clear();
+		void chooseIcon();
+		void setIcon(const QIcon & ic);
+		bool setIcon(const QString & path);
+		void setIconSize(const QSize & size);
 
-		public Q_SLOTS:
-			void clear();
-			void chooseIcon();
-			void setIcon(const QIcon & ic);
-			bool setIcon(const QString & path);
-			void setIconSize(const QSize & size);
+	protected:
+		void resizeEvent(QResizeEvent *) override;
+		void dragEnterEvent(QDragEnterEvent *) override;
+		void dragLeaveEvent(QDragLeaveEvent *) override;
+		void dropEvent(QDropEvent *) override;
 
-		protected:
-			void resizeEvent(QResizeEvent *) override;
-            void dragEnterEvent(QDragEnterEvent *) override;
-            void dragLeaveEvent(QDragLeaveEvent *) override;
-            void dropEvent(QDropEvent *) override;
-
-		private:
-			std::unique_ptr<Ui::IconSelectButton> m_ui;
-			QIcon m_icon;
-			QString m_iconPath;
+	private:
+		std::unique_ptr<Ui::IconSelectButton> m_ui;
+		QIcon m_icon;
+		QString m_iconPath;
 	};
 
 
-} // namespace Qonvince
+}	// namespace Qonvince
 
-#endif // QONVINCE_ICONSELECTBUTTON_H
+#endif  // QONVINCE_ICONSELECTBUTTON_H
