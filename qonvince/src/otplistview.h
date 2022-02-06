@@ -40,20 +40,21 @@ class QMouseEvent;
 class QKeyEvent;
 class QContextMenuEvent;
 
-namespace Qonvince {
-
+namespace Qonvince
+{
 	class OtpListView
-	: public QListView {
+	: public QListView
+	{
 		Q_OBJECT
 
 	public:
 		explicit OtpListView(QWidget * = nullptr);
 		~OtpListView() override;
 
-		int hoveredOtpIndex() const;
-		Otp * hoveredOtp() const;
+		[[nodiscard]] int hoveredOtpIndex() const;
+		[[nodiscard]] Otp * hoveredOtp() const;
 
-		inline QString hoveredOtpCode() const
+		[[nodiscard]] inline QString hoveredOtpCode() const
 		{
 			auto * otp = hoveredOtp();
 
@@ -64,22 +65,22 @@ namespace Qonvince {
 			return otp->code();
 		}
 
-		inline int selectedOtpIndex() const
+		[[nodiscard]] inline int selectedOtpIndex() const
 		{
 			return hoveredOtpIndex();
 		}
 
-		inline Otp * selectedOtp() const
+		[[nodiscard]] inline Otp * selectedOtp() const
 		{
 			return hoveredOtp();
 		}
 
-		inline QString selectedOtpCode() const
+		[[nodiscard]] inline QString selectedOtpCode() const
 		{
 			return hoveredOtpCode();
 		}
 
-		inline void setModel(QAbstractItemModel *) override
+		void setModel(QAbstractItemModel *) override
 		{}
 
 		void setItemDelegate() = delete;
@@ -147,7 +148,7 @@ namespace Qonvince {
 		std::unique_ptr<OtpListItemDelegate> m_delegate;
 
 		struct ActionButtonSpec
-        {
+		{
 			QIcon icon;
 			QRect geometry;
 		};
@@ -160,7 +161,6 @@ namespace Qonvince {
 		QRect m_actionIconHoverRect;
 		QRect m_actionIconMouseClickStartRect;
 	};
-
-}  // namespace Qonvince
+}	// namespace Qonvince
 
 #endif  // QONVINCE_OTPLISTVIEW_H
