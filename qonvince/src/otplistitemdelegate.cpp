@@ -40,7 +40,7 @@ namespace
      * All pixel-based measurements are the # of pixels at the reference PPI (see Application.h)
      */
     constexpr const auto SpacingSize = 4;
-    constexpr const auto OtpIconExtent = 32;
+    constexpr const auto OtpIconExtent = 20;
     constexpr const auto ItemHeight = OtpIconExtent + (2 * SpacingSize);
     constexpr const QSize OtpIconSize = {OtpIconExtent, OtpIconExtent};
     constexpr const auto CountdownSizeRatio = 0.5L;  // ratio of counter size to item height
