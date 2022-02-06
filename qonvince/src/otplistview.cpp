@@ -54,7 +54,7 @@ namespace
     constexpr const int SpacingSize = 4;
     constexpr const int BackgroundTextSize = 20;
     constexpr const int BackgroundTextVerticalOffset = 40;
-    constexpr const int ActionIconExtent = 22;
+    constexpr const int ActionIconExtent = 14;
     constexpr const int ActionIconHoverRectRounding = 3;
 }    // namespace
 
@@ -464,11 +464,10 @@ namespace Qonvince
         auto actionIconTopLeft = QPoint(itemRect.right() - (4 * (actionExtent + spacing)),
                                         itemRect.top() + ((itemRect.height() - actionExtent) / 2));
         auto & actionIconLeft = actionIconTopLeft.rx();
-
         auto * otp = index.data(OtpListModel::OtpRole).value<Otp *>();
 
         if (otp && otp->revealCodeOnDemand()) {
-            m_reveal.geometry = {actionIconTopLeft, QSize(actionExtent, actionExtent) * (screen()->physicalDotsPerInchY() / Qonvince::Application::ReferencePixelDensity)};
+            m_reveal.geometry = {actionIconTopLeft, QSize(actionExtent, actionExtent)};
         } else {
             m_reveal.geometry = {};
         }
