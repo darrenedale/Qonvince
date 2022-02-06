@@ -21,49 +21,48 @@
 
 #include "application.h"
 
+namespace Qonvince
+{
+    OtpDisplayPluginChooser::OtpDisplayPluginChooser(QWidget * parent)
+            : QComboBox(parent)
+    {
+        Q_ASSERT_X(qonvinceApp, __PRETTY_FUNCTION__, "can't create an OtpDisplayPluginChooser without a Qonvince::Application object");
 
-namespace Qonvince {
+        refreshPlugins();
 
+        connect(this, qOverload<int>(&QComboBox::currentIndexChanged), [this](int){
+            Q_EMIT currentPluginChanged(currentPluginName());
+        });
+    }
 
-	OtpDisplayPluginChooser::OtpDisplayPluginChooser(QWidget * parent)
-	: QComboBox(parent) {
-		Q_ASSERT_X(qonvinceApp, __PRETTY_FUNCTION__, "can't create an OtpDisplayPluginChooser without a Qonvince::Application object");
+    LibQonvince::OtpDisplayPlugin * OtpDisplayPluginChooser::currentPlugin() const
+    {
+        return qonvinceApp->otpDisplayPluginByName(currentPluginName());
+    }
 
-		refreshPlugins();
+    void OtpDisplayPluginChooser::setCurrentPluginName(const QString & pluginName)
+    {
+        setCurrentIndex(findData(pluginName));
+    }
 
-		connect(this, qOverload<int>(&QComboBox::currentIndexChanged), [this](int) {
-			Q_EMIT currentPluginChanged(currentPluginName());
-		});
-	}
+    void OtpDisplayPluginChooser::refreshPlugins()
+    {
+        auto reblock = blockSignals(true);
+        QString current = currentPluginName();
+        clear();
 
+        for (auto * plugin: qonvinceApp->otpDisplayPlugins()) {
+            QComboBox::addItem(plugin->displayName(), plugin->name());
+        }
 
-	LibQonvince::OtpDisplayPlugin * OtpDisplayPluginChooser::currentPlugin() const {
-		return qonvinceApp->otpDisplayPluginByName(currentPluginName());
-	}
+        if (!current.isEmpty()) {
+            setCurrentPluginName(current);
+        }
 
+        blockSignals(reblock);
 
-	void OtpDisplayPluginChooser::setCurrentPluginName(const QString & pluginName) {
-		setCurrentIndex(findData(pluginName));
-	}
-
-	void OtpDisplayPluginChooser::refreshPlugins() {
-		auto reblock = blockSignals(true);
-		QString current = currentPluginName();
-		clear();
-
-		for(auto * plugin : qonvinceApp->otpDisplayPlugins()) {
-			QComboBox::addItem(plugin->displayName(), plugin->name());
-		}
-
-		if(!current.isEmpty()) {
-			setCurrentPluginName(current);
-		}
-
-		blockSignals(reblock);
-
-		if(current != currentPluginName()) {
-			Q_EMIT currentPluginChanged(currentPluginName());
-		}
-	}
-
+        if (current != currentPluginName()) {
+            Q_EMIT currentPluginChanged(currentPluginName());
+        }
+    }
 }  // namespace Qonvince

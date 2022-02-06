@@ -24,21 +24,24 @@
 #ifndef QT_SPECIALIZE_STD_HASH_TO_CALL_QHASH_BY_CREF
 #include <QString>
 
-namespace Qonvince {
-	template<class QtClass>
-	struct QtHash {
-		using result_type = std::size_t;
-		using argument_type = QtClass;
+namespace Qonvince
+{
+    template<class QtClass>
+    struct QtHash
+    {
+        using result_type = std::size_t;
+        using argument_type = QtClass;
 
-		result_type operator()(const argument_type & arg) const {
-			return static_cast<result_type>(qHash(arg));
-		}
-	};
+        result_type operator()(const argument_type & arg) const {
+            return static_cast<result_type>(qHash(arg));
+        }
+    };
 }  // namespace Qonvince
 
-namespace std {
-	template<>
-	struct hash<QString> : public Qonvince::QtHash<QString> {};
+namespace std
+{
+    template<>
+    struct hash<QString> : public Qonvince::QtHash<QString> {};
 }  // namespace std
 #endif
 

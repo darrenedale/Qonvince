@@ -4,12 +4,12 @@
 #include "otpdisplayplugin.h"
 
 class SteamOtpDisplayPlugin
-: public LibQonvince::OtpDisplayPlugin {
+        : public LibQonvince::OtpDisplayPlugin
+{
 public:
-	LIBQONVINCE_OTPDISPLAYPLUGIN
+LIBQONVINCE_OTPDISPLAYPLUGIN
 
-	QString codeDisplayString(const QByteArray & hmac) const override;
+    QString codeDisplayString(const QByteArray & hmac) const override;
 };
-
 
 #endif  // QONVINCE_OTPDISPLAYPLUGIN_STEAM_H

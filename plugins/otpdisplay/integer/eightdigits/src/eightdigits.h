@@ -1,11 +1,12 @@
 #ifndef QONVINCE_OTPDISPLAYPLUGIN_EIGHTDIGITS_H
 #define QONVINCE_OTPDISPLAYPLUGIN_EIGHTDIGITS_H
 
-#include "../../src/integerdisplaypluginbase.h"
+#include "../../src/integerdisplayplugin.h"
 
 class EightDigitsPlugin
-: public IntegerDisplayPlugin<8> {
-	LIBQONVINCE_OTPDISPLAYPLUGIN
+        : public IntegerDisplayPlugin<8>
+{
+LIBQONVINCE_OTPDISPLAYPLUGIN
 };
 
 #endif  // QONVINCE_OTPDISPLAYPLUGIN_EIGHTDIGITS_H

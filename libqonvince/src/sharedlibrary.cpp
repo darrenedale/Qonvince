@@ -156,7 +156,7 @@ namespace LibQonvince
 
 		if(m_lib) {
 			ret = LIBQONVINCE_SL_DLCLOSE(m_lib);
-			m_lib = nullptr;
+			m_lib = NullLibraryHandle;
 		}
 
 		return ret;

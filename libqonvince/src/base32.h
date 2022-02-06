@@ -18,8 +18,8 @@
  */
 
 /**
- * \file base32.h
- * \brief Declaration of the Base32 class template.
+ * @file base32.h
+ * @brief Declaration of the Base32 class template.
  */
 
 #ifndef LIBQONVINCE_BASE32_H

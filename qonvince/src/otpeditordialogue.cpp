@@ -17,45 +17,42 @@
  * along with Qonvince. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/** \file otpeditordialogue.cpp
-  * \author Darren Edale
-  * \date November 2016
-  *
-  * \brief Implementation of the OtpEditorDialogue class.
-  */
+/**
+ * @file otpeditordialogue.cpp
+ * @author Darren Edale
+ * @date November 2016
+ *
+ * @brief Implementation of the OtpEditorDialogue class.
+ */
 #include "otpeditordialogue.h"
 #include "ui_otpeditordialogue.h"
 
+namespace Qonvince
+{
+    OtpEditorDialogue::OtpEditorDialogue(QWidget * parent)
+            : OtpEditorDialogue(nullptr, parent)
+    {
+    }
 
-namespace Qonvince {
+    OtpEditorDialogue::OtpEditorDialogue(Otp * otp, QWidget * parent)
+            : QDialog(parent),
+              m_ui(std::make_unique<Ui::OtpEditorDialogue>())
+    {
+        m_ui->setupUi(this);
+        m_ui->otpEditor->setOtp(otp);
+        connect(m_ui->controls, &QDialogButtonBox::accepted, this, &QDialog::close);
+        connect(m_ui->controls, &QDialogButtonBox::rejected, this, &QDialog::close);
+    }
 
+    OtpEditorDialogue::~OtpEditorDialogue() = default;
 
-	OtpEditorDialogue::OtpEditorDialogue(QWidget * parent)
-	: OtpEditorDialogue(nullptr, parent) {
-	}
+    OtpEditor * OtpEditorDialogue::editor()
+    {
+        return m_ui->otpEditor;
+    }
 
-
-	OtpEditorDialogue::OtpEditorDialogue(Otp * otp, QWidget * parent)
-	: QDialog(parent),
-	  m_ui(std::make_unique<Ui::OtpEditorDialogue>()) {
-		m_ui->setupUi(this);
-		m_ui->otpEditor->setOtp(otp);
-		connect(m_ui->controls, &QDialogButtonBox::accepted, this, &QDialog::close);
-		connect(m_ui->controls, &QDialogButtonBox::rejected, this, &QDialog::close);
-	}
-
-
-	OtpEditorDialogue::~OtpEditorDialogue() = default;
-
-
-	OtpEditor * OtpEditorDialogue::editor() {
-		return m_ui->otpEditor;
-	}
-
-
-	Otp * OtpEditorDialogue::otp() {
-		return m_ui->otpEditor->otp();
-	}
-
-
+    Otp * OtpEditorDialogue::otp()
+    {
+        return m_ui->otpEditor->otp();
+    }
 }  // namespace Qonvince

@@ -26,30 +26,31 @@
 
 #include "otp.h"
 
-namespace Qonvince {
+namespace Qonvince
+{
+    class OtpEditor;
 
-	class OtpEditor;
+    namespace Ui
+    {
+        class OtpEditorDialogue;
+    }
 
-	namespace Ui {
-		class OtpEditorDialogue;
-	}
+    class OtpEditorDialogue
+            : public QDialog
+    {
+    Q_OBJECT
 
-	class OtpEditorDialogue
-	: public QDialog {
-		Q_OBJECT
+    public:
+        explicit OtpEditorDialogue(QWidget * = nullptr);
+        explicit OtpEditorDialogue(Otp *, QWidget * = nullptr);
+        ~OtpEditorDialogue() override;
 
-	public:
-		explicit OtpEditorDialogue(QWidget * = nullptr);
-		explicit OtpEditorDialogue(Otp *, QWidget * = nullptr);
-		~OtpEditorDialogue() override;
+        OtpEditor * editor();
+        Otp * otp();
 
-		OtpEditor * editor();
-		Otp * otp();
-
-	private:
-		std::unique_ptr<Ui::OtpEditorDialogue> m_ui;
-	};
-
+    private:
+        std::unique_ptr<Ui::OtpEditorDialogue> m_ui;
+    };
 }  // namespace Qonvince
 
 #endif  // QONVINCE_OTPEDITORDIALOGUE_H

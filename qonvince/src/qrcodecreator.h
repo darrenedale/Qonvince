@@ -28,36 +28,40 @@
 
 class QPainter;
 
-namespace Qonvince {
+namespace Qonvince
+{
+    class QrCodeCreator
+    {
+    public:
+        static const QColor DefaultForeground;
+        static const QColor DefaultBackground;
 
-	class QrCodeCreator {
-	public:
-		static const QColor DefaultForeground;
-		static const QColor DefaultBackground;
+        explicit QrCodeCreator(const QString & data);
+        ~QrCodeCreator();
 
-		explicit QrCodeCreator(const QString & data);
-		~QrCodeCreator();
+        inline static bool isAvailable()
+        {
+            return s_libQrEncode.isOpen();
+        }
 
-		inline static bool isAvailable() {
-			return s_libQrEncode.isOpen();
-		}
+        inline void setData(const QString & data)
+        {
+            m_data = data;
+        }
 
-		inline void setData(const QString & data) {
-			m_data = data;
-		}
+        [[nodiscard]] inline const QString & data() const
+        {
+            return m_data;
+        }
 
-		inline const QString & data() const {
-			return m_data;
-		}
+        QImage image(const QSize & size);
 
-		QImage image(const QSize & size);
-		void paint(QPainter & painter, const QSize & size, const QColor & fg = DefaultForeground, const QColor & bg = DefaultBackground);
+        void paint(QPainter & painter, const QSize & size, const QColor & fg = DefaultForeground, const QColor & bg = DefaultBackground);
 
-	private:
-		static LibQrEncode s_libQrEncode;
-		QString m_data;
-	};
-
+    private:
+        static LibQrEncode s_libQrEncode;
+        QString m_data;
+    };
 }  // namespace Qonvince
 
 #endif  // QONVINCE_QRCODECREATOR_H
