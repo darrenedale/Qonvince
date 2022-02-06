@@ -1,10 +1,10 @@
 /**
- * \file sharedlibrary.cpp
- * \author Darren Edale
- * \version 0.5
- * \date September 2017
+ * @file sharedlibrary.cpp
+ * @author Darren Edale
+ * @version 0.5
+ * @date September 2017
  *
- * \brief Implementation of the SharedLibrary class.
+ * @brief Implementation of the SharedLibrary class.
  */
 #include "sharedlibrary.h"
 #include <iostream>
@@ -59,9 +59,10 @@ namespace
 
 namespace LibQonvince
 {
-	/** \brief Create a new SharedLibrary and open it.
+	/**
+	 * @brief Create a new SharedLibrary and open it.
 	 *
-	 * \param path The library to open.
+	 * @param path The library to open.
 	 *
 	 * The path can be either a full path to open a specific file as
 	 * a shared library, or just the name of the library to open in which
@@ -86,9 +87,9 @@ namespace LibQonvince
 	}
 
 	/**
-	 * \brief Move constructor.
+	 * @brief Move constructor.
 	 *
-	 * \param other The SharedLibrary from which to move.
+	 * @param other The SharedLibrary from which to move.
 	 *
 	 * The constructed object takes the moved object's library handle.
 	 * The moved-from object will act as if not open, regardless of whether
@@ -101,9 +102,9 @@ namespace LibQonvince
 	}
 
 	/**
-	 * \brief Move constructor.
+	 * @brief Move constructor.
 	 *
-	 * \param other The SharedLibrary from which to move.
+	 * @param other The SharedLibrary from which to move.
 	 *
 	 * This object takes the moved object's library handle. The moved-from
 	 * object will act as if not open, regardless of whether it was open
@@ -115,7 +116,8 @@ namespace LibQonvince
 		return *this;
 	}
 
-	/** \brief Destructor.
+	/**
+	 * @brief Destructor.
 	 *
 	 * The library is closed if it was open and resources used by it are
 	 * dispensed with.
@@ -125,15 +127,16 @@ namespace LibQonvince
 		close();
 	}
 
-	/** \brief Open a shared library from a file on disk.
+	/**
+	 * @brief Open a shared library from a file on disk.
 	 *
-	 * \param path The path to the file to open.
+	 * @param path The path to the file to open.
 	 *
 	 * If the ShareLibrary object is currently open it is closed (even
 	 * if it is the same the library). An attempt is then made to open
 	 * the new library.
 	 *
-	 * \return \b true if the library was opened, \b false otherwise.
+	 * @return true if the library was opened, false otherwise.
 	 */
 	bool SharedLibrary::open(const std::string & path)
 	{
@@ -142,13 +145,14 @@ namespace LibQonvince
 		return isOpen();
 	}
 
-	/** \brief Close the shared library.
+	/**
+	 * @brief Close the shared library.
 	 *
 	 * If the library is open, it is closed. It is safe to call this
 	 * method if the library is not open - in such cases, the object
 	 * will do nothing and report success.
 	 *
-	 * \return \b true if the library was closed, \b false if not.
+	 * @return true if the library was closed, false if not.
 	 */
 	bool SharedLibrary::close()
 	{
@@ -162,24 +166,26 @@ namespace LibQonvince
 		return ret;
 	}
 
-	/** \brief Check whether the library contains a named symbol.
+	/**
+	 * @brief Check whether the library contains a named symbol.
 	 *
-	 * \param sym The symbol to check.
+	 * @param sym The symbol to check.
 	 *
 	 * If the library is open it is checked for the named symbol.
 	 *
-	 * \return \b true if the library is open and contains a matching
-	 * symbol, \b false otherwise.
+	 * @return true if the library is open and contains a matching
+	 * symbol, false otherwise.
 	 */
 	bool SharedLibrary::hasSymbol(const std::string & sym) const
 	{
 		return (LIBQONVINCE_SL_NOSYMBOL != LIBQONVINCE_SL_DLSYM(m_lib, sym.c_str()));
 	}
 
-	/** \brief Retrieve a symbol from the library.
+	/**
+	 * @brief Retrieve a symbol from the library.
 	 *
-	 * \param sym The symbol to retrieve.
-	 * \param receiver The Symbol object that will be assigned the symbol,
+	 * @param sym The symbol to retrieve.
+	 * @param receiver The Symbol object that will be assigned the symbol,
 	 * if found.
 	 *
 	 * If the library is open, it will be searched for the symbol. If the
@@ -188,10 +194,10 @@ namespace LibQonvince
 	 * be left unmodified.
 	 *
 	 * It is safe, though somewhat pointless, to provide a null receiver.
-	 * Doing so will always result in the method returning \b false.
+	 * Doing so will always result in the method returning false.
 	 *
-	 * \return \b true if the symbol was found and placed in the receiver,
-	 * \b false otherwise.
+	 * @return true if the symbol was found and placed in the receiver,
+	 * false otherwise.
 	 */
 	bool SharedLibrary::symbol(const std::string & sym, Symbol * receiver) const
 	{
@@ -209,14 +215,15 @@ namespace LibQonvince
 
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "readability-convert-member-functions-to-static"
-	/** \brief Fetch a description of the last error.
+	/**
+	 * @brief Fetch a description of the last error.
 	 *
 	 * The returned string pointer is statically allocated and must not
 	 * be freed by the calling code.
 	 *
-	 * \note The last error is not available on all platforms.
+	 * @note The last error is not available on all platforms.
 	 *
-	 * \return The last error message.
+	 * @return The last error message.
 	 */
 	std::string SharedLibrary::lastError() const
 	{
@@ -230,3 +237,4 @@ namespace LibQonvince
 #undef LIBQONVINCE_SL_DLSYM
 #undef LIBQONVINCE_SL_DLCLOSE
 #undef LIBQONVINCE_SL_DLERROR
+#undef LIBQONVINCE_SL_NOSYMBOL
