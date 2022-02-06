@@ -27,66 +27,73 @@
 
 //#include <zbar.h>
 
-namespace Qonvince {
-	class QrCodeReader : public QObject {
-		Q_OBJECT
+namespace Qonvince
+{
+    class QrCodeReader : public QObject
+    {
+    Q_OBJECT
 
-	public:
-		QrCodeReader(const QString & fileName = {}, QObject * parent = nullptr);
+    public:
+        explicit QrCodeReader(QString fileName = {}, QObject * parent = nullptr);
 
-		static void staticInitialise();
+        static void staticInitialise();
 
-		static inline bool isAvailable() {
-			staticInitialise();
-			return s_isAvailable;
-		}
+        static inline bool isAvailable()
+        {
+            staticInitialise();
+            return s_isAvailable;
+        }
 
-		bool decode();
+        virtual bool decode();
 
-		bool isDecoded() const {
-			return m_isDecoded;
-		}
+        [[nodiscard]] bool isDecoded() const
+        {
+            return m_isDecoded;
+        }
 
-		inline const QString & fileName() const {
-			return m_fileName;
-		}
+        [[nodiscard]] inline const QString & fileName() const
+        {
+            return m_fileName;
+        }
 
-		void setFileName(const QString & fileName) {
-			m_fileName = fileName;
-			m_decodedData.clear();
-			m_isDecoded = false;
-		}
+        void setFileName(const QString & fileName)
+        {
+            m_fileName = fileName;
+            m_decodedData.clear();
+            m_isDecoded = false;
+        }
 
-		inline const QByteArray & decodedData() const {
-			return m_decodedData;
-		}
+        [[nodiscard]] inline const QByteArray & decodedData() const
+        {
+            return m_decodedData;
+        }
 
-	private:
-		//			class QZbarImage
-		//			:	public zbar::Image {
-		//				public:
-		//					explicit QZbarImage( const QString & fileName );
-		//					QZbarImage( const QImage & img );
+    private:
+        //			class QZbarImage
+        //			:	public zbar::Image {
+        //				public:
+        //					explicit QZbarImage( const QString & fileName );
+        //					QZbarImage( const QImage & img );
 
-		//					bool isValid() const {
-		//						return !m_qImg.isNull() && m_isValid;
-		//					}
+        //					bool isValid() const {
+        //						return !m_qImg.isNull() && m_isValid;
+        //					}
 
-		//				private:
-		//					void initialise();
+        //				private:
+        //					void initialise();
 
-		//					QImage m_qImg;
-		//					bool m_isValid;
-		//			};
+        //					QImage m_qImg;
+        //					bool m_isValid;
+        //			};
 
-		static bool s_isAvailable;
+        static bool s_isAvailable;
 #if defined(__linux__)
-		static QString s_zbarImgPath;
+        static QString s_zbarImgPath;
 #endif
-		bool m_isDecoded;
-		QString m_fileName;
-		QByteArray m_decodedData;
-	};
+        bool m_isDecoded;
+        QString m_fileName;
+        QByteArray m_decodedData;
+    };
 }  // namespace Qonvince
 
 #endif  // QONVINCE_QRCODEREADER_H

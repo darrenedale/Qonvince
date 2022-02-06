@@ -31,134 +31,132 @@
 
 #include "application.h"
 
+namespace Qonvince
+{
 
-namespace Qonvince {
+    OtpQrCodeReader::OtpQrCodeReader(const QString & fileName, QObject * parent)
+            : QrCodeReader(fileName, parent),
+              m_interval{},
+              m_counter{},
+              m_digits{},
+              m_type{},
+              m_baselineTime{}
+    {
+    }
 
+    bool OtpQrCodeReader::decode()
+    {
+        /* otpauth://{type}/{issuer}:{name}?secret={secret}[&issuer={issuer}][&counter={counter}][&digits={digits}][&algorithm={algorithm}][&period={period}] */
+        static QRegularExpression urlRegex(QStringLiteral("^otpauth://([^/]+)/(([^:]+):)?([^?]+)\\?(.*)$"));
 
-	OtpQrCodeReader::OtpQrCodeReader(const QString & fileName, QObject * parent)
-	: QrCodeReader(fileName, parent) {
-	}
+        if (!QrCodeReader::decode()) {
+            return false;
+        }
 
+        QString code = QString::fromUtf8(decodedData());
+        auto urlMatch = urlRegex.match(code);
 
-	bool OtpQrCodeReader::decode() {
-		/* otpauth://{type}/{issuer}:{name}?secret={secret}[&issuer={issuer}][&counter={counter}][&digits={digits}][&algorithm={algorithm}][&period={period}] */
-		static QRegularExpression urlRegex(QStringLiteral("^otpauth://([^/]+)/(([^:]+):)?([^?]+)\\?(.*)$"));
+        if (!urlMatch.hasMatch()) {
+            std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: code \"" << qPrintable(code) << "\" does not match required pattern \""
+                      << urlRegex.pattern() << "\"\n";
+            return false;
+        }
 
-		if(!QrCodeReader::decode()) {
-			return false;
-		}
+        auto typeString = urlMatch.captured(1).toLower();
 
-		QString code = QString::fromUtf8(decodedData());
-		auto urlMatch = urlRegex.match(code);
+        if (QStringLiteral("totp") != typeString && QStringLiteral("hotp") != typeString) {
+            return false;
+        }
 
-		if(!urlMatch.hasMatch()) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: code \"" << qPrintable(code) << "\" does not match required pattern \"" << urlRegex.pattern() << "\"\n";
-			return false;
-		}
+        OtpType type = (QStringLiteral("hotp") == typeString ? OtpType::Hotp : OtpType::Totp);
+        QString issuer = QString::fromUtf8(QByteArray::fromPercentEncoding(urlMatch.captured(3).toUtf8()));
+        QString name = QString::fromUtf8(QByteArray::fromPercentEncoding(urlMatch.captured(4).toUtf8()));
+        QString seed;
+        int digits = 6;
+        int counter = 0;
+        int period = 30;
 
-		auto typeString = urlMatch.captured(1).toLower();
+        const auto params = urlMatch.captured(5).split('&');
 
-		if(QStringLiteral("totp") != typeString && QStringLiteral("hotp") != typeString) {
-			return false;
-		}
+        for (const auto & param: params) {
+            auto equalsPos = param.indexOf('=');
 
-		OtpType type = (QStringLiteral("hotp") == typeString ? OtpType::Hotp : OtpType::Totp);
-		QString issuer = QString::fromUtf8(QByteArray::fromPercentEncoding(urlMatch.captured(3).toUtf8()));
-		QString name = QString::fromUtf8(QByteArray::fromPercentEncoding(urlMatch.captured(4).toUtf8()));
-		QString seed;
-		int digits = 6;
-		int counter = 0;
-		int period = 30;
+            if (-1 == equalsPos) {
+                std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << R"(]: invalid parameter ")" << param << "\" in URL\n";
+                continue;
+            }
 
-		const auto params = urlMatch.captured(5).split('&');
+            auto paramKey = param.leftRef(equalsPos);
+            auto paramValue = param.rightRef(param.size() - equalsPos - 1);
 
-		for(const auto & param : params) {
-			auto equalsPos = param.indexOf('=');
+            if (0 == paramKey.compare(QStringLiteral("secret"), Qt::CaseInsensitive)) {
+                seed = paramValue.toString();
+            } else if (0 == paramKey.compare(QStringLiteral("issuer"), Qt::CaseInsensitive)) {
+                if (!issuer.isEmpty() && paramValue != issuer) {
+                    std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << R"(]: "issuer" parameter ")" << qPrintable(paramKey.toString())
+                              << R"(" does not agree with issuer part of URI ")" << qPrintable(issuer) << "\". ignoring parameter\n";
+                } else {
+                    issuer = QString::fromUtf8(QByteArray::fromPercentEncoding(paramValue.toUtf8()));
+                }
+            } else if (0 == paramKey.compare(QStringLiteral("counter"), Qt::CaseInsensitive)) {
+                bool ok;
+                int myCounter = paramValue.toInt(&ok);
 
-			if(-1 == equalsPos) {
-				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << R"(]: invalid parameter ")" << param << "\" in URL\n";
-				continue;
-			}
+                if (ok && 0 <= myCounter) {
+                    counter = myCounter;
+                } else {
+                    std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << R"(]: invalid "counter" parameter:)" << paramValue;
+                }
+            } else if (0 == paramKey.compare(QStringLiteral("digits"), Qt::CaseInsensitive)) {
+                int myDigits = paramValue.toInt();
 
-			auto paramKey = param.leftRef(equalsPos);
-			auto paramValue = param.rightRef(param.size() - equalsPos - 1);
+                if (6 == myDigits || 8 == myDigits) {
+                    digits = myDigits;
+                } else {
+                    std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << R"(]: invalid "digits" parameter:)" << paramValue;
+                }
+            } else if (0 == paramKey.compare(QStringLiteral("period"), Qt::CaseInsensitive)) {
+                int myPeriod = paramValue.toInt();
 
-			if(0 == paramKey.compare(QStringLiteral("secret"), Qt::CaseInsensitive)) {
-				seed = paramValue.toString();
-			}
-			else if(0 == paramKey.compare(QStringLiteral("issuer"), Qt::CaseInsensitive)) {
-				if(!issuer.isEmpty() && paramValue != issuer) {
-					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << R"(]: "issuer" parameter ")" << qPrintable(paramKey.toString()) << R"(" does not agree with issuer part of URI ")" << qPrintable(issuer) << "\". ignoring parameter\n";
-				}
-				else {
-					issuer = QString::fromUtf8(QByteArray::fromPercentEncoding(paramValue.toUtf8()));
-				}
-			}
-			else if(0 == paramKey.compare(QStringLiteral("counter"), Qt::CaseInsensitive)) {
-				bool ok;
-				int myCounter = paramValue.toInt(&ok);
+                if (0 < myPeriod) {
+                    period = myPeriod;
+                } else {
+                    std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << R"(]: invalid "period" parameter:)" << paramValue;
+                }
+            } else if (0 == paramKey.compare(QStringLiteral("algorithm"), Qt::CaseInsensitive)) {
+                std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << R"(]: "algorithm" parameter found but not yet supported. algorithm is ")" << paramValue
+                          << "\"; only SHA1 supported\n";
+            }
+        }
 
-				if(ok && 0 <= myCounter) {
-					counter = myCounter;
-				}
-				else {
-					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << R"(]: invalid "counter" parameter:)" << paramValue;
-				}
-			}
-			else if(0 == paramKey.compare(QStringLiteral("digits"), Qt::CaseInsensitive)) {
-				int myDigits = paramValue.toInt();
+        if (seed.isEmpty()) {
+            std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: no seed found in OTPAUTH:// URL\n";
+            return false;
+        }
 
-				if(6 == myDigits || 8 == myDigits) {
-					digits = myDigits;
-				}
-				else {
-					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << R"(]: invalid "digits" parameter:)" << paramValue;
-				}
-			}
-			else if(0 == paramKey.compare(QStringLiteral("period"), Qt::CaseInsensitive)) {
-				int myPeriod = paramValue.toInt();
-
-				if(0 < myPeriod) {
-					period = myPeriod;
-				}
-				else {
-					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << R"(]: invalid "period" parameter:)" << paramValue;
-				}
-			}
-			else if(0 == paramKey.compare(QStringLiteral("algorithm"), Qt::CaseInsensitive)) {
-				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << R"(]: "algorithm" parameter found but not yet supported. algorithm is ")" << paramValue << "\"; only SHA1 supported\n";
-			}
-		}
-
-		if(seed.isEmpty()) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: no seed found in OTPAUTH:// URL\n";
-			return false;
-		}
-
-		m_type = type;
-		m_issuer = issuer;
-		m_name = name;
+        m_type = type;
+        m_issuer = issuer;
+        m_name = name;
 
         // TODO google uses (used?) lower-case and whitespace, so convert and strip spaces
         m_seed = seed.toUpper().toUtf8();
-		m_counter = counter;
-		m_interval = period;
-		m_digits = digits;
-		return true;
-	}
+        m_counter = counter;
+        m_interval = period;
+        m_digits = digits;
+        return true;
+    }
 
+    std::unique_ptr<Otp> OtpQrCodeReader::createOtp() const
+    {
+        if (!m_seed.isEmpty() && (6 == m_digits || 8 == m_digits)) {
+            auto ret = std::make_unique<Otp>(type(), issuer(), name(), seed(), Otp::SeedType::Base32);
+            ret->setCounter(static_cast<quint64>(m_counter));
+            ret->setInterval(m_interval);
+            ret->setDisplayPluginName((8 == m_digits ? QStringLiteral("EightDigitsPlugin") : QStringLiteral("SixDigitsPlugin")));
+            return ret;
+        }
 
-	std::unique_ptr<Otp> OtpQrCodeReader::createOtp() const {
-		if(!m_seed.isEmpty() && (6 == m_digits || 8 == m_digits)) {
-			auto ret = std::make_unique<Otp>(type(), issuer(), name(), seed(), Otp::SeedType::Base32);
-			ret->setCounter(static_cast<quint64>(m_counter));
-			ret->setInterval(m_interval);
-			ret->setDisplayPluginName((8 == m_digits ? QStringLiteral("EightDigitsPlugin") : QStringLiteral("SixDigitsPlugin")));
-			return ret;
-		}
-
-		return {};
-	}
-
+        return {};
+    }
 
 }  // namespace Qonvince

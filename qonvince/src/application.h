@@ -23,7 +23,6 @@
 #include <memory>
 #include <unordered_map>
 #include <vector>
-
 #include <QtCore/QString>
 #include <QtCore/QObject>
 #include <QtCore/QStandardPaths>
@@ -33,9 +32,7 @@
 #include <QtWidgets/QSystemTrayIcon>
 #include <QtWidgets/QMenu>
 #include <QScreen>
-
 #include <QtCrypto>
-
 #include "types.h"
 #include "otp.h"
 #include "algorithms.h"
@@ -52,53 +49,61 @@
 namespace Qonvince
 {
 	class Application
-	: public QApplication {
+	: public QApplication
+	{
 		Q_OBJECT
 
 	public:
-        // globally-accessible constant to assist with UI adaptation to screens with different DPIs
-        static constexpr const auto ReferencePixelDensity = 96;
+		// globally-accessible constant to assist with UI adaptation to screens with different DPIs
+		static constexpr const auto ReferencePixelDensity = 96;
 
 		Application(int &, char **);
 		~Application() override;
 
 		static DesktopEnvironment desktopEnvironment();
 
-		inline static bool ensureDataDirectory(const QString & path) {
+		inline static bool ensureDataDirectory(const QString & path)
+		{
 			return ensureDirectory(QStandardPaths::AppLocalDataLocation, path);
 		}
 
-		inline static bool ensureConfigDirectory(const QString & path) {
+		inline static bool ensureConfigDirectory(const QString & path)
+		{
 			return ensureDirectory(QStandardPaths::AppConfigLocation, path);
 		}
 
-		inline static Application * qonvince() {
+		inline static Application * qonvince()
+		{
 			return static_cast<Application *>(QApplication::instance());
 		}
 
-        template<typename ValueType>
-        ValueType referencePxToScreenPx(ValueType px, const QScreen * screen = nullptr)
-        {
-            if (!screen) {
-                screen = m_mainWindow.screen();
-            }
+		template<typename ValueType>
+		ValueType referencePxToScreenPx(ValueType px, const QScreen * screen = nullptr)
+		{
+			if(!screen) {
+				screen = m_mainWindow.screen();
+			}
 
-            return (screen->physicalDotsPerInchY() / ReferencePixelDensity) * px;
-        }
+			return (screen->physicalDotsPerInchY() / ReferencePixelDensity) * px;
+		}
 
-		inline Settings & settings() {
+		inline Settings & settings()
+		{
 			return m_settings;
 		}
 
-		inline const Settings & settings() const {
+		inline const Settings & settings() const
+		{
 			return m_settings;
 		}
 
-		inline int otpCount() const {
+		inline int otpCount() const
+		{
 			return static_cast<int>(m_otpList.size());
 		}
 
-		Otp * otp(int index) const {
+		Otp * otp(int index) const
+		{
 			if(0 > index || m_otpList.size() <= static_cast<std::size_t>(index)) {
 				return nullptr;
 			}
@@ -109,7 +114,8 @@ namespace Qonvince
 		int addOtp(std::unique_ptr<Otp> &&);
 
 		// Application takes ownership of otp
-		inline int addOtp(Otp * otp) {
+		inline int addOtp(Otp * otp)
+		{
 			const auto end = m_otpList.cend();
 
 			if(end != std::find_if(m_otpList.cbegin(), end, [otp](const auto & listOtp) {
@@ -124,11 +130,13 @@ namespace Qonvince
 		bool removeOtp(int);
 		bool removeOtp(Otp *);
 
-		inline LibQonvince::OtpDisplayPlugin * otpDisplayPluginByName(const QString & name) {
+		inline LibQonvince::OtpDisplayPlugin * otpDisplayPluginByName(const QString & name)
+		{
 			return m_displayPluginFactory.pluginByName(name);
 		}
 
-		inline std::vector<LibQonvince::OtpDisplayPlugin *> otpDisplayPlugins() {
+		inline std::vector<LibQonvince::OtpDisplayPlugin *> otpDisplayPlugins()
+		{
 			return m_displayPluginFactory.loadedPlugins();
 		}
 
@@ -154,7 +162,7 @@ namespace Qonvince
 		void showNotification(const QString & message, int timeout = 10000);
 
 		// TODO requires DBus interface to listen for response call
-//		void askQuestion(const QString & question, const QStringList & options, int timeout = 10000);
+		//		void askQuestion(const QString & question, const QStringList & options, int timeout = 10000);
 		void readQrCode();
 		void readQrCodeFrom(const QString & fileName);
 		bool readApplicationSettings();
@@ -172,8 +180,8 @@ namespace Qonvince
 		using DisplayPluginFactory = PluginFactory<LibQonvince::OtpDisplayPlugin>;
 
 		static bool ensureDirectory(QStandardPaths::StandardLocation location, const QString & path);
-        void processCommandLineArguments();
-        void loadPlugins();
+		void processCommandLineArguments();
+		void loadPlugins();
 
 		QCA::Initializer m_qcaInitializer;
 		Settings m_settings;
@@ -190,9 +198,9 @@ namespace Qonvince
 
 		QCA::SecureArray m_cryptPassphrase;
 
-        void setUpTrayIcon();
-    };
+		void setUpTrayIcon();
+	};
 
-}  // namespace Qonvince
+}	// namespace Qonvince
 
 #endif  // QONVINCE_APPLICATION_H

@@ -20,13 +20,14 @@
 #ifndef LIBQONVINCE_SHAREDLIBRARY_H
 #define LIBQONVINCE_SHAREDLIBRARY_H
 
-/** \file sharedlibrary.h
-  * \author Darren Edale
-  * \version 0.5
-  * \date September 2017
-  *
-  * \brief Definition of the SharedLibrary class.
-  */
+/**
+ * @file sharedlibrary.h
+ * @author Darren Edale
+ * @version 0.5
+ * @date September 2017
+ *
+ * @brief Definition of the SharedLibrary class.
+ */
 
 #include <string>
 
@@ -34,9 +35,11 @@
 #include <windows.h>
 #endif
 
-namespace LibQonvince {
+namespace LibQonvince
+{
 
-	class SharedLibrary final {
+	class SharedLibrary final
+	{
 #if defined(_WIN32)
 
 	public:
@@ -44,6 +47,7 @@ namespace LibQonvince {
 
 	private:
 		using LibraryHandle = HINSTANCE;
+        static constexpr const LibraryHandle NullLibraryHandle = static_cast<HINSTANCE>(nullptr);
 
 #elif defined(__unix)
 
@@ -52,6 +56,7 @@ namespace LibQonvince {
 
 	private:
 		using LibraryHandle = void *;
+        static constexpr const LibraryHandle NullLibraryHandle = nullptr;
 
 #else
 
@@ -60,28 +65,29 @@ namespace LibQonvince {
 #endif
 
 	public:
-		explicit SharedLibrary(const std::string & path);
+		explicit SharedLibrary(const std::string & path) noexcept;
 		SharedLibrary(const SharedLibrary & other) = delete;
-		SharedLibrary(SharedLibrary && other);
+		SharedLibrary(SharedLibrary && other) noexcept;
 		void operator=(const SharedLibrary & other) = delete;
-		SharedLibrary & operator=(SharedLibrary && other);
+		SharedLibrary & operator=(SharedLibrary && other) noexcept;
 		~SharedLibrary();
 
-		inline bool isOpen() const {
-			return m_lib;
+		[[nodiscard]] inline bool isOpen() const
+		{
+			return NullLibraryHandle != m_lib;
 		}
 
 		bool open(const std::string & path);
 		bool close();
-		bool hasSymbol(const std::string & sym) const;
+		[[nodiscard]] bool hasSymbol(const std::string & sym) const;
 		bool symbol(const std::string & sym, Symbol * receiver) const;
 
-		std::string lastError() const;
+		[[nodiscard]] std::string lastError() const;
 
 	private:
 		LibraryHandle m_lib;
 	};
 
-}  // namespace LibQonvince
+}	// namespace LibQonvince
 
 #endif  // LIBQONVINCE_SHAREDLIBRARY_H

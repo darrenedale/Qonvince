@@ -23,21 +23,24 @@
 
 template<int Digits>
 class IntegerDisplayPlugin
-: public LibQonvince::OtpDisplayPlugin {
-	QString codeDisplayString(const QByteArray & hmac) const override {
-		// calculate offset and read value from 4 bytes at offset
-		int offset = static_cast<char>(hmac[19]) & 0xf;
-		auto ret = static_cast<quint32>((hmac[offset] & 0x7f) << 24 | (hmac[offset + 1] & 0xff) << 16 | (hmac[offset + 2] & 0xff) << 8 | (hmac[offset + 3] & 0xff));
+        : public LibQonvince::OtpDisplayPlugin
+{
+    QString codeDisplayString(const QByteArray & hmac) const override
+    {
+        // calculate offset and read value from 4 bytes at offset
+        int offset = static_cast<char>(hmac[19]) & 0xf;
+        auto ret = static_cast<quint32>((hmac[offset] & 0x7f) << 24 | (hmac[offset + 1] & 0xff) << 16 | (hmac[offset + 2] & 0xff) << 8 |
+                                        (hmac[offset + 3] & 0xff));
 
-		// convert value to requested number of digits
-		quint32 mod = 1;
+        // convert value to requested number of digits
+        quint32 mod = 1;
 
-		for(int i = 0; i < Digits; ++i) {
-			mod *= 10;
-		}
+        for (int i = 0; i < Digits; ++i) {
+            mod *= 10;
+        }
 
-		return QString::number(ret % mod).rightJustified(Digits, '0');
-	}
+        return QString::number(ret % mod).rightJustified(Digits, '0');
+    }
 };
 
 #endif  // QONVINCE_OTPDISPLAYPLUGIN_INTEGER_H

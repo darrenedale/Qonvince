@@ -19,14 +19,13 @@
 
 #include "aboutdialogue.h"
 #include "ui_aboutdialogue.h"
-
 #include "application.h"
 
 using namespace Qonvince;
 
-AboutDialogue::AboutDialogue(QWidget * parent)
-:	QDialog(parent),
-	m_ui(std::make_unique<Ui::AboutDialogue>())
+AboutDialogue::AboutDialogue(QWidget * parent) noexcept
+: QDialog(parent),
+  m_ui(std::make_unique<Ui::AboutDialogue>())
 {
 	m_ui->setupUi(this);
 	m_ui->aboutText->setText(m_ui->aboutText->text().arg(Application::applicationDisplayName(), Application::applicationVersion()));

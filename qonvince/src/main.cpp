@@ -19,8 +19,8 @@
 
 #include "application.h"
 
-
-int main(int argc, char * argv[]) {
+int main(int argc, char * argv[])
+{
 	Qonvince::Application app(argc, argv);
 	Qonvince::Application::exec();
 }

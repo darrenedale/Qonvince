@@ -59,7 +59,7 @@
 
 namespace Qonvince
 {
-    MainWindow::MainWindow(QWidget * parent)
+	MainWindow::MainWindow(QWidget * parent)
 	: QMainWindow(parent),
 	  m_ui(std::make_unique<Ui::MainWindow>())
 	{
@@ -174,7 +174,8 @@ namespace Qonvince
 	}
 
 #if defined(WITH_NETWORK_ACCESS)
-	void MainWindow::onRemoteQrCodeImageDownloadFinished() {
+	void MainWindow::onRemoteQrCodeImageDownloadFinished()
+	{
 		auto * reply = qobject_cast<QNetworkReply *>(sender());
 		Q_ASSERT_X(reply, __PRETTY_FUNCTION__, "sender is not a QNetworkReply object");
 		QTemporaryFile imageFile;
@@ -215,4 +216,4 @@ namespace Qonvince
 	}
 
 
-}  // namespace Qonvince
+}	// namespace Qonvince

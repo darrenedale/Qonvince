@@ -41,15 +41,15 @@ namespace Qonvince {
 		explicit SettingsWidget(Settings &, QWidget * = nullptr);
 		~SettingsWidget() override;
 
-		bool singleInstance() const;
-		bool quitOnMainWindowClose() const;
-		bool startMinimised() const;
-		bool copyCodeOnClick() const;
-		bool hideOnCodeCopyClick() const;
-		bool clearClipboardAfterInterval() const;
-		int clipboardClearInterval() const;
-		CodeLabelDisplayStyle codeLabelDisplayStyle() const;
-		int codeRevealTimeout() const;
+		[[nodiscard]] bool singleInstance() const;
+		[[nodiscard]] bool quitOnMainWindowClose() const;
+		[[nodiscard]] bool startMinimised() const;
+		[[nodiscard]] bool copyCodeOnClick() const;
+		[[nodiscard]] bool hideOnCodeCopyClick() const;
+		[[nodiscard]] bool clearClipboardAfterInterval() const;
+		[[nodiscard]] int clipboardClearInterval() const;
+		[[nodiscard]] CodeLabelDisplayStyle codeLabelDisplayStyle() const;
+		[[nodiscard]] int codeRevealTimeout() const;
 
 	public Q_SLOTS:
 		void setSingleInstance(bool close);
@@ -59,7 +59,7 @@ namespace Qonvince {
 		void setHideOnCodeCopyClick(bool hide);
 		void setClearClipboardAfterInterval(bool clear);
 		void setClipboardClearInterval(int interval);
-		void setCodeLabelDisplayStyle(CodeLabelDisplayStyle style);
+		void setCodeLabelDisplayStyle(Qonvince::CodeLabelDisplayStyle style);
 		void setCodeRevealTimeout(int timeout);
 
 	private Q_SLOTS:

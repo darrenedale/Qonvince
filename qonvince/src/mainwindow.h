@@ -35,21 +35,24 @@ class QSettings;
 class QNetworkReply;
 #endif
 
-namespace Qonvince {
+namespace Qonvince
+{
 
-	namespace Ui {
+	namespace Ui
+	{
 		class MainWindow;
 	}
 
 	class Otp;
 
 	class MainWindow
-	: public QMainWindow {
+	: public QMainWindow
+	{
 		Q_OBJECT
 
 	public:
 		explicit MainWindow(QWidget * = nullptr);
-		~MainWindow();
+		~MainWindow() override;
 
 		void writeSettings(QSettings &) const;
 		void readSettings(const QSettings &);
@@ -77,6 +80,6 @@ namespace Qonvince {
 #endif
 	};
 
-}  // namespace Qonvince
+}	// namespace Qonvince
 
 #endif  // QONVINCE_MAINWINDOW_H

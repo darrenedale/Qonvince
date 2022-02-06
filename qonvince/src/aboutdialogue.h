@@ -24,25 +24,26 @@
 
 #include <QtWidgets/QDialog>
 
-namespace Qonvince {
-
-	namespace Ui {
+namespace Qonvince
+{
+	namespace Ui
+	{
 		class AboutDialogue;
 	}
 
 	class AboutDialogue
-	:	public QDialog {
-		// technically only necessary if signals/slots/properties defined
+	: public QDialog
+	{
+		// Currently only necessary if signals/slots/properties are defined
 		// Q_OBJECT
 
 	public:
-		explicit AboutDialogue(QWidget * = nullptr);
+		explicit AboutDialogue(QWidget * = nullptr) noexcept;
 		~AboutDialogue() override;
 
 	private:
 		std::unique_ptr<Ui::AboutDialogue> m_ui;
 	};
-
-}  // namespace Qonvince
+}	// namespace Qonvince
 
 #endif  // QONVINCE_ABOUTDIALOGUE_H

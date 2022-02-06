@@ -19,32 +19,34 @@
 #ifndef QONVINCE_TYPES_H
 #define QONVINCE_TYPES_H
 
-namespace Qonvince {
+namespace Qonvince
+{
+    enum class DesktopEnvironment
+    {
+        Unknown,
+        Kde,
+        Gnome,
+        Unity,
+        Xfce,
+        Lxde,
+        WindowsDesktop,
+        MacOSx,
+        Android,
+        WindowsPhone,
+    };
 
-	enum class DesktopEnvironment {
-		Unknown,
-		Kde,
-		Gnome,
-		Unity,
-		Xfce,
-		Lxde,
-		WindowsDesktop,
-		MacOSx,
-		Android,
-		WindowsPhone,
-	};
+    enum class OtpType
+    {
+        Totp = 0,
+        Hotp
+    };
 
-	enum class OtpType {
-		Totp = 0,
-		Hotp
-	};
-
-	enum class CodeLabelDisplayStyle {
-		IssuerAndName = 0,
-		NameOnly,
-		IssuerOnly
-	};
-
+    enum class CodeLabelDisplayStyle
+    {
+        IssuerAndName = 0,
+        NameOnly,
+        IssuerOnly
+    };
 }  // namespace Qonvince
 
 #endif  // QONVINCE_TYPES_H

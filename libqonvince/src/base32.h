@@ -18,8 +18,8 @@
  */
 
 /**
- * \file base32.h
- * \brief Declaration of the Base32 class template.
+ * @file base32.h
+ * @brief Declaration of the Base32 class template.
  */
 
 #ifndef LIBQONVINCE_BASE32_H
@@ -29,30 +29,75 @@
 #include <algorithm>
 #include <iostream>
 
-namespace LibQonvince {
+namespace LibQonvince
+{
+	/**
+	 * Codec class for Base32 data.
+	 *
+	 * Enables conversion between plain text and Base32 encoding. Can be constructed with plain text data, or can have either plain text
+	 * or encoded data set using setPlain() and setEncoded() respectively. The plain text and Base32-encoded content can be retrieved
+	 * using plain() and encoded() respectively. Use isValid() to check whether the encoded data is valid when setEncoded() has been used
+	 * with data that you can't guarantee is known to be valid Base32.
+	 *
+	 * Encoding/decoding is only performed when required, so the class is relatively lightweight.
+	 *
+	 * @tparam ByteArrayT Type of strings of bytes that are encoded/decoded.
+	 * @tparam ByteT Type of bytes that are encoded/decoded. It must be possible to implicitly cast between the
+	 * element type in ByteArrayT and this type. Defaults to ByteArrayT::value_type.
+	 */
 	template<class ByteArrayT = std::basic_string<char>, typename ByteT = typename ByteArrayT::value_type>
-	class Base32 final {
+	class Base32 final
+	{
 	public:
 		using ByteArray = ByteArrayT;
 		using Byte = ByteT;
 
+		/**
+		 * Initialise a new object, optionally with some specified plain text.
+		 *
+		 * @param plainData
+		 */
 		explicit Base32(const ByteArrayT & plainData = {})
-		: m_isValid(false),
+		: m_isValid(true),
 		  m_plainInSync(true),
 		  m_encodedInSync(false),
 		  m_plain(plainData) {}
 
-		inline bool isValid() const {
+		/**
+		 * Determine whether the object has valid content.
+		 *
+		 * @return true if the content is valid, false otherwise.
+		 */
+		inline bool isValid() const
+		{
 			return m_isValid;
 		}
 
-		bool setPlain(const ByteArrayT & data) {
+		/**
+		 * Set the plain-text data.
+		 *
+		 * @param data The plain-text data to encode.
+		 *
+		 * @return true.
+		 */
+		bool setPlain(const ByteArrayT & data)
+		{
 			m_plain = data;
 			m_plainInSync = true;
 			m_encodedInSync = false;
+			m_isValid = true;
 			return true;
 		}
 
+		/**
+		 * Set the Base32 encoded content.
+		 *
+		 * If the provided content is not valid Base32, the state of the object is undefined.
+		 *
+		 * @param base32 The Base32 content to decode.
+		 *
+		 * @return true if the content was valid Base32, false otherwise.
+		 */
 		bool setEncoded(const ByteArrayT & base32)
 		{
 			bool stillTrimmingTrailingEquals = true;
@@ -76,14 +121,20 @@ namespace LibQonvince {
 				}
 			}
 
-			m_isValid = true;
 			m_encoded = base32;
 			m_plainInSync = false;
 			m_encodedInSync = true;
+			m_isValid = true;
 			return true;
 		}
 
-		inline const ByteArrayT & plain() const {
+		/**
+		 * Fetch the plain-text content.
+		 *
+		 * @return A const reference to the plain text content of the object.
+		 */
+		inline const ByteArrayT & plain() const
+		{
 			if(!m_plainInSync) {
 				decode();
 			}
@@ -91,7 +142,15 @@ namespace LibQonvince {
 			return m_plain;
 		}
 
-		inline const ByteArrayT & encoded() const {
+		/**
+		 * Fetch the Base32 encoded content.
+		 *
+		 * If the object is not valid, this is undefined.
+		 *
+		 * @return A const reference to the Base32 encoded content of the object.
+		 */
+		inline const ByteArrayT & encoded() const
+		{
 			if(!m_encodedInSync) {
 				encode();
 			}
@@ -100,7 +159,13 @@ namespace LibQonvince {
 		}
 
 	private:
-		void decode() const {
+		/**
+		 * Internal helper to decode the Base32 encoded content.
+		 *
+		 * This is called when the plain text content is requested and the internal cache of the plain text content is out of sync.
+		 */
+		void decode() const
+		{
 			auto & ba = m_encoded;
 
 			std::transform(ba.begin(), ba.end(), ba.begin(), [](const ByteT & ch) -> ByteT {
@@ -123,7 +188,7 @@ namespace LibQonvince {
 			}
 
 			int j;
-			int iLoopEnd = static_cast<int>(ba.size());
+			auto iLoopEnd = static_cast<int>(ba.size());
 
 			for(int i = 0; i < iLoopEnd; i += 8) {
 				uint64_t out = 0x00;
@@ -196,7 +261,13 @@ namespace LibQonvince {
 			m_plainInSync = true;
 		}
 
-		void encode() const {
+		/**
+		 * Internal helper to encode the plain text content as Base32 when required.
+		 *
+		 * This is called when the encoded content is requested and the internal cache of the encoded content is out of sync.
+		 */
+		void encode() const
+		{
 			m_encoded.clear();
 			auto len = m_plain.size();
 
@@ -263,14 +334,12 @@ namespace LibQonvince {
 		}
 
 		using DictionaryT = std::array<char, 32>;
-		static constexpr const DictionaryT Dictionary = {{
-           'A', 'B', 'C', 'D', 'E', 'F',
-           'G', 'H', 'I', 'J', 'K', 'L',
-           'M', 'N', 'O', 'P', 'Q', 'R',
-           'S', 'T', 'U', 'V', 'W', 'X',
-           'Y', 'Z', '2', '3', '4', '5',
-           '6', '7'
-        }};
+		static constexpr const DictionaryT Dictionary = {{'A', 'B', 'C', 'D', 'E', 'F',
+																		  'G', 'H', 'I', 'J', 'K', 'L',
+																		  'M', 'N', 'O', 'P', 'Q', 'R',
+																		  'S', 'T', 'U', 'V', 'W', 'X',
+																		  'Y', 'Z', '2', '3', '4', '5',
+																		  '6', '7'}};
 		static constexpr const DictionaryT::const_iterator DictBegin = Dictionary.cbegin();
 		static constexpr const DictionaryT::const_iterator DictEnd = Dictionary.cend();
 
@@ -291,6 +360,6 @@ namespace LibQonvince {
 		mutable ByteArrayT m_encoded;
 	};
 
-}  // namespace LibQonvince
+}	// namespace LibQonvince
 
 #endif  // LIBQONVINCE_BASE32_H

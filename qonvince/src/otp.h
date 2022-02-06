@@ -44,7 +44,6 @@ namespace LibQonvince
 
 namespace Qonvince
 {
-
 	using Base32 = LibQonvince::Base32<QByteArray, char>;
 
 	class Otp
@@ -54,8 +53,6 @@ namespace Qonvince
 
 	public:
 		static constexpr const int DefaultInterval = 30;
-		static constexpr const int DefaultDigits = 6;
-		static const QDateTime DefaultBaselineTime;
 
 		enum class SeedType
 		{
@@ -63,10 +60,10 @@ namespace Qonvince
 			Base32
 		};
 
-		explicit Otp(OtpType type = OtpType::Totp, QObject * parent = nullptr);
-		Otp(OtpType type, const QString & issuer, const QString & name, const QByteArray & seed, SeedType seedType = SeedType::Plain, QObject * parent = nullptr);
-		Otp(OtpType type, const QString & name, const QByteArray & seed, SeedType seedType = SeedType::Plain, QObject * parent = nullptr);
-		Otp(OtpType type, const QByteArray & seed, SeedType seedType = SeedType::Plain, QObject * parent = nullptr);
+		explicit Otp(OtpType type = OtpType::Totp, QObject * parent = nullptr) noexcept;
+		Otp(OtpType type, QString issuer, QString name, const QByteArray& seed, SeedType seedType = SeedType::Plain, QObject * parent = nullptr) noexcept;
+		Otp(OtpType type, QString name, const QByteArray& seed, SeedType seedType = SeedType::Plain, QObject * parent = nullptr) noexcept;
+		Otp(OtpType type, const QByteArray& seed, SeedType seedType = SeedType::Plain, QObject * parent = nullptr) noexcept;
 		~Otp() override;
 
 		static std::unique_ptr<Otp> fromSettings(const QSettings & settings, const QCA::SecureArray & cryptKey);
@@ -273,7 +270,7 @@ namespace Qonvince
 		QIcon m_icon;
 
 		// the name (JUST the name, not the path) of the temporary file for the
-		// icon so that it persists between invokations of Qonvince
+		// icon so that it persists between invocations of Qonvince
 		QString m_iconFileName;
 
 		QString m_displayPluginName;
@@ -289,7 +286,6 @@ namespace Qonvince
 
 		bool m_resync;
 	};
-
 }	// namespace Qonvince
 
 #endif  // QONVINCE_OTP_H

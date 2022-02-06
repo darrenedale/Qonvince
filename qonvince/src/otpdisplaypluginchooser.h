@@ -24,40 +24,42 @@
 #include <QComboBox>
 #include <QString>
 
-namespace LibQonvince {
-	class OtpDisplayPlugin;
+namespace LibQonvince
+{
+    class OtpDisplayPlugin;
 }
 
-namespace Qonvince {
+namespace Qonvince
+{
+    class OtpDisplayPluginChooser
+            : public QComboBox
+    {
+    Q_OBJECT
+    public:
+        explicit OtpDisplayPluginChooser(QWidget * parent = nullptr);
 
-	class OtpDisplayPluginChooser
-	: public QComboBox {
-		Q_OBJECT
-	public:
-		OtpDisplayPluginChooser(QWidget * parent = nullptr);
+        void addItem() = delete;
+        void addItems() = delete;
+        void setItemData() = delete;
+        void setItemIcon() = delete;
+        void setItemText() = delete;
 
-		void addItem() = delete;
-		void addItems() = delete;
-		void setItemData() = delete;
-		void setItemIcon() = delete;
-		void setItemText() = delete;
+        [[nodiscard]] inline QString currentPluginName() const
+        {
+            return currentData().toString();
+        }
 
-		inline QString currentPluginName() const {
-			return currentData().toString();
-		}
+        [[nodiscard]] LibQonvince::OtpDisplayPlugin * currentPlugin() const;
 
-		LibQonvince::OtpDisplayPlugin * currentPlugin() const;
+    public Q_SLOTS:
+        void setCurrentPluginName(const QString & pluginName);
 
-	public Q_SLOTS:
-		void setCurrentPluginName(const QString & pluginName);
+    Q_SIGNALS:
+        void currentPluginChanged(const QString & pluginName);
 
-	Q_SIGNALS:
-		void currentPluginChanged(const QString & pluginName);
-
-	private Q_SLOTS:
-		void refreshPlugins();
-	};
-
+    private Q_SLOTS:
+        void refreshPlugins();
+    };
 }  // namespace Qonvince
 
 #endif  // OTPDISPLAYPLUGINCHOOSER_H

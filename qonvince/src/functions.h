@@ -21,10 +21,11 @@
 
 #include <QString>
 
-namespace Qonvince {
+namespace Qonvince
+{
 	class Otp;
 
 	QString otpLabel(Otp * otp);
-}  // namespace Qonvince
+}	// namespace Qonvince
 
 #endif  // QONVINCE_FUNCTIONS_H

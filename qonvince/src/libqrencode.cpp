@@ -24,30 +24,32 @@
 
 #include <QtGlobal>
 
-
-namespace Qonvince {
-
-
-	LibQrEncode::LibQrEncode()
+namespace Qonvince
+{
+	LibQrEncode::LibQrEncode() noexcept
 #if defined(Q_OS_UNIX)
-	: m_lib("libqrencode.so") {
+	: m_lib("libqrencode.so")
+	{
 #elif defined(Q_OS_WIN)
-	: m_lib("qrencode.dll") {
+	: m_lib("qrencode.dll")
+	{
 #else
 #warning Unrecognised platform, LibQrEncode unlikely to be available
 	: m_lib("libqrencode"){
 #endif
 	}
 
-
-	LibQrEncode::QrCode LibQrEncode::encodeString(const QString & data) const {
-		struct QRcodeData {
+	LibQrEncode::QrCode LibQrEncode::encodeString(const QString & data) const
+	{
+		struct QRcodeData
+		{
 			int version;
 			int width;
 			unsigned char * data;
 		};
 
-		enum DummyEnum {
+		enum DummyEnum
+		{
 			Zero = 0,
 			One,
 			Two,
@@ -55,7 +57,7 @@ namespace Qonvince {
 		};
 
 		using Symbol = LibQonvince::SharedLibrary::Symbol;
-		using EncodeFunction = QRcodeData * (*) (const char * string, int version, DummyEnum level, DummyEnum hint, int casesensitive);
+		using EncodeFunction = QRcodeData * (*) (const char * string, int version, DummyEnum level, DummyEnum hint, int caseSensitive);
 		using FreeFunction = void (*)(QRcodeData * code);
 
 		static EncodeFunction QRcode_encodeString = nullptr;
@@ -93,6 +95,4 @@ namespace Qonvince {
 		QRcode_free(qr);
 		return ret;
 	}
-
-
-}  // namespace Qonvince
+}	// namespace Qonvince
