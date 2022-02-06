@@ -33,94 +33,86 @@
 
 #include "types.h"
 
+namespace Qonvince
+{
+    static constexpr const int DefaultClipboardClearInterval = 30;
+    static constexpr const int DefaultCodeRevealTimeout = 5;
 
-namespace Qonvince {
+    Settings::Settings(QObject * parent)
+            : QObject(parent),
+              m_codeLabelDisplayStyle(CodeLabelDisplayStyle::IssuerAndName),
+              m_clipboardClearInterval(DefaultClipboardClearInterval),
+              m_quitOnMainWindowClosed(true),
+              m_startMinimised(false),
+              m_copyCodeOnClick(false),
+              m_hideOnCodeCopyClick(false),
+              m_clearClipboardAfterInterval(false)
+    {
+    }
 
+    void Settings::read(const QSettings & settings)
+    {
+        setSingleInstance(settings.value(QStringLiteral("single_instance"), false).toBool());
+        setQuitOnMainWindowClosed(settings.value(QStringLiteral("quit_on_window_close"), true).toBool());
+        setStartMinimised(settings.value(QStringLiteral("start_minimised"), false).toBool());
+        setCopyCodeOnClick(settings.value(QStringLiteral("copy_code_on_click"), false).toBool());
+        setHideOnCodeCopyClick(settings.value(QStringLiteral("hide_on_code_copy_click"), false).toBool());
+        setClearClipboardAfterInterval(settings.value(QStringLiteral("clear_clipboard_after_interval"), false).toBool());
 
-	static constexpr const int DefaultClipboardClearInterval = 30;
-	static constexpr const int DefaultCodeRevealTimeout = 5;
+        bool ok;
+        int i = settings.value(QStringLiteral("clipboard_clear_interval"), DefaultClipboardClearInterval).toInt(&ok);
 
+        if (!ok) {
+            std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: invalid \"clear_clipboard_after_interval\" setting - using default\n";
+        } else {
+            setClipboardClearInterval(i);
+        }
 
-	Settings::Settings(QObject * parent)
-	: QObject(parent),
-	  m_codeLabelDisplayStyle(CodeLabelDisplayStyle::IssuerAndName),
-	  m_clipboardClearInterval(DefaultClipboardClearInterval),
-	  m_quitOnMainWindowClosed(true),
-	  m_startMinimised(false),
-	  m_copyCodeOnClick(false),
-	  m_hideOnCodeCopyClick(false),
-	  m_clearClipboardAfterInterval(false) {
-	}
+        i = settings.value(QStringLiteral("code_reveal_timeout"), DefaultCodeRevealTimeout).toInt(&ok);
 
+        if (!ok) {
+            std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: invalid \"code_reveal_timeout\" setting - using default\n";
+        } else {
+            setCodeRevealTimeout(i);
+        }
 
-	void Settings::read(const QSettings & settings) {
-		setSingleInstance(settings.value(QStringLiteral("single_instance"), false).toBool());
-		setQuitOnMainWindowClosed(settings.value(QStringLiteral("quit_on_window_close"), true).toBool());
-		setStartMinimised(settings.value(QStringLiteral("start_minimised"), false).toBool());
-		setCopyCodeOnClick(settings.value(QStringLiteral("copy_code_on_click"), false).toBool());
-		setHideOnCodeCopyClick(settings.value(QStringLiteral("hide_on_code_copy_click"), false).toBool());
-		setClearClipboardAfterInterval(settings.value(QStringLiteral("clear_clipboard_after_interval"), false).toBool());
+        QString styleStr = settings.value(QStringLiteral("code_label_display_style"), QStringLiteral("IssuerAndName")).toString();
 
-		bool ok;
-		int i = settings.value(QStringLiteral("clipboard_clear_interval"), DefaultClipboardClearInterval).toInt(&ok);
+        if (QStringLiteral("IssuerAndName") == styleStr) {
+            setCodeLabelDisplayStyle(CodeLabelDisplayStyle::IssuerAndName);
+        } else if (QStringLiteral("NameOnly") == styleStr) {
+            setCodeLabelDisplayStyle(CodeLabelDisplayStyle::NameOnly);
+        } else if (QStringLiteral("IssuerOnly") == styleStr) {
+            setCodeLabelDisplayStyle(CodeLabelDisplayStyle::IssuerOnly);
+        } else {
+            std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << R"(]: (invalid or missing "code_label_display_style" setting (")" << qPrintable(styleStr)
+                      << "\") - using default\n";
+        }
+    }
 
-		if(!ok) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: invalid \"clear_clipboard_after_interval\" setting - using default\n";
-		}
-		else {
-			setClipboardClearInterval(i);
-		}
+    void Settings::write(QSettings & settings) const
+    {
+        settings.setValue(QStringLiteral("single_instance"), singleInstance());
+        settings.setValue(QStringLiteral("quit_on_window_close"), quitOnMainWindowClosed());
+        settings.setValue(QStringLiteral("start_minimised"), startMinimised());
+        settings.setValue(QStringLiteral("copy_code_on_click"), copyCodeOnClick());
+        settings.setValue(QStringLiteral("hide_on_code_copy_click"), hideOnCodeCopyClick());
+        settings.setValue(QStringLiteral("clear_clipboard_after_interval"), clearClipboardAfterInterval());
+        settings.setValue(QStringLiteral("clipboard_clear_interval"), clipboardClearInterval());
+        settings.setValue(QStringLiteral("code_reveal_timeout"), codeRevealTimeout());
 
-		i = settings.value(QStringLiteral("code_reveal_timeout"), DefaultCodeRevealTimeout).toInt(&ok);
+        switch (codeLabelDisplayStyle()) {
+            case CodeLabelDisplayStyle::IssuerAndName:
+                settings.setValue(QStringLiteral("code_label_display_style"), QStringLiteral("IssuerAndName"));
+                break;
 
-		if(!ok) {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: invalid \"code_reveal_timeout\" setting - using default\n";
-		}
-		else {
-			setCodeRevealTimeout(i);
-		}
+            case CodeLabelDisplayStyle::NameOnly:
+                settings.setValue(QStringLiteral("code_label_display_style"), QStringLiteral("NameOnly"));
+                break;
 
-		QString styleStr = settings.value(QStringLiteral("code_label_display_style"), QStringLiteral("IssuerAndName")).toString();
-
-		if(QStringLiteral("IssuerAndName") == styleStr) {
-			setCodeLabelDisplayStyle(CodeLabelDisplayStyle::IssuerAndName);
-		}
-		else if(QStringLiteral("NameOnly") == styleStr) {
-			setCodeLabelDisplayStyle(CodeLabelDisplayStyle::NameOnly);
-		}
-		else if(QStringLiteral("IssuerOnly") == styleStr) {
-			setCodeLabelDisplayStyle(CodeLabelDisplayStyle::IssuerOnly);
-		}
-		else {
-			std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << R"(]: (invalid or missing "code_label_display_style" setting (")" << qPrintable(styleStr) << "\") - using default\n";
-		}
-	}
-
-
-	void Settings::write(QSettings & settings) const {
-		settings.setValue(QStringLiteral("single_instance"), singleInstance());
-		settings.setValue(QStringLiteral("quit_on_window_close"), quitOnMainWindowClosed());
-		settings.setValue(QStringLiteral("start_minimised"), startMinimised());
-		settings.setValue(QStringLiteral("copy_code_on_click"), copyCodeOnClick());
-		settings.setValue(QStringLiteral("hide_on_code_copy_click"), hideOnCodeCopyClick());
-		settings.setValue(QStringLiteral("clear_clipboard_after_interval"), clearClipboardAfterInterval());
-		settings.setValue(QStringLiteral("clipboard_clear_interval"), clipboardClearInterval());
-		settings.setValue(QStringLiteral("code_reveal_timeout"), codeRevealTimeout());
-
-		switch(codeLabelDisplayStyle()) {
-			case CodeLabelDisplayStyle::IssuerAndName:
-				settings.setValue(QStringLiteral("code_label_display_style"), QStringLiteral("IssuerAndName"));
-				break;
-
-			case CodeLabelDisplayStyle::NameOnly:
-				settings.setValue(QStringLiteral("code_label_display_style"), QStringLiteral("NameOnly"));
-				break;
-
-			case CodeLabelDisplayStyle::IssuerOnly:
-				settings.setValue(QStringLiteral("code_label_display_style"), QStringLiteral("IssuerOnly"));
-				break;
-		}
-	}
-
-
+            case CodeLabelDisplayStyle::IssuerOnly:
+                settings.setValue(QStringLiteral("code_label_display_style"), QStringLiteral("IssuerOnly"));
+                break;
+        }
+    }
 }  // namespace Qonvince

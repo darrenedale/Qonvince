@@ -42,125 +42,126 @@ class QContextMenuEvent;
 
 namespace Qonvince
 {
-	class OtpListView
-	: public QListView
-	{
-		Q_OBJECT
+    class OtpListView
+            : public QListView
+    {
+    Q_OBJECT
 
-	public:
-		explicit OtpListView(QWidget * = nullptr);
-		~OtpListView() override;
+    public:
+        explicit OtpListView(QWidget * = nullptr);
+        ~OtpListView() override;
 
-		[[nodiscard]] int hoveredOtpIndex() const;
-		[[nodiscard]] Otp * hoveredOtp() const;
+        [[nodiscard]] int hoveredOtpIndex() const;
+        [[nodiscard]] Otp * hoveredOtp() const;
 
-		[[nodiscard]] inline QString hoveredOtpCode() const
-		{
-			auto * otp = hoveredOtp();
+        [[nodiscard]] inline QString hoveredOtpCode() const
+        {
+            auto * otp = hoveredOtp();
 
-			if(!otp) {
-				return {};
-			}
+            if (!otp) {
+                return {};
+            }
 
-			return otp->code();
-		}
+            return otp->code();
+        }
 
-		[[nodiscard]] inline int selectedOtpIndex() const
-		{
-			return hoveredOtpIndex();
-		}
+        [[nodiscard]] inline int selectedOtpIndex() const
+        {
+            return hoveredOtpIndex();
+        }
 
-		[[nodiscard]] inline Otp * selectedOtp() const
-		{
-			return hoveredOtp();
-		}
+        [[nodiscard]] inline Otp * selectedOtp() const
+        {
+            return hoveredOtp();
+        }
 
-		[[nodiscard]] inline QString selectedOtpCode() const
-		{
-			return hoveredOtpCode();
-		}
+        [[nodiscard]] inline QString selectedOtpCode() const
+        {
+            return hoveredOtpCode();
+        }
 
-		void setModel(QAbstractItemModel *) override
-		{}
+        void setModel(QAbstractItemModel *) override
+        {
+        }
 
-		void setItemDelegate() = delete;
+        void setItemDelegate() = delete;
 
-	Q_SIGNALS:
-		void codeClicked(Otp *);
-		void codeDoubleClicked(Otp *);
-		void editCodeRequested(Otp *);
+    Q_SIGNALS:
+        void codeClicked(Otp *);
+        void codeDoubleClicked(Otp *);
+        void editCodeRequested(Otp *);
 
-	protected:
-		bool event(QEvent * event) override;
-		void resizeEvent(QResizeEvent * event) override;
-		void timerEvent(QTimerEvent * event) override;
-		void enterEvent(QEvent * event) override;
-		void leaveEvent(QEvent * event) override;
-		void mouseMoveEvent(QMouseEvent * event) override;
-		void mousePressEvent(QMouseEvent * event) override;
-		void mouseReleaseEvent(QMouseEvent * event) override;
-		void mouseDoubleClickEvent(QMouseEvent * event) override;
-		void paintEvent(QPaintEvent * event) override;
-		void contextMenuEvent(QContextMenuEvent * event) override;
-		void keyReleaseEvent(QKeyEvent * event) override;
+    protected:
+        bool event(QEvent * event) override;
+        void resizeEvent(QResizeEvent * event) override;
+        void timerEvent(QTimerEvent * event) override;
+        void enterEvent(QEvent * event) override;
+        void leaveEvent(QEvent * event) override;
+        void mouseMoveEvent(QMouseEvent * event) override;
+        void mousePressEvent(QMouseEvent * event) override;
+        void mouseReleaseEvent(QMouseEvent * event) override;
+        void mouseDoubleClickEvent(QMouseEvent * event) override;
+        void paintEvent(QPaintEvent * event) override;
+        void contextMenuEvent(QContextMenuEvent * event) override;
+        void keyReleaseEvent(QKeyEvent * event) override;
 
-		// this is not a Qt event method, it's one we've synthesised by
-		// filtering out cases where the click is part of a double-click
-		virtual void mouseClickEvent(QMouseEvent * event);
+        // this is not a Qt event method, it's one we've synthesised by
+        // filtering out cases where the click is part of a double-click
+        virtual void mouseClickEvent(QMouseEvent * event);
 
-		void synchroniseTickTimer();
+        void synchroniseTickTimer();
 
-	private Q_SLOTS:
-		//		void onOtpChanged();
-		void updateCountdowns();
+    private Q_SLOTS:
 
-		void onEditActionTriggered();
-		void onRefreshActionTriggered();
-		void onRevealActionTriggered();
-		void onRemoveActionTriggered();
-		void onCopyActionTriggered();
-		void onRemoveIconActionTriggered();
-		void onItemEntered(const QModelIndex &);
+        //		void onOtpChanged();
+        void updateCountdowns();
+        void onEditActionTriggered();
+        void onRefreshActionTriggered();
+        void onRevealActionTriggered();
+        void onRemoveActionTriggered();
+        void onCopyActionTriggered();
+        void onRemoveIconActionTriggered();
+        void onItemEntered(const QModelIndex &);
 
-	private:
-		bool m_tickTimerIsResynchronising;
-		bool m_imageDropEnabled;
+    private:
+        bool m_tickTimerIsResynchronising;
+        bool m_imageDropEnabled;
 
-		// triggers widget redraw on TOTP timer ticks (i.e. 1s boundaries)
-		int m_tickTimerId;
+        // triggers widget redraw on TOTP timer ticks (i.e. 1s boundaries)
+        int m_tickTimerId;
 
-		// inserts a delay between receiving a mouseReleaseEvent() that looks like a click
-		// on a code and actually acting on a click so that we can determine whether it's
-		// actually a double-click. the timer is started by the mouseReleaseEvent() and
-		// stopped either by the mouseDoubleClickEvent() or the mouseClickEvent(). any
-		// mouseReleaseEvent()s that occur while the timer is running are ignored. The flag
-		// is set if a double-click occurred so that if, as on X, the mouseReleseEvent() for
-		// the second click of a double-click occurs after the doubleClickEvent(), the
-		// mouseClickEvent() is not called as well as the mouseDoubleClickEvent().
-		QTimer m_doubleClickWaitTimer;
-		bool m_receivedDoubleClickEvent;
+        // inserts a delay between receiving a mouseReleaseEvent() that looks like a click
+        // on a code and actually acting on a click so that we can determine whether it's
+        // actually a double-click. the timer is started by the mouseReleaseEvent() and
+        // stopped either by the mouseDoubleClickEvent() or the mouseClickEvent(). any
+        // mouseReleaseEvent()s that occur while the timer is running are ignored. The flag
+        // is set if a double-click occurred so that if, as on X, the mouseReleseEvent() for
+        // the second click of a double-click occurs after the doubleClickEvent(), the
+        // mouseClickEvent() is not called as well as the mouseDoubleClickEvent().
+        QTimer m_doubleClickWaitTimer;
+        bool m_receivedDoubleClickEvent;
 
-		QMenu m_itemContextMenu;
-		QModelIndex m_actionItemIndex;
-		QModelIndex m_mousePressItemIndex;
+        QMenu m_itemContextMenu;
+        QModelIndex m_actionItemIndex;
+        QModelIndex m_mousePressItemIndex;
 
-		std::unique_ptr<OtpListModel> m_model;
-		std::unique_ptr<OtpListItemDelegate> m_delegate;
+        std::unique_ptr<OtpListModel> m_model;
+        std::unique_ptr<OtpListItemDelegate> m_delegate;
 
-		struct ActionButtonSpec
-		{
-			QIcon icon;
-			QRect geometry;
-		};
+        struct ActionButtonSpec
+        {
+            QIcon icon;
+            QRect geometry;
+        };
 
-		ActionButtonSpec m_copy;
-		ActionButtonSpec m_refresh;
-		ActionButtonSpec m_remove;
-		ActionButtonSpec m_reveal;
+        ActionButtonSpec m_copy;
+        ActionButtonSpec m_refresh;
+        ActionButtonSpec m_remove;
+        ActionButtonSpec m_reveal;
 
-		QRect m_actionIconHoverRect;
-		QRect m_actionIconMouseClickStartRect;
-	};
-}	// namespace Qonvince
+        QRect m_actionIconHoverRect;
+        QRect m_actionIconMouseClickStartRect;
+    };
+}    // namespace Qonvince
 
 #endif  // QONVINCE_OTPLISTVIEW_H

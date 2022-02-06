@@ -17,16 +17,18 @@
  * along with Qonvince. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/** \file qrcodereader.cpp
-  * \author Darren Edale
-  * \date November 2016
-  *
-  * \brief Implementation of the QrCodeReader class.
-  */
+/**
+ * @file qrcodereader.cpp
+ * @author Darren Edale
+ * @date November 2016
+ *
+ * @brief Implementation of the QrCodeReader class.
+ */
 
 #include "qrcodereader.h"
 
 #include <QProcess>
+#include <utility>
 
 
 /* TODO use libzbar instead of zbarimg
@@ -61,142 +63,133 @@
 
  */
 
-
-namespace Qonvince {
-
-
-	bool QrCodeReader::s_isAvailable = false;
-
+namespace Qonvince
+{
+    bool QrCodeReader::s_isAvailable = false;
 
 #if defined(__linux__)
-	QString QrCodeReader::s_zbarImgPath;
+    QString QrCodeReader::s_zbarImgPath;
 #endif
 
+    QrCodeReader::QrCodeReader(QString fileName, QObject * parent)
+            : QObject(parent),
+              m_isDecoded(false),
+              m_fileName(std::move(fileName))
+    {
+        staticInitialise();
+    }
 
-	QrCodeReader::QrCodeReader(const QString & fileName, QObject * parent)
-	: QObject(parent),
-	  m_isDecoded(false),
-	  m_fileName(fileName) {
-		staticInitialise();
-	}
+    void QrCodeReader::staticInitialise()
+    {
+        static bool s_done = false;
 
-
-	void QrCodeReader::staticInitialise() {
-		static bool s_done = false;
-
-		if(!s_done) {
+        if (!s_done) {
 #if defined(__linux__)
-			QProcess readerProcess;
-			readerProcess.setProgram(QStringLiteral("/usr/bin/which"));
-			readerProcess.setArguments({QStringLiteral("zbarimg")});
-			readerProcess.start();
-			readerProcess.waitForFinished();
-			QByteArray out = readerProcess.readAllStandardOutput();
-			s_zbarImgPath = QString::fromUtf8(out.trimmed());
-			s_isAvailable = !out.isEmpty();
+            QProcess readerProcess;
+            readerProcess.setProgram(QStringLiteral("/usr/bin/which"));
+            readerProcess.setArguments({QStringLiteral("zbarimg")});
+            readerProcess.start();
+            readerProcess.waitForFinished();
+            QByteArray out = readerProcess.readAllStandardOutput();
+            s_zbarImgPath = QString::fromUtf8(out.trimmed());
+            s_isAvailable = !out.isEmpty();
 #endif
-			s_done = true;
-		}
-	}
+            s_done = true;
+        }
+    }
 
+    bool QrCodeReader::decode()
+    {
+        if (!isAvailable()) {
+            return false;
+        }
 
-	bool QrCodeReader::decode() {
-		if(!isAvailable()) {
-			return false;
-		}
-
-		//	QZbarImage img(fileName());
-		//
-		//	if(!img.isValid()) {
-		//		qDebug() << "invalid QZbarImage object";
-		//		return false;
-		//	}
-		//
-		//	zbar::ImageScanner scanner;
-		//	int res = scanner.scan(img);
-		//
-		//	if(0 == res) {
-		//		qDebug() << "failed to scan image";
-		////		return false;
-		//	}
-		//	else {
-		//		zbar::SymbolSet symbols = img.get_symbols();
-		//qDebug() << "found" << symbols.get_size() << "symbols";
-		//		zbar::SymbolIterator it(symbols.symbol_begin());
-		//
-		//		while(it != symbols.symbol_end()) {
-		//			qDebug() << QString::fromStdString(it->get_type_name()) << QString::fromStdString(it->get_data());
-		//			++it;
-		//		}
-		//	}
+        //	QZbarImage img(fileName());
+        //
+        //	if(!img.isValid()) {
+        //		qDebug() << "invalid QZbarImage object";
+        //		return false;
+        //	}
+        //
+        //	zbar::ImageScanner scanner;
+        //	int res = scanner.scan(img);
+        //
+        //	if(0 == res) {
+        //		qDebug() << "failed to scan image";
+        ////		return false;
+        //	}
+        //	else {
+        //		zbar::SymbolSet symbols = img.get_symbols();
+        //qDebug() << "found" << symbols.get_size() << "symbols";
+        //		zbar::SymbolIterator it(symbols.symbol_begin());
+        //
+        //		while(it != symbols.symbol_end()) {
+        //			qDebug() << QString::fromStdString(it->get_type_name()) << QString::fromStdString(it->get_data());
+        //			++it;
+        //		}
+        //	}
 
 #if defined(__linux__)
-		if(!m_isDecoded) {
-			QProcess decoderProcess;
-			decoderProcess.start(s_zbarImgPath, {"-q", "--raw", m_fileName});
+        if (!m_isDecoded) {
+            QProcess decoderProcess;
+            decoderProcess.start(s_zbarImgPath, {"-q", "--raw", m_fileName});
 
-			/* give the decoder 1s to finish */
-			if(decoderProcess.waitForFinished(1000) && 0 == decoderProcess.exitCode()) {
-				m_decodedData.clear();
-				m_decodedData.append(decoderProcess.readAllStandardOutput());
-				/* trim trailing linefeed */
-				m_decodedData.chop(1);
-				m_isDecoded = true;
-			}
-			else {
-				decoderProcess.terminate();
-			}
-		}
+            /* give the decoder 1s to finish */
+            if (decoderProcess.waitForFinished(1000) && 0 == decoderProcess.exitCode()) {
+                m_decodedData.clear();
+                m_decodedData.append(decoderProcess.readAllStandardOutput());
+                /* trim trailing linefeed */
+                m_decodedData.chop(1);
+                m_isDecoded = true;
+            } else {
+                decoderProcess.terminate();
+            }
+        }
 #endif
 
-		return m_isDecoded;
-	}
+        return m_isDecoded;
+    }
 
+    //QrCodeReader::QZbarImage::QZbarImage( const QString & fileName )
+    //:	zbar::Image(),
+    //	m_qImg(fileName),
+    //	m_isValid(false) {
+    //	initialise();
+    //}
 
-	//QrCodeReader::QZbarImage::QZbarImage( const QString & fileName )
-	//:	zbar::Image(),
-	//	m_qImg(fileName),
-	//	m_isValid(false) {
-	//	initialise();
-	//}
+    //QrCodeReader::QZbarImage::QZbarImage( const QImage & image )
+    //:	zbar::Image(),
+    //	m_qImg(image),
+    //	m_isValid(false) {
+    //	initialise();
+    //}
 
+    //void QrCodeReader::QZbarImage::initialise() {
+    //	QImage::Format fmt = m_qImg.format();
 
-	//QrCodeReader::QZbarImage::QZbarImage( const QImage & image )
-	//:	zbar::Image(),
-	//	m_qImg(image),
-	//	m_isValid(false) {
-	//	initialise();
-	//}
+    //qDebug() << m_qImg;
 
+    //	if(fmt != QImage::Format_RGB32 && fmt != QImage::Format_ARGB32 && fmt != QImage::Format_ARGB32_Premultiplied) {
+    //		qDebug() << "incompatible image format";
+    //		m_isValid = false;
+    //		return;
+    //	}
 
-	//void QrCodeReader::QZbarImage::initialise() {
-	//	QImage::Format fmt = m_qImg.format();
+    //	unsigned bpl = m_qImg.bytesPerLine();
+    //	unsigned width = bpl / 4;
+    //	unsigned height = m_qImg.height();
+    //	unsigned long length = m_qImg.byteCount();
 
-	//qDebug() << m_qImg;
+    //	set_size(width, height);
+    //	set_format('B' | ('G' << 8) | ('R' << 16) | ('4' << 24));
+    //	set_data(m_qImg.bits(), length);
 
-	//	if(fmt != QImage::Format_RGB32 && fmt != QImage::Format_ARGB32 && fmt != QImage::Format_ARGB32_Premultiplied) {
-	//		qDebug() << "incompatible image format";
-	//		m_isValid = false;
-	//		return;
-	//	}
+    //	if((width * 4 != bpl) || (width * height * 4 > length)) {
+    //		qDebug() << "incompatible image dimensions";
+    //		m_isValid = false;
+    //		return;
+    //	}
 
-	//	unsigned bpl = m_qImg.bytesPerLine();
-	//	unsigned width = bpl / 4;
-	//	unsigned height = m_qImg.height();
-	//	unsigned long length = m_qImg.byteCount();
-
-	//	set_size(width, height);
-	//	set_format('B' | ('G' << 8) | ('R' << 16) | ('4' << 24));
-	//	set_data(m_qImg.bits(), length);
-
-	//	if((width * 4 != bpl) || (width * height * 4 > length)) {
-	//		qDebug() << "incompatible image dimensions";
-	//		m_isValid = false;
-	//		return;
-	//	}
-
-	//	m_isValid = true;
-	//}
-
-
+    //	m_isValid = true;
+    //}
 }  // namespace Qonvince

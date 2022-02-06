@@ -24,59 +24,68 @@
 #include "qrcodereader.h"
 #include "otp.h"
 
-namespace Qonvince {
+namespace Qonvince
+{
+    class OtpQrCodeReader
+            : public QrCodeReader
+    {
+    public:
+        explicit OtpQrCodeReader(const QString & fileName, QObject * parent = nullptr);
 
-	class OtpQrCodeReader
-	: public QrCodeReader {
-	public:
-		OtpQrCodeReader(const QString & fileName, QObject * parent = nullptr);
+        [[nodiscard]] inline const OtpType & type() const
+        {
+            return m_type;
+        }
 
-		inline const OtpType & type() const {
-			return m_type;
-		}
+        [[nodiscard]] inline const QString & name() const
+        {
+            return m_name;
+        }
 
-		inline const QString & name() const {
-			return m_name;
-		}
+        [[nodiscard]] inline const QString & issuer() const
+        {
+            return m_issuer;
+        }
 
-		inline const QString & issuer() const {
-			return m_issuer;
-		}
+        [[nodiscard]] inline const QByteArray & seed() const
+        {
+            return m_seed;
+        }
 
-		inline const QByteArray & seed() const {
-			return m_seed;
-		}
+        [[nodiscard]] inline int interval() const
+        {
+            return m_interval;
+        }
 
-		inline int interval() const {
-			return m_interval;
-		}
+        [[nodiscard]] inline time_t baselineTime() const
+        {
+            return m_baselineTime;
+        }
 
-		inline time_t baselineTime() const {
-			return m_baselineTime;
-		}
+        [[nodiscard]] inline int digits() const
+        {
+            return m_digits;
+        }
 
-		inline int digits() const {
-			return m_digits;
-		}
+        [[nodiscard]] inline int counter() const
+        {
+            return m_counter;
+        }
 
-		inline int counter() const {
-			return m_counter;
-		}
+        bool decode() override;
 
-		bool decode();
+        [[nodiscard]] std::unique_ptr<Otp> createOtp() const;
 
-		std::unique_ptr<Otp> createOtp() const;
-
-	private:
-		QString m_name;
-		QString m_issuer;
-		QByteArray m_seed;
-		int m_interval;
-		int m_counter;
-		int m_digits;
-		OtpType m_type;
-		time_t m_baselineTime;
-	};
+    private:
+        QString m_name;
+        QString m_issuer;
+        QByteArray m_seed;
+        int m_interval;
+        int m_counter;
+        int m_digits;
+        OtpType m_type;
+        time_t m_baselineTime;
+    };
 
 }  // namespace Qonvince
 

@@ -34,104 +34,106 @@
 #include "settings.h"
 #include "functions.h"
 
+namespace Qonvince
+{
+    OtpListModel::OtpListModel()
+    {
+        Q_ASSERT_X(qonvinceApp, __PRETTY_FUNCTION__, "it is not possible to create an OtpListModel without a Qonvince::Application instance");
 
-namespace Qonvince {
+        // adding/removing Otp is done directly on Application object
+        // these connections ensure that the model emits the appropriate
+        // signals when this occurs
+        // the model itself is read-only
+        connect(qonvinceApp, qOverload<int, Otp *>(&Application::otpAdded), this, [this](int index){
+            beginInsertRows({}, index, index);
+            endInsertRows();
+        });
 
+        connect(qonvinceApp, qOverload<int>(&Application::otpRemoved), this, [this](int index){
+            beginRemoveRows({}, index, index);
+            endRemoveRows();
+        });
 
-	OtpListModel::OtpListModel() {
-		Q_ASSERT_X(qonvinceApp, __PRETTY_FUNCTION__, "it is not possible to create an OtpListModel without a Qonvince::Application instance");
+        connect(qonvinceApp, qOverload<int>(&Application::otpChanged), this, [this](int otpIndex){
+            const auto itemIndex = index(otpIndex, 0);
+            Q_EMIT dataChanged(itemIndex, itemIndex);
+        });
+    }
 
-		// adding/removing Otp is done directly on Application object
-		// these connections ensure that the model emits the appropriate
-		// signals when this occurs
-		// the model itself is read-only
-		connect(qonvinceApp, qOverload<int, Otp *>(&Application::otpAdded), this, [this](int index) {
-			beginInsertRows({}, index, index);
-			endInsertRows();
-		});
+    QVariant OtpListModel::headerData(int section, Qt::Orientation, int role) const
+    {
+        if (0 == section && role == Qt::DisplayRole) {
+            return tr("Otp");
+        }
 
-		connect(qonvinceApp, qOverload<int>(&Application::otpRemoved), this, [this](int index) {
-			beginRemoveRows({}, index, index);
-			endRemoveRows();
-		});
+        return {};
+    }
 
-		connect(qonvinceApp, qOverload<int>(&Application::otpChanged), this, [this](int otpIndex) {
-			const auto itemIndex = index(otpIndex, 0);
-			Q_EMIT dataChanged(itemIndex, itemIndex);
-		});
-	}
+    QVariant OtpListModel::data(const QModelIndex & index, int role) const
+    {
+        auto * otp = qonvinceApp->otp(index.row());
 
+        if (!otp) {
+            return {};
+        }
 
-	QVariant OtpListModel::headerData(int section, Qt::Orientation, int role) const {
-		if(0 == section && role == Qt::DisplayRole) {
-			return tr("Otp");
-		}
+        switch (role) {
+            case Qt::EditRole:
+                return data(index, LabelRole);
 
-		return {};
-	}
+            case Qt::DisplayRole:
+                return static_cast<QString>(data(index, LabelRole).toString() % ' ' % data(index, CodeRole).toString());
 
+            case OtpRole:
+                return QVariant::fromValue(otp);
 
-	QVariant OtpListModel::data(const QModelIndex & index, int role) const {
-		auto * otp = qonvinceApp->otp(index.row());
+            case TypeRole:
+                return static_cast<int>(otp->type());
 
-		if(!otp) {
-			return {};
-		}
+            case NameRole:
+                return otp->name();
 
-		switch(role) {
-			case Qt::EditRole:
-				return data(index, LabelRole);
+            case IssuerRole:
+                return otp->issuer();
 
-			case Qt::DisplayRole:
-				return static_cast<QString>(data(index, LabelRole).toString() % ' ' % data(index, CodeRole).toString());
+            case LabelRole:
+                return otpLabel(otp);
 
-			case OtpRole:
-				return QVariant::fromValue(otp);
+            case CodeRole:
+                return otp->code();
 
-			case TypeRole:
-				return static_cast<int>(otp->type());
+            case IconRole:
+                return otp->icon();
 
-			case NameRole:
-				return otp->name();
+            case TimeToNextCodeRole:
+                return otp->timeToNextCode();
 
-			case IssuerRole:
-				return otp->issuer();
+            case TimeSinceLastCodeRole:
+                return otp->timeSinceLastCode();
 
-			case LabelRole:
-				return otpLabel(otp);
+            case IntervalRole:
+                return otp->interval();
 
-			case CodeRole:
-				return otp->code();
+            case CountdownRole:
+                return otp->counter();
 
-			case IconRole:
-				return otp->icon();
+            case RevealOnDemandRole:
+                return otp->revealCodeOnDemand();
 
-			case TimeToNextCodeRole:
-				return otp->timeToNextCode();
+            case IsRevealedRole:
+                return otp->codeIsVisible();
 
-			case TimeSinceLastCodeRole:
-				return otp->timeSinceLastCode();
+            default:
+                // deliberately empty default case label
+                break;
+        }
 
-			case IntervalRole:
-				return otp->interval();
-
-			case CountdownRole:
-				return otp->counter();
-
-			case RevealOnDemandRole:
-				return otp->revealCodeOnDemand();
-
-			case IsRevealedRole:
-				return otp->codeIsVisible();
-		}
-
-		return {};
-	}
-
-
-	int OtpListModel::rowCount(const QModelIndex &) const {
-		return qonvinceApp->otpCount();
-	}
+        return {};
+    }
 
 
+    int OtpListModel::rowCount(const QModelIndex &) const
+    {
+        return qonvinceApp->otpCount();
+    }
 }  // namespace Qonvince

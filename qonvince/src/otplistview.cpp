@@ -151,7 +151,6 @@ namespace Qonvince
         m_tickTimerId = startTimer(50 + (QDateTime::currentMSecsSinceEpoch() % 1000), Qt::PreciseTimer);
     }
 
-
     Otp * OtpListView::hoveredOtp() const
     {
         auto otpIndex = hoveredOtpIndex();
@@ -163,7 +162,6 @@ namespace Qonvince
         return qonvinceApp->otp(otpIndex);
     }
 
-
     void OtpListView::updateCountdowns()
     {
         if (m_tickTimerIsResynchronising) {
@@ -174,7 +172,6 @@ namespace Qonvince
 
         viewport()->update();
     }
-
 
     bool OtpListView::event(QEvent * ev)
     {
@@ -214,14 +211,12 @@ namespace Qonvince
         return QListView::event(ev);
     }
 
-
     void OtpListView::resizeEvent(QResizeEvent * ev)
     {
         m_actionIconMouseClickStartRect = {};
         m_actionIconHoverRect = {};
         QListView::resizeEvent(ev);
     }
-
 
     void OtpListView::timerEvent(QTimerEvent * ev)
     {
@@ -234,19 +229,16 @@ namespace Qonvince
         QListView::timerEvent(ev);
     }
 
-
     void OtpListView::enterEvent(QEvent *)
     {
         setMouseTracking(true);
     }
-
 
     void OtpListView::leaveEvent(QEvent *)
     {
         setMouseTracking(false);
         m_actionItemIndex = {};
     }
-
 
     void OtpListView::mouseMoveEvent(QMouseEvent * ev)
     {
@@ -291,7 +283,6 @@ namespace Qonvince
         QListView::mouseMoveEvent(ev);
     }
 
-
     void OtpListView::keyReleaseEvent(QKeyEvent * ev)
     {
         if (ev->matches(QKeySequence::Copy)) {
@@ -306,7 +297,6 @@ namespace Qonvince
             qonvinceApp->copyOtpToClipboard(otp);
         }
     }
-
 
     void OtpListView::mousePressEvent(QMouseEvent * ev)
     {
@@ -331,7 +321,6 @@ namespace Qonvince
 
         QListView::mousePressEvent(ev);
     }
-
 
     void OtpListView::mouseReleaseEvent(QMouseEvent * ev)
     {
@@ -368,7 +357,6 @@ namespace Qonvince
         QListView::mouseReleaseEvent(ev);
     }
 
-
     void OtpListView::mouseDoubleClickEvent(QMouseEvent * ev)
     {
         m_doubleClickWaitTimer.stop();
@@ -386,7 +374,6 @@ namespace Qonvince
         QListView::mouseDoubleClickEvent(ev);
     }
 
-
     void OtpListView::mouseClickEvent(QMouseEvent * ev)
     {
         // this "fake" mouseClickEvent method is only called if the user clicked
@@ -403,7 +390,6 @@ namespace Qonvince
         }
     }
 
-
     void OtpListView::contextMenuEvent(QContextMenuEvent * ev)
     {
         m_actionItemIndex = indexAt(ev->pos());
@@ -416,7 +402,6 @@ namespace Qonvince
         m_itemContextMenu.move(ev->globalPos());
         m_itemContextMenu.show();
     }
-
 
     void OtpListView::onEditActionTriggered()
     {
@@ -434,7 +419,6 @@ namespace Qonvince
         Q_EMIT editCodeRequested(otp);
     }
 
-
     void OtpListView::onCopyActionTriggered()
     {
         if (!m_actionItemIndex.isValid()) {
@@ -445,7 +429,6 @@ namespace Qonvince
         Q_ASSERT_X(otp, __PRETTY_FUNCTION__, "copy triggered on invalid Otp");
         qonvinceApp->copyOtpToClipboard(otp);
     }
-
 
     void OtpListView::onItemEntered(const QModelIndex & index)
     {
@@ -484,7 +467,6 @@ namespace Qonvince
         m_actionItemIndex = index;
     }
 
-
     void OtpListView::onRevealActionTriggered()
     {
         if (!m_actionItemIndex.isValid()) {
@@ -502,7 +484,6 @@ namespace Qonvince
         QTimer::singleShot(1000 * qonvinceApp->settings().codeRevealTimeout(), otp, &Otp::hide);
     }
 
-
     void OtpListView::onRefreshActionTriggered()
     {
         if (!m_actionItemIndex.isValid()) {
@@ -513,7 +494,6 @@ namespace Qonvince
         Q_ASSERT_X(otp, __PRETTY_FUNCTION__, "refresh triggered on invalid Otp");
         otp->refreshCode();
     }
-
 
     void OtpListView::onRemoveActionTriggered()
     {
@@ -534,7 +514,6 @@ namespace Qonvince
         }
     }
 
-
     void OtpListView::onRemoveIconActionTriggered()
     {
         if (!m_actionItemIndex.isValid()) {
@@ -550,7 +529,6 @@ namespace Qonvince
 
         otp->setIcon({});
     }
-
 
     void OtpListView::paintEvent(QPaintEvent * ev)
     {
@@ -592,5 +570,4 @@ namespace Qonvince
             }
         }
     }
-
 }    // namespace Qonvince

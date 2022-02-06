@@ -26,88 +26,90 @@
 
 #include "otp.h"
 
-
 class QCloseEvent;
 class QDragEnterEvent;
 class QDropEvent;
 
+namespace Qonvince
+{
+    namespace Ui
+    {
+        class OtpEditor;
+    }
 
-namespace Qonvince {
+    class OtpEditor : public QWidget
+    {
+    Q_OBJECT
 
-	namespace Ui {
-		class OtpEditor;
-	}
+    public:
+        explicit OtpEditor(QWidget * = nullptr);
 
-	class OtpEditor : public QWidget {
-		Q_OBJECT
+        explicit OtpEditor(Otp *, QWidget * = nullptr);
 
-	public:
-		explicit OtpEditor(QWidget * = nullptr);
-		explicit OtpEditor(Otp *, QWidget * = nullptr);
-		~OtpEditor() override;
+        ~OtpEditor() override;
 
-		QString name() const;
-		QString issuer() const;
-		OtpType type() const;
-		bool revealOnDemand() const;
+        [[nodiscard]] QString name() const;
+        [[nodiscard]] QString issuer() const;
+        [[nodiscard]] OtpType type() const;
+        [[nodiscard]] bool revealOnDemand() const;
 
-		inline Otp * otp() const {
-			return m_otp;
-		}
+        [[nodiscard]] inline Otp * otp() const
+        {
+            return m_otp;
+        }
 
-	public Q_SLOTS:
-		void setOtp(Otp *);
+    public Q_SLOTS:
 
-		void setName(const QString &);
-		void setIssuer(const QString &);
-		void setType(OtpType);
-		void setRevealOnDemand(bool);
+        void setOtp(Otp *);
+        void setName(const QString &);
+        void setIssuer(const QString &);
+        void setType(OtpType);
+        void setRevealOnDemand(bool);
+        void chooseIcon();
+        void readBarcode();
+        void readBarcode(const QString &);
+        bool createBarcode();
+        bool createBarcode(const QString &);
 
-		void chooseIcon();
+    protected:
+        void dragEnterEvent(QDragEnterEvent *) override;
+        void dropEvent(QDropEvent *) override;
 
-		void readBarcode();
-		void readBarcode(const QString &);
-		bool createBarcode();
-		bool createBarcode(const QString &);
+    Q_SIGNALS:
 
-	protected:
-		void dragEnterEvent(QDragEnterEvent *) override;
-		void dropEvent(QDropEvent *) override;
+        void typeChanged(OtpType);
+        void issuerChanged(QString);
+        void nameChanged(QString);
+        void seedChanged(QString);
+        void iconChanged(QIcon);
+        void digitsChanged(int);
+        void displayPluginNameChanged(QString);
+        void revealOnDemandChanged(bool);
+        void counterChanged(quint64);
+        void durationChanged(int);
+        void intervalChanged(int);
+        void baseTimeChanged(QDateTime);
+        void baseTimeChangedInSeconds(qint64);
+        void closing();
 
-	Q_SIGNALS:
-		void typeChanged(OtpType);
-		void issuerChanged(QString);
-		void nameChanged(QString);
-		void seedChanged(QString);
-		void iconChanged(QIcon);
-		void digitsChanged(int);
-		void displayPluginNameChanged(QString);
-		void revealOnDemandChanged(bool);
-		void counterChanged(quint64);
-		void durationChanged(int);
-		void intervalChanged(int);
-		void baseTimeChanged(QDateTime);
-		void baseTimeChangedInSeconds(qint64);
-		void closing();
+    private Q_SLOTS:
 
-	private Q_SLOTS:
-		void updateWindowTitle();
-		void updateHeading();
+        void updateWindowTitle();
+        void updateHeading();
+        void onCodeSeedEditingFinished();
+        void setCodeBaseTimeFromWidget();
+        void setCounter(quint64);
+        void resetCounter();
+        void seedWidgetTextEdited();
+        void onDisplayPluginChanged();
+        void onIconSelected(const QIcon &);
+        void onIconCleared();
 
-		void onCodeSeedEditingFinished();
-		void setCodeBaseTimeFromWidget();
-		void setCounter(quint64);
-		void resetCounter();
-		void seedWidgetTextEdited();
-		void onDisplayPluginChanged();
-		void onIconSelected(const QIcon &);
-		void onIconCleared();
-
-	private:
-		std::unique_ptr<Ui::OtpEditor> m_ui;
-		Otp * m_otp;
-		QByteArray m_originalSeed;
-	};
+    private:
+        std::unique_ptr<Ui::OtpEditor> m_ui;
+        Otp * m_otp;
+        QByteArray m_originalSeed;
+    };
 }  // namespace Qonvince
 
 #endif  // QONVINCE_OTPEDITOR_H

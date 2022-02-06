@@ -8,45 +8,47 @@
 
 class QWidget;
 
-namespace Qonvince {
+namespace Qonvince
+{
+    namespace Ui
+    {
+        class PasswordDialogue;
+    }
 
-	namespace Ui {
-		class PasswordDialogue;
-	}
+    class PasswordDialogue
+            : public QDialog
+    {
+    Q_OBJECT
 
-	class PasswordDialogue
-	: public QDialog {
-		Q_OBJECT
+    public:
+        explicit PasswordDialogue(QWidget * parent = nullptr);
+        explicit PasswordDialogue(const QString & msg, QWidget * parent = nullptr);
+        ~PasswordDialogue() override;
 
-	public:
-		explicit PasswordDialogue(QWidget * parent = nullptr);
-		explicit PasswordDialogue(const QString & msg, QWidget * parent = nullptr);
-		~PasswordDialogue() override;
+        [[nodiscard]] QString message() const;
+        void setMessage(const QString & msg);
+        [[nodiscard]] QString password() const;
+        void setPassword(const QString & pwd);
 
-		QString message() const;
-		void setMessage(const QString & msg);
+    public Q_SLOTS:
+        inline void showMessage()
+        {
+            setMessageVisible(true);
+        }
 
-		QString password() const;
-		void setPassword(const QString & pwd);
+        inline void hideMessage()
+        {
+            setMessageVisible(false);
+        }
 
-	public Q_SLOTS:
-		inline void showMessage() {
-			setMessageVisible(true);
-		}
+        void setMessageVisible(bool);
 
-		inline void hideMessage() {
-			setMessageVisible(false);
-		}
+    Q_SIGNALS:
+        void passwordChanged(QString);
 
-		void setMessageVisible(bool);
-
-	Q_SIGNALS:
-		void passwordChanged(QString);
-
-	private:
-		std::unique_ptr<Ui::PasswordDialogue> m_ui;
-	};
-
+    private:
+        std::unique_ptr<Ui::PasswordDialogue> m_ui;
+    };
 }  // namespace Qonvince
 
 #endif  // QONVINCE_PASSWORDDIALOGUE_H

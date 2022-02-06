@@ -17,76 +17,70 @@
  * along with Qonvince. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/** \file qrcodecreator.cpp
-  * \brief Implementation of the QrCodeCreator class.
-  *
-  * \todo integrate with libkf5prison (KDE barcode creator) where available?
-  */
+/**
+ * @file qrcodecreator.cpp
+ * @brief Implementation of the QrCodeCreator class.
+ *
+ * @todo integrate with libkf5prison (KDE barcode creator) where available?
+ */
 
 #include "qrcodecreator.h"
 
 #include <QPainter>
 #include <QColor>
 
+namespace Qonvince
+{
+    LibQrEncode QrCodeCreator::s_libQrEncode{};
+    const QColor QrCodeCreator::DefaultForeground = QColor(0x00, 0x00, 0x00);
+    const QColor QrCodeCreator::DefaultBackground = QColor(0xff, 0xff, 0xff);
 
-namespace Qonvince {
+    QrCodeCreator::QrCodeCreator(const QString & data)
+            : m_data(data)
+    {
+    }
 
+    QrCodeCreator::~QrCodeCreator()
+    {
+        s_libQrEncode.close();
+    }
 
-	LibQrEncode QrCodeCreator::s_libQrEncode{};
+    QImage QrCodeCreator::image(const QSize & size)
+    {
+        QImage img(size, QImage::Format_RGB32);
+        QPainter painter(&img);
+        paint(painter, size);
+        return img;
+    }
 
+    void QrCodeCreator::paint(QPainter & painter, const QSize & size, const QColor & fg, const QColor & bg)
+    {
+        LibQrEncode::QrCode qr = s_libQrEncode.encodeString(m_data);
 
-	const QColor QrCodeCreator::DefaultForeground = QColor(0x00, 0x00, 0x00);
-	const QColor QrCodeCreator::DefaultBackground = QColor(0xff, 0xff, 0xff);
+        if (qr.isValid) {
+            painter.setBrush(bg);
+            painter.setPen(Qt::NoPen);
+            painter.drawRect(0, 0, size.width(), size.height());
+            painter.setBrush(fg);
 
+            const int s = (0 < qr.size ? qr.size : 1);
+            const double w = size.width();
+            const double h = size.height();
+            const double aspect = w / h;
+            const double scale = ((1.0 < aspect) ? h : w) / s;
 
-	QrCodeCreator::QrCodeCreator(const QString & data)
-	: m_data(data) {
-	}
+            for (int y = 0; y < s; ++y) {
+                const int firstIndex = y * s;
 
-
-	QrCodeCreator::~QrCodeCreator() {
-		s_libQrEncode.close();
-	}
-
-
-	QImage QrCodeCreator::image(const QSize & size) {
-		QImage img(size, QImage::Format_RGB32);
-		QPainter painter(&img);
-		paint(painter, size);
-		return img;
-	}
-
-
-	void QrCodeCreator::paint(QPainter & painter, const QSize & size, const QColor & fg, const QColor & bg) {
-		LibQrEncode::QrCode qr = s_libQrEncode.encodeString(m_data);
-
-		if(qr.isValid) {
-			painter.setBrush(bg);
-			painter.setPen(Qt::NoPen);
-			painter.drawRect(0, 0, size.width(), size.height());
-			painter.setBrush(fg);
-
-			const int s = (0 < qr.size ? qr.size : 1);
-			const double w = size.width();
-			const double h = size.height();
-			const double aspect = w / h;
-			const double scale = ((1.0 < aspect) ? h : w) / s;
-
-			for(int y = 0; y < s; ++y) {
-				const int firstIndex = y * s;
-
-				for(int x = 0; x < s; ++x) {
-					if(qr.data.at(firstIndex + x) & 0x01) {
-						painter.drawRect(QRectF(double(x * scale), double(y * scale), scale, scale));
-					}
-				}
-			}
-		}
-		else {
-			painter.setBrush(QColor(0xff, 0x00, 0x00));
-			painter.drawRect(0, 0, size.width(), size.height());
-		}
-	}
-
-
+                for (int x = 0; x < s; ++x) {
+                    if (qr.data.at(firstIndex + x) & 0x01) {
+                        painter.drawRect(QRectF(double(x * scale), double(y * scale), scale, scale));
+                    }
+                }
+            }
+        } else {
+            painter.setBrush(QColor(0xff, 0x00, 0x00));
+            painter.drawRect(0, 0, size.width(), size.height());
+        }
+    }
 }  // namespace Qonvince

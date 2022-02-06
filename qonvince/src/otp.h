@@ -53,8 +53,6 @@ namespace Qonvince
 
 	public:
 		static constexpr const int DefaultInterval = 30;
-		static constexpr const int DefaultDigits = 6;
-		static const QDateTime DefaultBaselineTime;
 
 		enum class SeedType
 		{
@@ -63,9 +61,9 @@ namespace Qonvince
 		};
 
 		explicit Otp(OtpType type = OtpType::Totp, QObject * parent = nullptr) noexcept;
-		Otp(OtpType type, const QString & issuer, const QString & name, const QByteArray & seed, SeedType seedType = SeedType::Plain, QObject * parent = nullptr) noexcept;
-		Otp(OtpType type, const QString & name, const QByteArray & seed, SeedType seedType = SeedType::Plain, QObject * parent = nullptr) noexcept;
-		Otp(OtpType type, const QByteArray & seed, SeedType seedType = SeedType::Plain, QObject * parent = nullptr) noexcept;
+		Otp(OtpType type, QString issuer, QString name, const QByteArray& seed, SeedType seedType = SeedType::Plain, QObject * parent = nullptr) noexcept;
+		Otp(OtpType type, QString name, const QByteArray& seed, SeedType seedType = SeedType::Plain, QObject * parent = nullptr) noexcept;
+		Otp(OtpType type, const QByteArray& seed, SeedType seedType = SeedType::Plain, QObject * parent = nullptr) noexcept;
 		~Otp() override;
 
 		static std::unique_ptr<Otp> fromSettings(const QSettings & settings, const QCA::SecureArray & cryptKey);
