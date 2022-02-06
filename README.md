@@ -18,10 +18,13 @@ Qonvince uses Qt5 for its UI, and can be built for Linux, Windows and OSX.
 - zbarimg (for reading QR codes)
 
 ## Build
+```
 mkdir build && cd build
 cmake ../
 cmake --build ./
-
+```
 ## Install
 Follow the build instructions above.
+```
 cmake --install
+```
