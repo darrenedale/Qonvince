@@ -188,9 +188,9 @@ namespace Qonvince
             std::cout << "Author: " << qPrintable(info->authorName) << "\n";
             std::cout << "Description: " << qPrintable(info->description) << "\n\n";
 #endif
-            if (0 != info->pluginType.compare(PluginType::PlugnTypeName)) {
+            if (0 != info->pluginType.compare(PluginType::PluginTypeName)) {
                 std::cerr << __PRETTY_FUNCTION__ << " (" << __FILE__ << " [" << __LINE__ << "]): the plugin \"" << path << "\" is not a(n) "
-                          << PluginType::PlugnTypeName << "\n";
+                          << PluginType::PluginTypeName << "\n";
                 return false;
             }
 

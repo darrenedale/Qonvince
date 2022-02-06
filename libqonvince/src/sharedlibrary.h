@@ -20,12 +20,13 @@
 #ifndef LIBQONVINCE_SHAREDLIBRARY_H
 #define LIBQONVINCE_SHAREDLIBRARY_H
 
-/** \file sharedlibrary.h
- * \author Darren Edale
- * \version 0.5
- * \date September 2017
+/**
+ * @file sharedlibrary.h
+ * @author Darren Edale
+ * @version 0.5
+ * @date September 2017
  *
- * \brief Definition of the SharedLibrary class.
+ * @brief Definition of the SharedLibrary class.
  */
 
 #include <string>
@@ -46,6 +47,7 @@ namespace LibQonvince
 
 	private:
 		using LibraryHandle = HINSTANCE;
+        static constexpr const LibraryHandle NullLibraryHandle = static_cast<HINSTANCE>(nullptr);
 
 #elif defined(__unix)
 
@@ -54,6 +56,7 @@ namespace LibQonvince
 
 	private:
 		using LibraryHandle = void *;
+        static constexpr const LibraryHandle NullLibraryHandle = nullptr;
 
 #else
 
@@ -71,7 +74,7 @@ namespace LibQonvince
 
 		[[nodiscard]] inline bool isOpen() const
 		{
-			return m_lib;
+			return NullLibraryHandle != m_lib;
 		}
 
 		bool open(const std::string & path);
