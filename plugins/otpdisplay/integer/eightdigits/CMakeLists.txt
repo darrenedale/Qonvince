@@ -16,7 +16,7 @@ target_include_directories(eightdigits_display_plugin PUBLIC ${CMAKE_CURRENT_LIS
 target_link_libraries(eightdigits_display_plugin PUBLIC libqonvince_shared Qt5::Core)
 
 if(WIN32)
-	install(TARGETS eightdigits_display_plugin RUNTIME DESTINATION usr/share/Equit/Qonvince/plugins/otpdisplay COMPONENT extradisplayplugins OPTIONAL)
+	install(TARGETS eightdigits_display_plugin RUNTIME DESTINATION usr/share/Equit/Qonvince/plugins/otpdisplay COMPONENT qonvince-displayplugins OPTIONAL)
 else()
-	install(TARGETS eightdigits_display_plugin LIBRARY DESTINATION usr/share/Equit/Qonvince/plugins/otpdisplay COMPONENT extradisplayplugins OPTIONAL)
+	install(TARGETS eightdigits_display_plugin LIBRARY DESTINATION usr/share/Equit/Qonvince/plugins/otpdisplay COMPONENT qonvince-displayplugins OPTIONAL)
 endif()

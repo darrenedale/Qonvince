@@ -11,7 +11,8 @@ set_target_properties(libqonvince_shared libqonvince_static PROPERTIES
 	CXX_STANDARD 14
 	LIBRARY_OUTPUT_NAME qonvince
 	ARCHIVE_OUTPUT_NAME qonvince
-	SOVERSION 1.0.0
+	VERSION 1.0.0
+	SOVERSION 1
 #	CXX_CLANG_TIDY clang-tidy-5.0
 )
 
