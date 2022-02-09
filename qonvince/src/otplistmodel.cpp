@@ -18,16 +18,17 @@
  */
 
 /** \file otplistmodel.cpp
-  * \author Darren Edale
-  * \date December 2017
-  *
-  * \brief Implementation of the OtpListModel class.
-  */
+ * \author Darren Edale
+ * \date December 2017
+ *
+ * \brief Implementation of the OtpListModel class.
+ */
 
 #include "otplistmodel.h"
 
 #include <QString>
 #include <QStringBuilder>
+#include <QMimeData>
 
 #include "application.h"
 #include "otp.h"
@@ -35,10 +36,15 @@
 #include "functions.h"
 
 
-namespace Qonvince {
+namespace Qonvince
+{
+	namespace
+	{
+		const QString OtpMimeType = QStringLiteral("application/vnd.equit.qonvince.otp");
+	}
 
-
-	OtpListModel::OtpListModel() {
+	OtpListModel::OtpListModel()
+	{
 		Q_ASSERT_X(qonvinceApp, __PRETTY_FUNCTION__, "it is not possible to create an OtpListModel without a Qonvince::Application instance");
 
 		// adding/removing Otp is done directly on Application object
@@ -62,7 +68,8 @@ namespace Qonvince {
 	}
 
 
-	QVariant OtpListModel::headerData(int section, Qt::Orientation, int role) const {
+	QVariant OtpListModel::headerData(int section, Qt::Orientation, int role) const
+	{
 		if(0 == section && role == Qt::DisplayRole) {
 			return tr("Otp");
 		}
@@ -71,7 +78,8 @@ namespace Qonvince {
 	}
 
 
-	QVariant OtpListModel::data(const QModelIndex & index, int role) const {
+	QVariant OtpListModel::data(const QModelIndex & index, int role) const
+	{
 		auto * otp = qonvinceApp->otp(index.row());
 
 		if(!otp) {
@@ -129,9 +137,77 @@ namespace Qonvince {
 	}
 
 
-	int OtpListModel::rowCount(const QModelIndex &) const {
+	int OtpListModel::rowCount(const QModelIndex &) const
+	{
 		return qonvinceApp->otpCount();
 	}
 
+	Qt::DropActions OtpListModel::supportedDropActions() const
+	{
+		return Qt::DropAction::MoveAction;
+	}
 
-}  // namespace Qonvince
+	Qt::ItemFlags OtpListModel::flags(const QModelIndex & idx) const
+	{
+		return QAbstractListModel::flags(idx) | Qt::ItemFlag::ItemIsDragEnabled | Qt::ItemFlag::ItemIsDropEnabled;
+	}
+
+	QStringList OtpListModel::mimeTypes() const
+	{
+		return {OtpMimeType};
+	}
+
+	QMimeData * OtpListModel::mimeData(const QModelIndexList & idx) const
+	{
+		// encode the indices of the selected OTPs (their row in the model) as a space-separated string
+		auto * mimeData = new QMimeData();
+		mimeData->setData(
+			OtpMimeType,
+			std::transform_reduce(
+				idx.cbegin(),
+				idx.cend(),
+				QByteArray(""),
+				[](const QByteArray & row, const QByteArray & current) -> QString {
+				 	if (current.isEmpty()) {
+						return row;
+					}
+
+					return current + " " + row;
+				},
+				[](int row) -> QString {
+					return QByteArray::number(row) + " ";
+				}
+			));
+		return mimeData;
+	}
+
+	bool OtpListModel::canDropMimeData(const QMimeData * data, Qt::DropAction action, int row, int col, const QModelIndex & parent) const
+	{
+		return Qt::DropAction::MoveAction == action && 0 == col && data->hasFormat(OtpMimeType);
+	}
+
+	bool OtpListModel::dropMimeData(const QMimeData * data, Qt::DropAction action, int row, int column, const QModelIndex & parent)
+	{
+		if (!canDropMimeData(data, action, row, column, parent)) {
+			return false;
+		}
+
+		// extract the moved OTP indices from the MIME data
+		std::vector<int> movedOtps;
+
+		{
+			auto otpIndices = data->data(OtpMimeType).split(' ');
+			movedOtps.reserve(otpIndices.size());
+			std::transform(otpIndices.cbegin(), otpIndices.cend(), std::back_inserter(movedOtps), [](const QByteArray & idxString) -> int {
+				return idxString.toInt();
+			});
+		}
+
+		// sort the indices in ascending order
+		std::sort(movedOtps.cbegin(), movedOtps.cend());
+
+		// TODO remove the OTPs from the Application store
+		// TODO reduce the target row by the number of moved items that currently have an index before it
+		// TODO insert the OTPs before the target row
+	}
+}	// namespace Qonvince
