@@ -24,6 +24,11 @@ mkdir build && cd build
 cmake ../
 cmake --build ./
 ```
+
+When building the qonvince target, the following options are available:
+- `WITH_NETWORK_ACCESS` Enable downloading of QR codes/icons from URLs. Run CMAKE with the argument `-DWITH_NETWORK_ACCESS`. This defaults to `ON`. Set it to `OFF` to turn off this feature.
+- `WITH_DBUS_NOTIFICATIONS` Use DBus to show notifications to the user. Not available on Windows or MacOS (so ignored). This defaults to `ON`. Set it to `OFF` to turn off this feature.
+
 ## Install
 Follow the build instructions above.
 ```
