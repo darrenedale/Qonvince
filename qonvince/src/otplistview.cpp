@@ -93,6 +93,12 @@ namespace Qonvince
         QListView::setModel(m_model.get());
         QListView::setItemDelegate(m_delegate.get());
         setUniformItemSizes(true);
+		  setMovement(Movement::Snap);
+		  setSelectionMode(SelectionMode::SingleSelection);
+		  setDragEnabled(true);
+		  setAcceptDrops(true);
+		  setDropIndicatorShown(true);
+		  setDragDropMode(DragDropMode::InternalMove);
 
         m_itemContextMenu.addAction(QIcon::fromTheme(QStringLiteral("document-edit")), tr("Edit"), this, &OtpListView::onEditActionTriggered);
         m_itemContextMenu.addAction(tr("Remove icon"), this, &OtpListView::onRemoveIconActionTriggered);
