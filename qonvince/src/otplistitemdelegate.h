@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 - 2020 Darren Edale
+ * Copyright 2015 - 2022 Darren Edale
  *
  * This file is part of Qonvince.
  *
@@ -81,6 +81,8 @@ namespace Qonvince
     private:
         QColor m_countdownWarningColour;
         QColor m_countdownCriticalColour;
+
+        // how many pixels to the right of each item are occupied by the widget's reveal/copy/refresh/remove actions
         int m_actionIconAreaWidth;
     };
 }  // namespace Qonvince

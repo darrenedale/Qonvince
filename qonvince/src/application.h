@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 - 2020 Darren Edale
+ * Copyright 2015 - 2022 Darren Edale
  *
  * This file is part of Qonvince.
  *
@@ -129,6 +129,15 @@ namespace Qonvince
 
 		bool removeOtp(int);
 		bool removeOtp(Otp *);
+
+        bool insertOtp(int, std::unique_ptr<Otp> &&);
+
+        bool insertOtp(int idx, Otp * otp)
+        {
+            return insertOtp(idx, std::unique_ptr<Otp>(otp));
+        }
+
+        bool moveOtp(int from, int to);
 
 		inline LibQonvince::OtpDisplayPlugin * otpDisplayPluginByName(const QString & name)
 		{

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 - 2020 Darren Edale
+ * Copyright 2015 - 2022 Darren Edale
  *
  * This file is part of Qonvince.
  *
@@ -32,6 +32,7 @@
 #include "types.h"
 #include "base32.h"
 #include "application.h"
+#include "jsonserialisable.h"
 
 class QBasicTimer;
 class QTimerEvent;
@@ -47,7 +48,7 @@ namespace Qonvince
 	using Base32 = LibQonvince::Base32<QByteArray, char>;
 
 	class Otp
-	: public QObject
+	: public QObject, JsonSerialisable
 	{
 		Q_OBJECT
 
@@ -153,7 +154,18 @@ namespace Qonvince
 
 		void writeSettings(QSettings & settings, const QCA::SecureArray & cryptKey) const;
 
-	Q_SIGNALS:
+        // JsonSerialisable interface
+        nlohmann::json toJson() const override;
+        std::string toJsonString() const override
+        {
+            return toJson().dump();
+        }
+
+        // unserialise from JSON
+        static std::unique_ptr<Otp> fromJson(const nlohmann::json & json);
+        static std::unique_ptr<Otp> fromJsonString(const std::string & json);
+        
+    Q_SIGNALS:
 		// TODO consider slimming down the # of signals
 		void typeChanged(OtpType oldType, OtpType newType);
 		void issuerChanged(QString oldIssuer, QString newIssuer);

@@ -9,6 +9,7 @@ option(WITH_DBUS_NOTIFICATIONS "use org.freedesktop.Notifications DBus service f
 # at least 5.7 for qOverload<>() (and probably more)
 find_package(Qt5 5.7 REQUIRED COMPONENTS Core Widgets DBus)
 find_package(QCA REQUIRED)
+find_package(nlohmann_json 3.10 REQUIRED)
 
 set(QONVICE_QT_LIBS Qt5::Core Qt5::Widgets Qt5::DBus)
 
@@ -40,6 +41,7 @@ add_executable(qonvince
 	src/otpdisplaypluginchooser.cpp
 	src/otplistmodel.cpp
 	src/functions.cpp
+	src/otpmimedata.cpp
 	resources/icons.qrc
 	)
 
@@ -53,9 +55,10 @@ set_target_properties(qonvince PROPERTIES
 	)
 
 add_dependencies(qonvince libqonvince_shared)
-target_compile_features(qonvince PRIVATE cxx_std_17)
+target_compile_features(qonvince PRIVATE cxx_std_20)
+
 target_include_directories(qonvince PUBLIC "${CMAKE_CURRENT_LIST_DIR}/../libqonvince/src" "${QCA_INCLUDE_DIR}")
-target_link_libraries(qonvince ${QONVICE_QT_LIBS} ${QCA_LIBRARY} dl libqonvince_shared)
+target_link_libraries(qonvince ${QONVICE_QT_LIBS} ${QCA_LIBRARY} nlohmann_json::nlohmann_json libqonvince_shared)
 
 set(QONVINCE_ICON_INSTALL_DIR "usr/share/icons/hicolor")
 
