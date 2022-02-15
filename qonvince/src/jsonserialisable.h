@@ -17,33 +17,24 @@
  * along with Qonvince. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef QONVINCE_ABOUTDIALOGUE_H
-#define QONVINCE_ABOUTDIALOGUE_H
+#ifndef QONVINCE_JSONSERIALISABLE_H
+#define QONVINCE_JSONSERIALISABLE_H
 
-#include <memory>
-
-#include <QtWidgets/QDialog>
+#include <nlohmann/json.hpp>
 
 namespace Qonvince
 {
-	namespace Ui
-	{
-		class AboutDialogue;
-	}
+    using nlohmann::json;
 
-	class AboutDialogue
-	: public QDialog
-	{
-		// Currently only necessary if signals/slots/properties are defined
-		// Q_OBJECT
+    /**
+     * Interface for classes that can be serialised to JSON.
+     */
+    class JsonSerialisable
+    {
+    public:
+        virtual json toJson() const = 0;
+        virtual std::string toJsonString() const = 0;
+    };
+}
 
-	public:
-		explicit AboutDialogue(QWidget * = nullptr) noexcept;
-		~AboutDialogue() override;
-
-	private:
-		std::unique_ptr<Ui::AboutDialogue> m_ui;
-	};
-}	// namespace Qonvince
-
-#endif  // QONVINCE_ABOUTDIALOGUE_H
+#endif // QONVINCE_JSONSERIALISABLE_H

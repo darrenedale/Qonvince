@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 - 2020 Darren Edale
+ * Copyright 2015 - 2022 Darren Edale
  *
  * This file is part of Qonvince.
  *
@@ -44,10 +44,17 @@ namespace Qonvince
 
         OtpListModel();
 
-        [[nodiscard]] QVariant headerData(int section, Qt::Orientation orientation, int role) const override;
-        [[nodiscard]] QVariant data(const QModelIndex & idx, int role) const override;
-        [[nodiscard]] int rowCount(const QModelIndex & parent) const override;
-    };
+		[[nodiscard]] QVariant headerData(int section, Qt::Orientation orientation, int role) const override;
+		[[nodiscard]] QVariant data(const QModelIndex & idx, int role) const override;
+		[[nodiscard]] int rowCount(const QModelIndex & parent) const override;
+		[[nodiscard]] Qt::DropActions supportedDropActions() const override;
+		[[nodiscard]] Qt::ItemFlags flags(const QModelIndex & idx) const override;
+		[[nodiscard]] QStringList mimeTypes() const override;
+		[[nodiscard]] QMimeData * mimeData(const QModelIndexList & idx) const override;
+		[[nodiscard]] bool canDropMimeData(const QMimeData * data, Qt::DropAction action, int row, int col, const QModelIndex & parent) const override;
+		bool dropMimeData(const QMimeData * data, Qt::DropAction action, int row, int column, const QModelIndex & parent) override;
+	};
+
 }  // namespace Qonvince
 
 #endif  // QONVINCE_OTPLISTMODEL_H

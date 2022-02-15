@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 - 2020 Darren Edale
+ * Copyright 2015 - 2022 Darren Edale
  *
  * This file is part of Qonvince.
  *
@@ -29,6 +29,7 @@
 #include <cmath>
 #include <utility>
 #include <random>
+#include <memory>
 #include <QStringBuilder>
 #include <QFile>
 #include <QDateTime>
@@ -41,9 +42,13 @@
 #include "application.h"
 #include "otpdisplayplugin.h"
 #include "qtiostream.h"
+#include "securestring.h"
 
 namespace Qonvince
 {
+    using nlohmann::json;
+    using LibQonvince::SecureString;
+    
     namespace
     {
         constexpr const int InitializationVectorSize = 16;
@@ -364,6 +369,7 @@ namespace Qonvince
         }
 
         ret->setRevealOnDemand(settings.value(QStringLiteral("revealOnDemand"), false).toBool());
+
         return ret;
     }
 
@@ -404,7 +410,84 @@ namespace Qonvince
 
         settings.setValue(QStringLiteral("revealOnDemand"), revealCodeOnDemand());
     }
-
+    
+    std::unique_ptr<Otp> Otp::fromJson(const json & otpJson)
+    {
+        auto ret = std::make_unique<Otp>("HOTP" == otpJson["type"] ? OtpType::Hotp : OtpType::Totp);
+        ret->setName(QString::fromStdString(otpJson["name"]));
+        ret->setIssuer(QString::fromStdString(otpJson["issuer"]));
+        ret->setDisplayPluginName(QString::fromStdString(otpJson["pluginName"]));
+        
+        {
+            const auto fileName = QString::fromStdString(otpJson["icon"]);
+            
+            if (!fileName.isEmpty()) {
+                auto path = QStandardPaths::locate(QStandardPaths::AppLocalDataLocation, QStringLiteral("codes/icons/") % fileName);
+                
+                if (path.isEmpty()) {
+                    std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: icon file \"" << qPrintable(fileName) << "\" for code " << qPrintable(ret->issuer())
+                    << ":" << qPrintable(ret->name()) << " not found\n";
+                } else {
+                    QIcon ic(path);
+                    
+                    if (ic.isNull()) {
+                        std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: failed loading icon \"" << qPrintable(fileName) << "\" for code"
+                        << qPrintable(ret->issuer()) << ":" << qPrintable(ret->name()) << "\n";
+                    } else {
+                        ret->m_iconFileName = fileName;
+                        ret->setIcon(ic);
+                    }
+                }
+            }
+        }
+        
+        ret->setSeed(QByteArray::fromStdString(otpJson["seed"]), SeedType::Base32);
+        
+        if (OtpType::Hotp == ret->type()) {
+            ret->setCounter(static_cast<uint64_t>(otpJson["counter"]));
+        } else {
+            ret->setInterval(otpJson["interval"]);
+            ret->setBaselineTime(otpJson["baseline_time"]);
+        }
+        
+        ret->setRevealOnDemand(otpJson["revealOnDemand"]);
+        return ret;
+    }
+    
+    std::unique_ptr<Otp> Otp::fromJsonString(const std::string & jsonStr)
+    {
+        try {
+            return fromJson(json::parse(jsonStr));
+        } catch (const json::parse_error & err) {
+            std::cerr << "Exception parsing JSON seriailisation of OTP: " << err.what() << " at byte " << err.byte << "\n"
+            << jsonStr << "\n" << std::flush;
+            return nullptr;
+        }
+    }
+    
+    json Otp::toJson() const
+    {
+        json ret = {
+            {"name", name().toStdString() },
+            {"issuer", issuer().toStdString() },
+            {"pluginName", displayPluginName().toStdString() },
+            {"icon", m_iconFileName.toStdString() },
+            {"seed", SecureString(seed(SeedType::Base32).toStdString()) },
+            {"revealOnDemand", revealCodeOnDemand()},
+        };
+                
+        if (OtpType::Hotp == type()) {
+            ret["type"] = "HOTP";
+            ret["counter"] = counter();
+        } else {
+            ret["type"] = "TOTP";
+            ret["interval"] = interval();
+            ret["baseline_time"] = baselineSecSinceEpoch();
+        }
+        
+        return ret;
+    }
+    
     void Otp::timerEvent(QTimerEvent * ev)
     {
         if (ev->timerId() == m_refreshTimer->timerId()) {

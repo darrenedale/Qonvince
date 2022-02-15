@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 - 2020 Darren Edale
+ * Copyright 2015 - 2022 Darren Edale
  *
  * This file is part of Qonvince.
  *
@@ -114,7 +114,7 @@ namespace Qonvince
         QPen itemPen = painter->pen();
         QBrush backgroundBrush = option.palette.base();
 
-        if (option.state & QStyle::State_MouseOver) {
+        if (option.state & (QStyle::State_Selected | QStyle::State_MouseOver)) {
             backgroundBrush = option.palette.highlight();
             itemPen.setColor(option.palette.highlightedText().color());
         } else if (0 != (index.row() % 2)) {

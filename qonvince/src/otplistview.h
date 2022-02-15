@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 - 2020 Darren Edale
+ * Copyright 2015 - 2022 Darren Edale
  *
  * This file is part of Qonvince.
  *
@@ -104,11 +104,11 @@ namespace Qonvince
         void paintEvent(QPaintEvent * event) override;
         void contextMenuEvent(QContextMenuEvent * event) override;
         void keyReleaseEvent(QKeyEvent * event) override;
+        void dropEvent(QDropEvent * ev) override;
 
         // this is not a Qt event method, it's one we've synthesised by
         // filtering out cases where the click is part of a double-click
         virtual void mouseClickEvent(QMouseEvent * event);
-
         void synchroniseTickTimer();
 
     private Q_SLOTS:
