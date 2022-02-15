@@ -12,7 +12,7 @@ pkgurl=https://bitcraft.eu
 pkgdesc=
 pkgrel=1
 arch=$(uname -m)
-pkgver=1.8.0
+pkgver=$(cat $(realpath $(dirname "$0"))./version.txt)
 pkgdepends=
 pkgmakedepends=
 
