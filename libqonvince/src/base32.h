@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 - 2020 Darren Edale
+ * Copyright 2015 - 2022 Darren Edale
  *
  * This file is part of Qonvince.
  *
@@ -28,6 +28,7 @@
 #include <array>
 #include <algorithm>
 #include <iostream>
+#include "securestring.h"
 
 namespace LibQonvince
 {
@@ -45,7 +46,7 @@ namespace LibQonvince
 	 * @tparam ByteT Type of bytes that are encoded/decoded. It must be possible to implicitly cast between the
 	 * element type in ByteArrayT and this type. Defaults to ByteArrayT::value_type.
 	 */
-	template<class ByteArrayT = std::basic_string<char>, typename ByteT = typename ByteArrayT::value_type>
+	template<class ByteArrayT = SecureString, typename ByteT = typename ByteArrayT::value_type>
 	class Base32 final
 	{
 	public:
