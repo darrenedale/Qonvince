@@ -1,13 +1,15 @@
 build/
 cmake-build*
+kdevelop-build*
 dist/*.deb
 dist/*.dmg
 dist/*.zip
 dist/installer/packages
-dist/pacman/*.tar.xz
+dist/pacman/**/*
 dist/win-mingw-32bit
 *.pro.user
 *.pro.user.*
 *.deb
 *.dmg
 *.exe
+*.kdev4
