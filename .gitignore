@@ -7,8 +7,6 @@ dist/*.zip
 dist/installer/packages
 dist/pacman/**/*
 dist/win-mingw-32bit
-*.pro.user
-*.pro.user.*
 *.deb
 *.dmg
 *.exe

@@ -2,8 +2,8 @@
 
 # build zip file for standalone (i.e. no installer) qonvince on
 # windows
-
-VERSION=
+BASEDIR=$(dirname "$(readlink -f "$0")")
+VERSION=$(cat version.txt)
 PLATFORM=mingw
 ARCH=32
 TMPDIR=/tmp
@@ -30,7 +30,7 @@ function usage() {
 	echo >&2 "<version>      is the version of the program. This is used only to include in"
 	echo >&2 "               the name of the created zip file. It can be anything you want, but"
 	echo >&2 "               make sure it's suitable for use in a file name. If this argument"
-	echo >&2 "               is absent, no version will be used in the filename."
+	echo >&2 "               is absent, the content of version.txt will be used."
 }
 
 
@@ -80,9 +80,8 @@ zip >/dev/null 2>&1 -r "${DEST}.zip" ${DEST}/*
 if [ 0 -ne $? ]; then
 	cd "${CWD}"
 	echo >&2 "failed to create zip file."
-	removeTempDir
 
-	if [ 0 -ne $? ]; then
+	if [! removeTempDir ]; then
 		echo >&2 "warning: temporary directory for zip file contents (${TMPDIR}/${DEST}) could not be removed."
 	fi
 
@@ -98,9 +97,7 @@ if [ 0 -ne $? ]; then
 	RET=5
 fi
 
-removeTempDir
-
-if [ 0 -ne $RET ]; then
+if [ !removeTempDir ]; then
 	echo >&2 "warning: temporary directory for zip file contents (${TMPDIR}/${DEST}) could not be removed."
 fi
 
