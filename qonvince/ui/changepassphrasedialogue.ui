@@ -19,9 +19,9 @@
   <property name="windowTitle">
    <string>Change passphrase</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout_3">
+  <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,1">
+    <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
       <layout class="QVBoxLayout" name="iconLayout">
        <item>
@@ -74,38 +74,36 @@
       </layout>
      </item>
      <item>
-      <layout class="QVBoxLayout" name="widgetLayout">
-       <item>
-        <widget class="QLabel" name="message">
+      <layout class="QGridLayout" name="passphraseLayout">
+       <item row="2" column="0">
+        <widget class="QLabel" name="currentPassphraseLabel">
          <property name="text">
-          <string/>
-         </property>
-         <property name="wordWrap">
-          <bool>true</bool>
+          <string>New Passphrase</string>
          </property>
         </widget>
        </item>
-       <item>
-        <widget class="Qonvince::PasswordWidget" name="currentPassphraseWidget" native="true">
-         <property name="minimumSize">
-          <size>
-           <width>0</width>
-           <height>0</height>
-          </size>
+       <item row="1" column="0">
+        <widget class="QLabel" name="newPassphraseLabel">
+         <property name="text">
+          <string>Current Passphrase</string>
          </property>
         </widget>
        </item>
-       <item>
-        <widget class="Qonvince::PasswordWidget" name="newPassphraseWidget" native="true">
-         <property name="minimumSize">
-          <size>
-           <width>0</width>
-           <height>0</height>
-          </size>
+       <item row="2" column="1">
+        <widget class="QLineEdit" name="newPassphrase">
+         <property name="echoMode">
+          <enum>QLineEdit::Password</enum>
          </property>
         </widget>
        </item>
-       <item>
+       <item row="1" column="1">
+        <widget class="QLineEdit" name="currentPassphrase">
+         <property name="echoMode">
+          <enum>QLineEdit::Password</enum>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="0">
         <spacer name="widgetLayoutSpaceer">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
@@ -117,6 +115,16 @@
           </size>
          </property>
         </spacer>
+       </item>
+       <item row="0" column="0" colspan="2">
+        <widget class="QLabel" name="message">
+         <property name="text">
+          <string/>
+         </property>
+         <property name="wordWrap">
+          <bool>true</bool>
+         </property>
+        </widget>
        </item>
       </layout>
      </item>
@@ -134,14 +142,6 @@
    </item>
   </layout>
  </widget>
- <customwidgets>
-  <customwidget>
-   <class>Qonvince::PasswordWidget</class>
-   <extends>QWidget</extends>
-   <header>src/passwordwidget.h</header>
-   <container>1</container>
-  </customwidget>
- </customwidgets>
  <resources>
   <include location="../resources/icons.qrc"/>
  </resources>

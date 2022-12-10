@@ -38,12 +38,10 @@ namespace Qonvince
               m_ui{std::make_unique<Ui::ChangePassphraseDialogue>()}
     {
         m_ui->setupUi(this);
-        m_ui->currentPassphraseWidget->setLabel(tr("Current passphrase"));
-        m_ui->newPassphraseWidget->setLabel(tr("New passphrase"));
         setMessage(msg);
         setMessageVisible(!msg.isEmpty());
-        connect(m_ui->newPassphraseWidget, &PasswordWidget::passwordChanged, this, &ChangePassphraseDialogue::newPassphraseChanged);
-        connect(m_ui->currentPassphraseWidget, &PasswordWidget::passwordChanged, this, &ChangePassphraseDialogue::currentPassphraseChanged);
+        connect(m_ui->newPassphrase, &QLineEdit::textEdited, this, &ChangePassphraseDialogue::newPassphraseChanged);
+        connect(m_ui->currentPassphrase, &QLineEdit::textEdited, this, &ChangePassphraseDialogue::currentPassphraseChanged);
         adjustSize();
     }
 
@@ -61,26 +59,26 @@ namespace Qonvince
 
     QString ChangePassphraseDialogue::currentPassphrase() const
     {
-        return m_ui->currentPassphraseWidget->password();
+        return m_ui->currentPassphrase->text();
     }
 
     QString ChangePassphraseDialogue::newPassphrase() const
     {
-        return m_ui->newPassphraseWidget->password();
+        return m_ui->newPassphrase->text();
     }
 
     void ChangePassphraseDialogue::setCurrentPassphrase(const QString & passphrase)
     {
-        if (passphrase != m_ui->currentPassphraseWidget->password()) {
-            m_ui->currentPassphraseWidget->setPassword(passphrase);
+        if (passphrase != m_ui->currentPassphrase->text()) {
+            m_ui->currentPassphrase->setText(passphrase);
             Q_EMIT currentPassphraseChanged(passphrase);
         }
     }
 
     void ChangePassphraseDialogue::setNewPassphrase(const QString & passphrase)
     {
-        if (passphrase != m_ui->newPassphraseWidget->password()) {
-            m_ui->newPassphraseWidget->setPassword(passphrase);
+        if (passphrase != m_ui->newPassphrase->text()) {
+            m_ui->newPassphrase->setText(passphrase);
             Q_EMIT newPassphraseChanged(passphrase);
         }
     }
