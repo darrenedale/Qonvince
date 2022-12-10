@@ -22,12 +22,14 @@ namespace Qonvince
         ~PasswordWidget() override;
 
         [[nodiscard]] QString password() const;
+        [[nodiscard]] QString label() const;
 
     Q_SIGNALS:
         void passwordChanged(const QString & pwd);
 
     public Q_SLOTS:
         void setPassword(const QString & pwd);
+        void setLabel(const QString & label);
 
     private:
         std::unique_ptr<Ui::PasswordWidget> m_ui;

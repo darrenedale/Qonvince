@@ -45,8 +45,19 @@ namespace Qonvince
         return m_ui->password->text();
     }
 
+    QString PasswordWidget::label() const
+    {
+        return m_ui->label->text();
+    }
+
     void PasswordWidget::setPassword(const QString & pw)
     {
         m_ui->password->setText(pw);
     }
+
+    void PasswordWidget::setLabel(const QString & label)
+	{
+        m_ui->label->setText(label);
+	}
+
 }  // namespace Qonvince
