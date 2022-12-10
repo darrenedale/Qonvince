@@ -21,55 +21,55 @@
   * \author Darren Edale
   * \date December 2017
   *
-  * \brief Implementation of the PasswordDialogue class.
+  * \brief Implementation of the PassphraseDialogue class.
   */
-#include "src/passworddialogue.h"
-#include "ui_passworddialogue.h"
+#include "src/passphrasedialogue.h"
+#include "ui_passphrasedialogue.h"
 
 namespace Qonvince
 {
-    PasswordDialogue::PasswordDialogue(QWidget * parent)
-            : PasswordDialogue({}, parent)
+    PassphraseDialogue::PassphraseDialogue(QWidget * parent)
+            : PassphraseDialogue({}, parent)
     {
     }
 
-    PasswordDialogue::PasswordDialogue(const QString & msg, QWidget * parent)
+    PassphraseDialogue::PassphraseDialogue(const QString & msg, QWidget * parent)
             : QDialog(parent),
-              m_ui{std::make_unique<Ui::PasswordDialogue>()}
+              m_ui{std::make_unique<Ui::PassphraseDialogue>()}
     {
         m_ui->setupUi(this);
         setMessage(msg);
         setMessageVisible(!msg.isEmpty());
-        connect(m_ui->password, &QLineEdit::textEdited, this, &PasswordDialogue::passwordChanged);
+        connect(m_ui->passphrase, &QLineEdit::textEdited, this, &PassphraseDialogue::passphraseChanged);
         adjustSize();
     }
 
-    PasswordDialogue::~PasswordDialogue() = default;
+    PassphraseDialogue::~PassphraseDialogue() = default;
 
-    QString PasswordDialogue::message() const
+    QString PassphraseDialogue::message() const
     {
         return m_ui->message->text();
     }
 
-    void PasswordDialogue::setMessage(const QString & msg)
+    void PassphraseDialogue::setMessage(const QString & msg)
     {
         m_ui->message->setText(msg);
     }
 
-    QString PasswordDialogue::password() const
+    QString PassphraseDialogue::passphrase() const
     {
-        return m_ui->password->text();
+        return m_ui->passphrase->text();
     }
 
-    void PasswordDialogue::setPassword(const QString & password)
+    void PassphraseDialogue::setPassphrase(const QString & passphrase)
     {
-        if (password != m_ui->password->text()) {
-            m_ui->password->setText(password);
-            Q_EMIT passwordChanged(password);
+        if (passphrase != m_ui->passphrase->text()) {
+            m_ui->passphrase->setText(passphrase);
+            Q_EMIT passphraseChanged(passphrase);
         }
     }
 
-    void PasswordDialogue::setMessageVisible(bool vis)
+    void PassphraseDialogue::setMessageVisible(bool vis)
     {
         m_ui->message->setVisible(vis);
     }

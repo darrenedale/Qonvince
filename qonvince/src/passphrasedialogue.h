@@ -1,5 +1,5 @@
-#ifndef QONVINCE_PASSWORDDIALOGUE_H
-#define QONVINCE_PASSWORDDIALOGUE_H
+#ifndef QONVINCE_PASSPHRASEDIALOGUE_H
+#define QONVINCE_PASSPHRASEDIALOGUE_H
 
 #include <memory>
 
@@ -12,23 +12,23 @@ namespace Qonvince
 {
     namespace Ui
     {
-        class PasswordDialogue;
+        class PassphraseDialogue;
     }
 
-    class PasswordDialogue
+    class PassphraseDialogue
             : public QDialog
     {
     Q_OBJECT
 
     public:
-        explicit PasswordDialogue(QWidget * parent = nullptr);
-        explicit PasswordDialogue(const QString & msg, QWidget * parent = nullptr);
-        ~PasswordDialogue() override;
+        explicit PassphraseDialogue(QWidget * parent = nullptr);
+        explicit PassphraseDialogue(const QString & msg, QWidget * parent = nullptr);
+        ~PassphraseDialogue() override;
 
         [[nodiscard]] QString message() const;
         void setMessage(const QString & msg);
-        [[nodiscard]] QString password() const;
-        void setPassword(const QString & pwd);
+        [[nodiscard]] QString passphrase() const;
+        void setPassphrase(const QString & pwd);
 
     public Q_SLOTS:
         inline void showMessage()
@@ -44,11 +44,11 @@ namespace Qonvince
         void setMessageVisible(bool);
 
     Q_SIGNALS:
-        void passwordChanged(QString);
+        void passphraseChanged(QString);
 
     private:
-        std::unique_ptr<Ui::PasswordDialogue> m_ui;
+        std::unique_ptr<Ui::PassphraseDialogue> m_ui;
     };
 }  // namespace Qonvince
 
-#endif  // QONVINCE_PASSWORDDIALOGUE_H
+#endif  // QONVINCE_PASSPHRASEDIALOGUE_H

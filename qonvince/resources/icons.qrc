@@ -19,8 +19,8 @@
         <file alias="add">icons/mainwindow/list-add.svg</file>
         <file alias="settings">icons/mainwindow/settings.svg</file>
     </qresource>
-    <qresource prefix="/icons/passworddialogue">
-        <file alias="lock">icons/passworddialogue/lock.svg</file>
+    <qresource prefix="/icons/passphrasedialogue">
+        <file alias="lock">icons/passphrasedialogue/lock.svg</file>
     </qresource>
     <qresource prefix="/icons/iconselectbutton">
         <file alias="clear">icons/iconselectbutton/clear.svg</file>

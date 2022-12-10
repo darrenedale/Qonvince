@@ -19,7 +19,7 @@ if(WITH_NETWORK_ACCESS)
 endif(WITH_NETWORK_ACCESS)
 
 add_executable(qonvince
-	src/passworddialogue.cpp
+	src/passphrasedialogue.cpp
 	src/changepassphrasedialogue.cpp
 	src/aboutdialogue.cpp
 	src/application.cpp
