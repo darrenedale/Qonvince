@@ -186,10 +186,10 @@ namespace Qonvince
 		m_clipboardClearTimer.setSingleShot(true);
 
 		setOrganizationName(QStringLiteral("Equit"));
-		setOrganizationDomain(QStringLiteral("equituk.net"));
+		setOrganizationDomain(QStringLiteral("equit.dev"));
 		setApplicationName(QStringLiteral("Qonvince"));
 		setApplicationDisplayName(QStringLiteral("Qonvince"));
-		setApplicationVersion(QStringLiteral("1.10.0"));
+		setApplicationVersion(QStringLiteral("1.11.0"));
 		setQuitOnLastWindowClosed(false);
 		QSettings::setDefaultFormat(QSettings::IniFormat);
 
