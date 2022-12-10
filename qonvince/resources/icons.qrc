@@ -22,6 +22,9 @@
     <qresource prefix="/icons/passphrasedialogue">
         <file alias="lock">icons/passphrasedialogue/lock.svg</file>
     </qresource>
+    <qresource prefix="/icons/changepassphrasedialogue">
+        <file alias="lock">icons/changepassphrasedialogue/lock.svg</file>
+    </qresource>
     <qresource prefix="/icons/iconselectbutton">
         <file alias="clear">icons/iconselectbutton/clear.svg</file>
     </qresource>
