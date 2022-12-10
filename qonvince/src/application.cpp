@@ -807,6 +807,7 @@ namespace Qonvince
 
 		m_cryptPassphrase = passphrase;
 		writeSettings();
+		showNotification(applicationDisplayName(), tr("Your passphrase was changed successfully."));
 	}
 
 	void Application::processCommandLineArguments()
