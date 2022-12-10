@@ -61,6 +61,7 @@
 #endif
 
 #include "mainwindow.h"
+#include "changepassphrasedialogue.h"
 #include "passworddialogue.h"
 #include "settingswidget.h"
 #include "aboutdialogue.h"
@@ -166,6 +167,8 @@ namespace Qonvince
 			QSharedMemory m_sharedMem;
 			QSystemSemaphore m_memLock;
 		};
+
+		static constexpr const int MininumPassphraseLength = 8;
 	}	// namespace
 
 	Application::Application(int & argc, char ** argv)
@@ -246,6 +249,41 @@ namespace Qonvince
 		}
 
 		return ret;
+	}
+
+	bool Application::checkSettingsPassphrase(const QCA::SecureArray & passphrase) const
+	{
+		QSettings settings;
+
+		// read the crypt_check value. if decryption indicates an error, the passphrase
+		// is wrong; if it indicates success the passphrase is right. this determines
+		// whether to continue reading the file or not. if the passphrase not correct,
+		// it won't successfully decrypt the seeds and subsequently when writing the
+		// codes back they will be encrypted with the erroneous passphrase and will
+		// effectively become inaccessible. if the passphrase is correct, or someone
+		// manages to trick this check, the passphrase must still correctly decrypt the
+		// seeds. in other words, bypassing this check does not grant access to seeds
+		if (!settings.contains(QStringLiteral("crypt_check"))) {
+			return false;
+		}
+
+		if (!QCA::isSupported("aes256-cbc")) {
+			return false;
+		}
+
+		QCA::SecureArray value = QCA::hexToArray(settings.value(QStringLiteral("crypt_check")).toString());
+
+		QCA::Cipher cipher(QStringLiteral("aes256"), QCA::Cipher::CBC, QCA::Cipher::DefaultPadding, QCA::Decode,
+									QCA::SymmetricKey(m_cryptPassphrase),
+									QCA::InitializationVector(value.toByteArray().left(16)));
+		cipher.process(value.toByteArray().mid(16));
+
+		return cipher.ok();
+	}
+
+	bool Application::isValidPassphrase(const QCA::SecureArray & passphrase)
+	{
+		return MininumPassphraseLength < passphrase.size();
 	}
 
 	int Application::addOtp(std::unique_ptr<Otp> && otp)
@@ -486,7 +524,7 @@ namespace Qonvince
 				if(pw.isEmpty()) {
 					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: passphrase is empty\n";
 				}
-				else if(8 > pw.size()) {
+				else if(MininumPassphraseLength > pw.size()) {
 					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: passphrase is too short\n";
 				}
 				else {
@@ -604,38 +642,11 @@ namespace Qonvince
 
 	bool Application::readCodeSettings()
 	{
-		QSettings settings;
-
-		// read the crypt_check value. if decryption indicates an error, the passphrase
-		// is wrong; if it indicates success the passphrase is right. this determines
-		// whether to continue reading the file or not. if the passphrase not correct,
-		// it won't successfully decrypt the seeds and subsequently when writing the
-		// codes back they will be encrypted with the erroneous passphrase and will
-		// effectively become inaccessible. if the passphrase is correct, or someone
-		// manages to trick this check, the passphrase must still correctly decrypt the
-		// seeds. in other words, bypassing this check does not grant access to seeds
-		if(settings.contains(QStringLiteral("crypt_check"))) {
-			if(!QCA::isSupported("aes256-cbc")) {
-				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: AES256 is not supported\n";
-				showNotification(
-				  tr("AES256 encryption is required to keep your OTP seeds safe. This encryption algorithm is not available, therefore your settings cannot be read."));
-				return false;
-			}
-
-			QCA::SecureArray value = QCA::hexToArray(settings.value(QStringLiteral("crypt_check")).toString());
-
-			QCA::Cipher cipher(QStringLiteral("aes256"), QCA::Cipher::CBC, QCA::Cipher::DefaultPadding, QCA::Decode,
-									 QCA::SymmetricKey(m_cryptPassphrase),
-									 QCA::InitializationVector(value.toByteArray().left(16)));
-			cipher.process(value.toByteArray().mid(16));
-
-			if(!cipher.ok()) {
-				std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__
-							 << "]: decryption failure - incorrect passphrase\n";
-				return false;
-			}
+		if (!checkSettingsPassphrase(m_cryptPassphrase)) {
+			return false;
 		}
 
+		QSettings settings;
 		m_otpList.clear();
 
 		settings.beginGroup(QStringLiteral("codes"));
@@ -771,6 +782,33 @@ namespace Qonvince
 		settingsWidget.raise();
 	}
 
+	void Application::showChangePassphraseWidget()
+	{
+		ChangePassphraseDialogue passphraseDialogue;
+
+		auto result = passphraseDialogue.exec();
+
+		if (QDialog::Accepted != result) {
+			showNotification(applicationDisplayName(), tr("Your passphrase has not been changed."));
+			return;
+		}
+
+		if (!checkSettingsPassphrase(passphraseDialogue.currentPassphrase().toUtf8())) {
+			showNotification(applicationDisplayName(), tr("The current passphrase entered was not correct. Your passphrase has not been changed."));
+			return;
+		}
+
+		const QCA::SecureArray passphrase = passphraseDialogue.newPassphrase().toUtf8();
+
+		if (!isValidPassphrase(passphrase)) {
+			showNotification(applicationDisplayName(), tr("The new passphrase isn't strong enough."));
+			return;
+		}
+
+		m_cryptPassphrase = passphrase;
+		writeSettings();
+	}
+
 	void Application::processCommandLineArguments()
 	{
 		const QStringList args = arguments();
@@ -817,21 +855,34 @@ namespace Qonvince
 
 		m_trayIconMenu.addAction(tr("Show main window"), &m_mainWindow, &MainWindow::show);
 		m_trayIconMenu.addAction(
-		  QIcon::fromTheme(QStringLiteral("system-settings"), QIcon(QStringLiteral(":/icons/app/settings"))),
-		  tr("Settings..."), this, &Application::showSettingsWidget);
+			QIcon::fromTheme(QStringLiteral("system-settings"), QIcon(QStringLiteral(":/icons/app/settings"))),
+			tr("Settings..."),
+			this,
+			&Application::showSettingsWidget
+		);
+
+		m_trayIconMenu.addAction(
+			QIcon::fromTheme(QStringLiteral("lock"), QIcon(QStringLiteral(":/icons/app/lock"))),
+			tr("Change passphrase"),
+			this,
+			&Application::showChangePassphraseWidget
+		);
 
 		if(OtpQrCodeReader::isAvailable()) {
 			m_trayIconMenu.addSeparator();
 			m_trayIconMenu.addAction(
-			  QIcon::fromTheme(QStringLiteral("image-png"), QIcon(QStringLiteral(":/icons/app/readqrcode"))),
-			  tr("Read a QR code image"), this, &Application::readQrCode);
+			QIcon::fromTheme(QStringLiteral("image-png"), QIcon(QStringLiteral(":/icons/app/readqrcode"))),
+			tr("Read a QR code image"), this, &Application::readQrCode);
 		}
 
 		m_trayIconMenu.addSeparator();
 		m_trayIconMenu.addAction(tr("About %1").arg(applicationDisplayName()), this, &Application::showAboutDialogue);
 		m_trayIconMenu.addAction(
-		  QIcon::fromTheme(QStringLiteral("application-exit"), QIcon(QStringLiteral(":/icons/app/quit"))),
-		  tr("Quit Qonvince"), this, &Application::quit);
+			QIcon::fromTheme(QStringLiteral("application-exit"), QIcon(QStringLiteral(":/icons/app/quit"))),
+			tr("Quit Qonvince"),
+			this,
+			&Application::quit
+		);
 
 		m_trayIcon.setContextMenu(&m_trayIconMenu);
 	}

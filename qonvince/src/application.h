@@ -77,6 +77,13 @@ namespace Qonvince
 			return static_cast<Application *>(QApplication::instance());
 		}
 
+		bool checkSettingsPassphrase(const QCA::SecureArray & passphrase) const;
+
+		/**
+		 * Check whether a passphrase is valid for use (i.e. is it strong enough).
+		 */
+		static bool isValidPassphrase(const QCA::SecureArray & passphrase);
+
 		template<typename ValueType>
 		ValueType referencePxToScreenPx(ValueType px, const QScreen * screen = nullptr)
 		{
@@ -179,6 +186,7 @@ namespace Qonvince
 		void writeSettings();
 		void showAboutDialogue();
 		void showSettingsWidget();
+		void showChangePassphraseWidget();
 		void clearOtpFromClipboard();
 
 	private Q_SLOTS:
