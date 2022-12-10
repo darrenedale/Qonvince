@@ -40,7 +40,7 @@ namespace Qonvince
         m_ui->setupUi(this);
         setMessage(msg);
         setMessageVisible(!msg.isEmpty());
-        connect(m_ui->passwordWidget, &PasswordWidget::passwordChanged, this, &PasswordDialogue::passwordChanged);
+        connect(m_ui->password, &QLineEdit::textEdited, this, &PasswordDialogue::passwordChanged);
         adjustSize();
     }
 
@@ -58,13 +58,13 @@ namespace Qonvince
 
     QString PasswordDialogue::password() const
     {
-        return m_ui->passwordWidget->password();
+        return m_ui->password->text();
     }
 
     void PasswordDialogue::setPassword(const QString & password)
     {
-        if (password != m_ui->passwordWidget->password()) {
-            m_ui->passwordWidget->setPassword(password);
+        if (password != m_ui->password->text()) {
+            m_ui->password->setText(password);
             Q_EMIT passwordChanged(password);
         }
     }
