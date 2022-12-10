@@ -62,7 +62,7 @@
 
 #include "mainwindow.h"
 #include "changepassphrasedialogue.h"
-#include "passworddialogue.h"
+#include "passphrasedialogue.h"
 #include "settingswidget.h"
 #include "aboutdialogue.h"
 #include "otplistview.h"
@@ -511,7 +511,7 @@ namespace Qonvince
 
 		// TODO if settings file does not exist, ask user for passphrase to create a new one
 		{
-			PasswordDialogue dlg(tr("Enter the passphrase used to encrypt your settings."));
+			PassphraseDialogue dlg(tr("Enter the passphrase used to encrypt your settings."));
 
 			while(true) {
 				if(QDialog::Accepted != dlg.exec()) {
@@ -519,16 +519,16 @@ namespace Qonvince
 					return 0;
 				}
 
-				QCA::SecureArray pw = dlg.password().toUtf8();
+				QCA::SecureArray passphrase = dlg.passphrase().toUtf8();
 
-				if(pw.isEmpty()) {
+				if(passphrase.isEmpty()) {
 					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: passphrase is empty\n";
 				}
-				else if(MininumPassphraseLength > pw.size()) {
+				else if(MininumPassphraseLength > passphrase.size()) {
 					std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: passphrase is too short\n";
 				}
 				else {
-					qonvinceApp->m_cryptPassphrase = pw;
+					qonvinceApp->m_cryptPassphrase = passphrase;
 
 					if(app->readCodeSettings()) {
 						// if reading succeeds, passphrase was correct, so
