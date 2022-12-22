@@ -1,6 +1,5 @@
-build/
-cmake-build*
-kdevelop-build*
+.idea/**
+*build*
 dist/*.deb
 dist/*.dmg
 dist/*.zip
