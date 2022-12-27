@@ -69,6 +69,7 @@
 #include "otp.h"
 #include "otpqrcodereader.h"
 #include "pluginfactory.h"
+#include "qtiostream.h"
 
 namespace Qonvince
 {
@@ -181,7 +182,7 @@ namespace Qonvince
 	  m_notificationsInterface(QStringLiteral("org.freedesktop.Notifications"),
 										QStringLiteral("/org/freedesktop/Notifications"),
 										QStringLiteral("org.freedesktop.Notifications")),
-	  m_displayPluginFactory(QStringLiteral(".displayplugin"))
+	  m_displayPluginFactory(".displayplugin")
 	{
 		m_clipboardClearTimer.setSingleShot(true);
 
@@ -189,7 +190,7 @@ namespace Qonvince
 		setOrganizationDomain(QStringLiteral("equit.dev"));
 		setApplicationName(QStringLiteral("Qonvince"));
 		setApplicationDisplayName(QStringLiteral("Qonvince"));
-		setApplicationVersion(QStringLiteral("1.11.0"));
+		setApplicationVersion(QStringLiteral("1.11.1"));
 		setQuitOnLastWindowClosed(false);
 		QSettings::setDefaultFormat(QSettings::IniFormat);
 
@@ -430,7 +431,7 @@ namespace Qonvince
 		}
 
 		m_clipboardContent = otp->code();
-		clipboard()->setText(m_clipboardContent);
+		clipboard()->setText(QString::fromUtf8(m_clipboardContent.data(), static_cast<int>(m_clipboardContent.size())));
 
 		if(settings().clearClipboardAfterInterval() && 0 < settings().clipboardClearInterval()) {
 			m_clipboardClearTimer.start(1000 * settings().clipboardClearInterval());
@@ -767,10 +768,10 @@ namespace Qonvince
 	{
 		auto * clip = clipboard();
 
-		if(!m_clipboardContent.isEmpty() && m_clipboardContent == clip->text()) {
+		if(!m_clipboardContent.empty() && m_clipboardContent == clip->text().toUtf8().constData()) {
 			clip->clear();
 			// clear() doesn't actually clear the content sometimes (KDE5, Manjaro, Qt5.11)
-			clip->setText(QStringLiteral());
+			clip->setText(QLatin1String());
 		}
 	}
 
@@ -814,7 +815,7 @@ namespace Qonvince
 	{
 		const QStringList args = arguments();
 
-		for(int idx = 1, argCount = args.size(); idx < argCount; ++idx) {
+		for (int idx = 1, argCount = args.size(); idx < argCount; ++idx) {
 			const QString & arg = args[idx];
 
 			if("--plugin-path" == arg) {
@@ -825,7 +826,7 @@ namespace Qonvince
 					break;
 				}
 
-				m_displayPluginFactory.addSearchPath(args[idx]);
+				m_displayPluginFactory.addSearchPath(args[idx].toStdString());
 				break;
 			}
 		}
@@ -836,15 +837,15 @@ namespace Qonvince
 		// set the search paths for the display plugin factory
 		const auto locations = QStandardPaths::standardLocations(QStandardPaths::AppDataLocation);
 
-		for(const auto & pathRoot : locations) {
-			m_displayPluginFactory.addSearchPath(pathRoot + QStringLiteral("/plugins/otpdisplay"));
+		for (const auto & pathRoot : locations) {
+			m_displayPluginFactory.addSearchPath(pathRoot.toStdString() + "/plugins/otpdisplay");
 		}
 
 #ifndef NDEBUG
 		// search in the build dir
-		m_displayPluginFactory.addSearchPath(QStringLiteral("../plugins/otpdisplay/integer/sixdigits"));
-		m_displayPluginFactory.addSearchPath(QStringLiteral("../plugins/otpdisplay/integer/eightdigits"));
-		m_displayPluginFactory.addSearchPath(QStringLiteral("../plugins/otpdisplay/steam"));
+		m_displayPluginFactory.addSearchPath("../plugins/otpdisplay/integer/sixdigits");
+		m_displayPluginFactory.addSearchPath("../plugins/otpdisplay/integer/eightdigits");
+		m_displayPluginFactory.addSearchPath("../plugins/otpdisplay/steam");
 #endif
 
 		m_displayPluginFactory.loadAllPlugins();
@@ -869,7 +870,7 @@ namespace Qonvince
 			&Application::showChangePassphraseWidget
 		);
 
-		if(OtpQrCodeReader::isAvailable()) {
+		if (OtpQrCodeReader::isAvailable()) {
 			m_trayIconMenu.addSeparator();
 			m_trayIconMenu.addAction(
 			QIcon::fromTheme(QStringLiteral("image-png"), QIcon(QStringLiteral(":/icons/app/readqrcode"))),

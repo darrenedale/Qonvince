@@ -192,7 +192,7 @@ namespace Qonvince
         return m_seed.plain();
     }
 
-    const QString & Otp::code()
+    const SecureString & Otp::code()
     {
         return m_currentCode;
     }
@@ -512,7 +512,7 @@ namespace Qonvince
             return;
         }
 
-        QByteArray mySeed(seed());
+        SecureString mySeed = seed().constData();
 
         if (0 == mySeed.length()) {
             std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: no seed\n";
@@ -520,24 +520,22 @@ namespace Qonvince
             return;
         }
 
-        QString code;
-
         if (OtpType::Hotp == m_type) {
             m_currentCode = plugin->codeDisplayString(hotp(mySeed, counter()));
-            Q_EMIT newCodeGenerated(m_currentCode);
+            Q_EMIT newCodeGenerated(QString::fromUtf8(m_currentCode.data(), static_cast<int>(m_currentCode.size())));
         } else {
-            int duration = interval();
+            auto codeInterval = interval();
 
-            if (0 == duration) {
-                duration = 30;
+            if (0 == codeInterval) {
+					 codeInterval = 30;
             }
 
-            code = plugin->codeDisplayString(totp(mySeed, baselineSecSinceEpoch(), duration));
+            auto code = plugin->codeDisplayString(totp(mySeed, baselineSecSinceEpoch(), codeInterval));
 
-            if (!code.isEmpty()) {
+            if (!code.empty()) {
                 if (m_currentCode != code) {
                     m_currentCode = code;
-                    Q_EMIT newCodeGenerated(m_currentCode);
+						  Q_EMIT newCodeGenerated(QString::fromUtf8(m_currentCode.data(), static_cast<int>(m_currentCode.size())));
                 }
             } else {
                 std::cerr << __PRETTY_FUNCTION__ << " [" << __LINE__ << "]: failed to generate new OTP\n";
@@ -570,12 +568,12 @@ namespace Qonvince
         }
     }
 
-    QByteArray Otp::totp(const QByteArray & seed, time_t base, int interval)
+	 SecureString Otp::totp(const SecureString & seed, time_t base, int interval)
     {
         return hotp(seed, static_cast<uint64_t>(std::floor((QDateTime::currentDateTimeUtc().toTime_t() - base) / interval)));
     }
 
-    QByteArray Otp::hotp(const QByteArray & seed, uint64_t counter)
+    SecureString Otp::hotp(const SecureString & seed, uint64_t counter)
     {
         counter = qToBigEndian(static_cast<quint64>(counter));
         auto * counterBytes = reinterpret_cast<char *>(&counter);
@@ -583,15 +581,15 @@ namespace Qonvince
     }
 
     // hmac() is a candidate for optimisation - it is the most-called in-app fn
-    QByteArray Otp::hmac(const QByteArray & key, const QByteArray & message)
+	 SecureString Otp::hmac(const SecureString & key, const QByteArray & message)
     {
         // algorithm from wikipedia
         static constexpr const int blockSize = 64;
-        QByteArray myKey = key;
+        auto myKey = key;
         auto keySize = myKey.size();
 
         if (keySize > blockSize) {
-            myKey = QCryptographicHash::hash(myKey, QCryptographicHash::Sha1);
+            myKey = QCryptographicHash::hash(myKey.data(), QCryptographicHash::Sha1).constData();
             keySize = myKey.size();
         }
 
@@ -607,6 +605,6 @@ namespace Qonvince
             i_key_pad[i] = static_cast<QByteArray::value_type >(i_key_pad[i] ^ myKey[i]);
         }
 
-        return QCryptographicHash::hash(o_key_pad + QCryptographicHash::hash(i_key_pad + message, QCryptographicHash::Sha1), QCryptographicHash::Sha1);
+        return QCryptographicHash::hash(o_key_pad + QCryptographicHash::hash(i_key_pad + message, QCryptographicHash::Sha1), QCryptographicHash::Sha1).constData();
     }
 }    // namespace Qonvince

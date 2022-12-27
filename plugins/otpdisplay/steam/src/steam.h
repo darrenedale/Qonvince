@@ -2,6 +2,9 @@
 #define QONVINCE_OTPDISPLAYPLUGIN_STEAM_H
 
 #include "otpdisplayplugin.h"
+#include "securestring.h"
+
+using LibQonvince::SecureString;
 
 class SteamOtpDisplayPlugin
         : public LibQonvince::OtpDisplayPlugin
@@ -9,7 +12,7 @@ class SteamOtpDisplayPlugin
 public:
 LIBQONVINCE_OTPDISPLAYPLUGIN
 
-    QString codeDisplayString(const QByteArray & hmac) const override;
+	SecureString codeDisplayString(const SecureString & hmac) const override;
 };
 
 #endif  // QONVINCE_OTPDISPLAYPLUGIN_STEAM_H

@@ -1,8 +1,8 @@
 BasedOnStyle: LLVM
-AccessModifierOffset: -3
+AccessModifierOffset: -4
 #AlignEscapedNewlines: Left
 AlignTrailingComments: true
-IndentWidth: 3
+IndentWidth: 4
 SortIncludes: false
 AllowShortFunctionsOnASingleLine: Empty
 AllowShortIfStatementsOnASingleLine: false
@@ -55,5 +55,5 @@ SpacesInContainerLiterals: false
 SpacesInSquareBrackets: false
 # SpacesInParentheses: true
 Standard: Cpp11
-TabWidth: 3
-UseTab: Always
+TabWidth: 4
+UseTab: Never

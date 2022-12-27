@@ -1,6 +1,9 @@
 #include "steam.h"
 
 #include <array>
+#include "securestring.h"
+
+using LibQonvince::SecureString;
 
 DECLARE_LIBQONVINCE_OTPDISPLAYPLUGIN(SteamOtpDisplayPlugin, "Steam code", "Display the code as a Steam-type 5-character code.", "Darren Edale", "1.0.0")
 
@@ -12,7 +15,7 @@ namespace
 }  // namespace
 
 // heavily influenced by WinAuth's Steam code generator
-QString SteamOtpDisplayPlugin::codeDisplayString(const QByteArray & hmac) const
+SecureString SteamOtpDisplayPlugin::codeDisplayString(const SecureString & hmac) const
 {
     // the last 4 bits of the mac say where the code starts
     // (e.g. if last 4 bit are 1100, we start at byte 12)
@@ -25,10 +28,10 @@ QString SteamOtpDisplayPlugin::codeDisplayString(const QByteArray & hmac) const
     uint32_t fullcode = *(reinterpret_cast<uint32_t *>(&bytes[0])) & 0x7fffffff;
 
     // build the alphanumeric code
-    QString code;
+    SecureString code(CodeDigits, '\0');
 
     for (i = 0; i < CodeDigits; ++i) {
-        code.push_back(QChar{Alphabet[fullcode % Alphabet.size()]});
+        code[i] = Alphabet[fullcode % Alphabet.size()];
         fullcode /= Alphabet.size();
     }
 

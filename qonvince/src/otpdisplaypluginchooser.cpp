@@ -48,11 +48,11 @@ namespace Qonvince
     void OtpDisplayPluginChooser::refreshPlugins()
     {
         auto reblock = blockSignals(true);
-        QString current = currentPluginName();
+        auto current = currentPluginName();
         clear();
 
         for (auto * plugin: qonvinceApp->otpDisplayPlugins()) {
-            QComboBox::addItem(plugin->displayName(), plugin->name());
+            QComboBox::addItem(QString::fromStdString(plugin->displayName()), QString::fromStdString(plugin->name()));
         }
 
         if (!current.isEmpty()) {

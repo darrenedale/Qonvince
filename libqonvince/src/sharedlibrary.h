@@ -38,24 +38,24 @@
 namespace LibQonvince
 {
 
-	class SharedLibrary final
-	{
+    class SharedLibrary final
+    {
 #if defined(_WIN32)
 
-	public:
-		using Symbol = FARPROC;
+    public:
+        using Symbol = FARPROC;
 
-	private:
-		using LibraryHandle = HINSTANCE;
+    private:
+        using LibraryHandle = HINSTANCE;
         static constexpr const LibraryHandle NullLibraryHandle = static_cast<HINSTANCE>(nullptr);
 
 #elif defined(__unix)
 
-	public:
-		using Symbol = void *;
+    public:
+        using Symbol = void *;
 
-	private:
-		using LibraryHandle = void *;
+    private:
+        using LibraryHandle = void *;
         static constexpr const LibraryHandle NullLibraryHandle = nullptr;
 
 #else
@@ -64,30 +64,30 @@ namespace LibQonvince
 
 #endif
 
-	public:
-		explicit SharedLibrary(const std::string & path) noexcept;
-		SharedLibrary(const SharedLibrary & other) = delete;
-		SharedLibrary(SharedLibrary && other) noexcept;
-		void operator=(const SharedLibrary & other) = delete;
-		SharedLibrary & operator=(SharedLibrary && other) noexcept;
-		~SharedLibrary();
+    public:
+        explicit SharedLibrary(const std::string & path) noexcept;
+        SharedLibrary(const SharedLibrary & other) = delete;
+        SharedLibrary(SharedLibrary && other) noexcept;
+        void operator=(const SharedLibrary & other) = delete;
+        SharedLibrary & operator=(SharedLibrary && other) noexcept;
+        ~SharedLibrary();
 
-		[[nodiscard]] inline bool isOpen() const
-		{
-			return NullLibraryHandle != m_lib;
-		}
+        [[nodiscard]] inline bool isOpen() const
+        {
+            return NullLibraryHandle != m_lib;
+        }
 
-		bool open(const std::string & path);
-		bool close();
-		[[nodiscard]] bool hasSymbol(const std::string & sym) const;
-		bool symbol(const std::string & sym, Symbol * receiver) const;
+        bool open(const std::string & path);
+        bool close();
+        [[nodiscard]] bool hasSymbol(const std::string & sym) const;
+        bool symbol(const std::string & sym, Symbol * receiver) const;
 
-		[[nodiscard]] std::string lastError() const;
+        [[nodiscard]] std::string lastError() const;
 
-	private:
-		LibraryHandle m_lib;
-	};
+    private:
+        LibraryHandle m_lib;
+    };
 
-}	// namespace LibQonvince
+}  // namespace LibQonvince
 
 #endif  // LIBQONVINCE_SHAREDLIBRARY_H

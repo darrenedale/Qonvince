@@ -30,6 +30,7 @@
 #include <QtCrypto>
 
 #include "types.h"
+#include "securestring.h"
 #include "base32.h"
 #include "application.h"
 #include "jsonserialisable.h"
@@ -46,6 +47,7 @@ namespace LibQonvince
 namespace Qonvince
 {
 	using Base32 = LibQonvince::Base32<QByteArray, char>;
+	using LibQonvince::SecureString;
 
 	class Otp
 	: public QObject, JsonSerialisable
@@ -145,7 +147,7 @@ namespace Qonvince
 			return d - timeSinceLastCode();
 		}
 
-		const QString & code();
+		const SecureString & code();
 
 		inline const QString & displayPluginName() const
 		{
@@ -272,9 +274,9 @@ namespace Qonvince
 		void internalRefreshCode();
 
 	protected:
-		static QByteArray totp(const QByteArray & seed, time_t base = 0, int interval = 30);
-		static QByteArray hotp(const QByteArray & seed, uint64_t counter);
-		static QByteArray hmac(const QByteArray & key, const QByteArray & message);
+		static SecureString totp(const SecureString & seed, time_t base = 0, int interval = 30);
+		static SecureString hotp(const SecureString & seed, uint64_t counter);
+		static SecureString hmac(const SecureString & key, const QByteArray & message);
 
 	private:
 		QString m_issuer;
@@ -288,7 +290,7 @@ namespace Qonvince
 		QString m_displayPluginName;
 		mutable Base32 m_seed;
 		quint64 m_counter;
-		QString m_currentCode;
+		SecureString m_currentCode;
 		qint64 m_baselineTime;
 		int m_interval;
 		OtpType m_type;

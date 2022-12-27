@@ -42,12 +42,15 @@
 #include "aboutdialogue.h"
 #include "otpdisplayplugin.h"
 #include "pluginfactory.h"
+#include "securestring.h"
 #include "qtstdhash.h"
 
 #define qonvinceApp (Qonvince::Application::qonvince())
 
 namespace Qonvince
 {
+	using LibQonvince::SecureString;
+
 	class Application
 	: public QApplication
 	{
@@ -148,7 +151,7 @@ namespace Qonvince
 
 		inline LibQonvince::OtpDisplayPlugin * otpDisplayPluginByName(const QString & name)
 		{
-			return m_displayPluginFactory.pluginByName(name);
+			return m_displayPluginFactory.pluginByName(name.toStdString());
 		}
 
 		inline std::vector<LibQonvince::OtpDisplayPlugin *> otpDisplayPlugins()
@@ -206,7 +209,7 @@ namespace Qonvince
 		QSystemTrayIcon m_trayIcon;
 		QMenu m_trayIconMenu;
 		QTimer m_clipboardClearTimer;
-		QString m_clipboardContent;
+		SecureString m_clipboardContent;
 		QDBusInterface m_notificationsInterface;
 		QMetaObject::Connection m_quitOnMainWindowClosedConnection;
 		std::vector<std::unique_ptr<Otp>> m_otpList;
