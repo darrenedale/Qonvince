@@ -19,27 +19,40 @@
 #ifndef QONVINCE_OTPDISPLAYPLUGIN_INTEGER_H
 #define QONVINCE_OTPDISPLAYPLUGIN_INTEGER_H
 
+#include <cmath>
 #include "otpdisplayplugin.h"
+#include "securestring.h"
+
+using LibQonvince::SecureString;
 
 template<int Digits>
 class IntegerDisplayPlugin
         : public LibQonvince::OtpDisplayPlugin
 {
-    QString codeDisplayString(const QByteArray & hmac) const override
+	static_assert(0 < Digits, "The number of digits must be > 0");
+
+	SecureString codeDisplayString(const SecureString & hmac) const override
     {
         // calculate offset and read value from 4 bytes at offset
         int offset = static_cast<char>(hmac[19]) & 0xf;
-        auto ret = static_cast<quint32>((hmac[offset] & 0x7f) << 24 | (hmac[offset + 1] & 0xff) << 16 | (hmac[offset + 2] & 0xff) << 8 |
+        auto value = static_cast<uint32_t>((hmac[offset] & 0x7f) << 24 | (hmac[offset + 1] & 0xff) << 16 | (hmac[offset + 2] & 0xff) << 8 |
                                         (hmac[offset + 3] & 0xff));
 
         // convert value to requested number of digits
-        quint32 mod = 1;
+		  value = value % static_cast<int>(pow(10.0, Digits));
 
-        for (int i = 0; i < Digits; ++i) {
-            mod *= 10;
-        }
+        // initialise the returned string to all 0s so we don't need to pad it later
+		  auto ret = SecureString(Digits, '0');
+		  auto pos = Digits - 1;
 
-        return QString::number(ret % mod).rightJustified(Digits, '0');
+		  // insert the digits from the value from right to left
+		  while (0 < value) {
+			  ret[pos] = static_cast<char>('0' + (value % 10));
+			  --pos;
+			  value /= 10;
+		  }
+
+		  return ret;
     }
 };
 
