@@ -62,7 +62,7 @@ namespace Qonvince
                 return {};
             }
 
-            return otp->code();
+            return QString::fromUtf8(otp->code().data(), static_cast<int>(otp->code().size()));
         }
 
         [[nodiscard]] inline int selectedOtpIndex() const

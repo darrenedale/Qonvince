@@ -103,8 +103,10 @@ namespace Qonvince
 			case LabelRole:
 				return otpLabel(otp);
 
-			case CodeRole:
-				return otp->code();
+			case CodeRole: {
+				const auto & code = otp->code();
+				return QString::fromUtf8(code.data(), static_cast<int>(code.size()));
+			}
 
 			case IconRole:
 				return otp->icon();

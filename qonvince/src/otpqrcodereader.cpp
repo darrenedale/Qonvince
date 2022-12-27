@@ -30,6 +30,7 @@
 #include <QRegularExpression>
 
 #include "application.h"
+#include "qtiostream.h"
 
 namespace Qonvince
 {
